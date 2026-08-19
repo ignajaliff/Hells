@@ -2,6 +2,7 @@ import { type Metadata, type Viewport } from 'next'
 import { body, display } from './fonts'
 import { NEGOCIO, SITE_URL } from '@/lib/constants'
 import { getRestaurantSchema } from '@/lib/schema'
+import { PantallaCarga } from '@/components/ui/PantallaCarga'
 import '@/styles/globals.css'
 
 export const metadata: Metadata = {
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(getRestaurantSchema()) }}
         />
+        <PantallaCarga />
         <main>{children}</main>
       </body>
     </html>

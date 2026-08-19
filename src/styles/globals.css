@@ -108,23 +108,74 @@ body {
    ATMÓSFERA — el fondo crea el clima (design-rules.txt §4)
    ============================================================ */
 
-/* Resplandor rojo desde abajo: se apoya detrás del contenido del hero. */
+/* Resplandor rojo desde abajo: se apoya detrás del contenido del hero.
+
+   Sobre fondo oscuro un degradé radial suave produce BANDING: escalones
+   visibles en vez de una transición limpia. Pasa porque el degradé recorre
+   muy pocos valores de rojo y un monitor de 8 bits no tiene tonos
+   intermedios donde interpolar. Dos defensas:
+   1. no ir nunca a `transparent` — en CSS es NEGRO transparente, y al
+      mezclarse ensucia el rojo con gris. Se va al mismo color con alfa 0.
+   2. muchas paradas intermedias: le dan al navegador puntos donde
+      interpolar y los escalones se reparten.
+   Para el resto está `grano-sutil`, que rompe lo que quede. */
 @utility brasa-glow {
   background-image:
     radial-gradient(
-      75% 58% at 50% 104%,
-      hsl(var(--primary) / 0.32) 0%,
-      hsl(var(--primary) / 0.10) 42%,
-      transparent 74%
+      78% 62% at 50% 106%,
+      hsl(var(--primary) / 0.34) 0%,
+      hsl(var(--primary) / 0.27) 16%,
+      hsl(var(--primary) / 0.19) 30%,
+      hsl(var(--primary) / 0.12) 44%,
+      hsl(var(--primary) / 0.06) 58%,
+      hsl(var(--primary) / 0.02) 70%,
+      hsl(var(--primary) / 0) 80%
     ),
     radial-gradient(
-      42% 38% at 12% 92%,
-      hsl(var(--accent) / 0.12) 0%,
-      transparent 70%
+      46% 42% at 12% 94%,
+      hsl(var(--accent) / 0.13) 0%,
+      hsl(var(--accent) / 0.08) 28%,
+      hsl(var(--accent) / 0.04) 48%,
+      hsl(var(--accent) / 0.015) 62%,
+      hsl(var(--accent) / 0) 74%
     );
+}
+
+/* Grano finísimo que rompe el banding de los degradés. Se aplica sobre el
+   elemento que lleva `brasa-glow`. Es el mismo truco que usa el cine para
+   el banding de los cielos: un ruido casi imperceptible da los tonos
+   intermedios que al monitor le faltan. */
+@utility grano-sutil {
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.14;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  }
 }
 
 /* Grano fino: le saca el plano digital al fondo oscuro. */
 @utility textura-grano {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+}
+
+
+/* ============================================================
+   PANTALLA DE CARGA — el logo se dibuja solo
+   (usado por components/ui/PantallaCarga.tsx)
+   ============================================================ */
+
+/* El trazo que recorre el contorno del logo.
+   `stroke-dashoffset` va desde el largo total del path (guión fuera de
+   cuadro, nada visible) hasta 0 (guión cubriendo todo el path). El largo
+   lo pone el componente en línea, medido con `getTotalLength()`: depende
+   del path y hardcodearlo dejaría el trazo cortado o sin cerrar.
+   Es la única propiedad animada y no dispara layout. */
+@keyframes trazar {
+  to {
+    stroke-dashoffset: 0;
+  }
 }

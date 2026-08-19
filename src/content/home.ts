@@ -20,3 +20,15 @@ export const heroContent = {
     alt: 'Hamburguesa de Hell’s Burger',
   },
 } as const
+
+/**
+ * La mascota. Salen del mismo archivo (`diablos.jpg`, los dos stickers sobre
+ * fondo negro), así que comparten contorno, iluminación y encuadre.
+ * Se recortaron con la MISMA caja centrada — ratio 0.882 y 0.887 — así que
+ * se pueden superponer para animar el guiño sin que la cabeza se mueva.
+ * Decorativas siempre: van con alt="".
+ */
+export const diabloContent = {
+  abierto: '/diablo.png',
+  guino: '/diablo-guino.png',
+} as const

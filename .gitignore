@@ -13,3 +13,8 @@ tsconfig.tsbuildinfo
 # Archivos de trabajo/diagnostico
 *.html
 c*.css
+
+# Duplicados: `llamas-04/05.png` son idénticos byte a byte a `llama1/llama2.png`
+# (verificado por md5). El cliente los pasó dos veces con distinto nombre.
+llamas-04.png
+llamas-05.png

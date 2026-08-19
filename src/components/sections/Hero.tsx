@@ -2,6 +2,7 @@ import Image from 'next/image'
 import { heroContent } from '@/content/home'
 import { NEGOCIO, SECCIONES } from '@/lib/constants'
 import { FadeIn } from '@/components/ui/FadeIn'
+import { DiabloHero } from '@/components/ui/DiabloHero'
 
 /**
  * Hero — Server Component.
@@ -60,7 +61,11 @@ export function Hero() {
         />
       </div>
 
-      <FadeIn alEntrarEnPantalla={false} y={12} className="relative z-10">
+      <FadeIn
+        alEntrarEnPantalla={false}
+        y={12}
+        className="relative z-10 flex items-start justify-between gap-4"
+      >
         <Image
           src="/logo.png"
           alt={NEGOCIO.nombre}
@@ -69,6 +74,10 @@ export function Hero() {
           priority
           className="h-auto w-32 sm:w-40"
         />
+
+        {/* La mascota, enfrentada al logo. Solo se ve mientras el hero está
+            en pantalla — de eso se encarga el propio componente. */}
+        <DiabloHero className="w-20 shrink-0 sm:w-28" />
       </FadeIn>
 
       <FadeIn alEntrarEnPantalla={false} delay={0.14} y={28} className="relative z-10">
