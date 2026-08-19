@@ -1,0 +1,132 @@
+# Naming Rules — Web
+
+Convenciones de nombres para todo el proyecto. La IA debe respetar estas reglas sin excepción. Alineadas con el kit de sistemas — solo cambia lo específico de Next.js.
+
+## Archivos y carpetas
+
+| Tipo | Convención | Ejemplo |
+|------|-----------|---------|
+| Componentes React | PascalCase | `PromoCard.tsx` |
+| Secciones | PascalCase | `components/sections/Hero.tsx` |
+| Islas dinámicas | PascalCase | `components/dynamic/WhatsappButton.tsx` |
+| Archivos de ruta (App Router) | los fija Next.js | `page.tsx`, `layout.tsx`, `not-found.tsx`, `sitemap.ts` |
+| Carpetas de ruta | kebab-case (definen la URL) | `app/quienes-somos/page.tsx` |
+| Utilidades y queries | camelCase | `lib/queries.ts`, `formatPrecio.ts` |
+| Contenido estático | camelCase | `content/home.ts` |
+| Schemas Zod | camelCase con sufijo `Schema` | `whatsappSchema` |
+
+## Componentes React
+
+```tsx
+// Correcto — PascalCase, secciones nombradas por lo que son
+export function Hero() {}
+export function PromosVigentes() {}
+export function WhatsappButton() {}
+
+// Incorrecto
+export function hero() {}
+export function Section1() {}
+```
+
+## Funciones de datos (lib/queries.ts)
+
+Prefijo `get` — son lecturas y no hay otra cosa en esta web:
+
+```ts
+// Correcto
+export async function getPromos() {}
+export async function getWhatsappConfig() {}
+
+// Incorrecto
+export async function promos() {}
+export async function fetchPromosData() {}
+```
+
+La única escritura (contacto) usa prefijo `enviar`: `enviarConsulta(data)`.
+
+## Variables y funciones
+
+* camelCase para variables y funciones
+* UPPER_SNAKE_CASE para constantes globales (`DEFAULTS`, `SITE_URL`)
+
+```ts
+const SITE_URL = 'https://www.dominio.com'
+const promosVigentes = promos.filter((p) => p.publicado)
+```
+
+## Tipos e interfaces TypeScript
+
+```ts
+// Tipos de dominio — PascalCase
+type Promo = {
+  id: string
+  titulo: string
+  publicado: boolean
+}
+
+// Props de componentes — sufijo Props
+type PromoCardProps = {
+  promo: Promo
+}
+```
+
+## Tablas en Supabase
+
+Igual que el kit de sistemas: **snake_case plural** para tablas, **snake_case** para columnas.
+
+```sql
+-- Tablas de la web
+web_config      -- excepción singular: es un panel de claves, no una colección
+promos
+consultas
+
+-- Columnas
+imagen_url
+publicado
+created_at
+```
+
+Claves de `web_config` en snake_case corto: `whatsapp`, `horarios`, `banner`, `redes_sociales`.
+
+## Variables de entorno
+
+* Prefijo `NEXT_PUBLIC_` SOLO para las que deben llegar al navegador
+* UPPER_SNAKE_CASE
+
+```
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY
+```
+
+## Rutas (URLs públicas)
+
+* kebab-case, en español (son las URLs que ve el cliente y Google)
+* Cortas y descriptivas
+
+```
+/                    → home
+/servicios           → servicios
+/quienes-somos       → institucional
+/contacto            → contacto
+```
+
+## Eventos y handlers
+
+Prefijo `on` para props de eventos, `handle` para la implementación:
+
+```tsx
+type Props = { onEnviar: (data: Consulta) => void }
+function handleEnviar(data: Consulta) {}
+```
+
+## Tokens de diseño (CSS variables)
+
+kebab-case, semánticos (rol, no color): `--background`, `--foreground`, `--primary`, `--accent`, `--muted`, `--font-display`, `--font-body`.
+
+```css
+/* Correcto */
+--primary: 16 65% 48%;
+
+/* Incorrecto — nombra el color, no el rol */
+--terracota: 16 65% 48%;
+```

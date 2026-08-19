@@ -1,0 +1,130 @@
+@import 'tailwindcss';
+
+/* ============================================================
+   TOKENS DE DISEÑO — Hell's Burger
+   Concepto: "oscuro premium con rojo infierno"
+   Paleta tomada del logo: fondo carbón + un solo rojo dominante.
+   Se definen UNA sola vez acá. Prohibido usar colores sueltos
+   tipo bg-[#e21f1a] en un componente (ver ai-pmp/design-rules.txt §4).
+   Formato HSL sin coma para poder componer con opacidad.
+   ============================================================ */
+:root {
+  --background: 0 0% 10%; /* #1a1a1a — muestreado del logo (95.9% de sus píxeles) */
+  --foreground: 0 0% 96%; /* hueso */
+
+  --primary: 1 78% 51%; /* #e3211f — el rojo del logo, color dominante */
+  --primary-foreground: 0 0% 100%; /* blanco sobre el rojo: 4.66:1, AA */
+
+  /* El rojo del logo sobre el fondo da 3.73:1 — alcanza para texto grande,
+     no para texto chico. Este es el mismo rojo aclarado hasta pasar AA (4.9:1). */
+  --accent: 1 78% 62%;
+  --accent-foreground: 0 0% 10%;
+
+  --muted: 0 0% 14%; /* superficies elevadas */
+  --muted-foreground: 0 0% 66%; /* texto secundario */
+
+  --border: 0 0% 20%;
+
+  --radius: 0.25rem;
+}
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-border: hsl(var(--border));
+
+  --font-display: var(--font-display), 'Impact', sans-serif;
+  --font-body: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-marca: var(--radius);
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+/* El fondo y el color de texto van FUERA de `@layer base` a propósito.
+   Dentro del layer, Tailwind v4 descartaba `background-color` y `color` del
+   `body` (sobrevivía solo `font-family`) y la página quedaba en blanco.
+   Al no estar en un layer, estas reglas ganan siempre — que es lo que
+   corresponde para el fondo de la marca. */
+html {
+  background-color: hsl(var(--background));
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  }
+
+  ::selection {
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+
+  /* Foco visible y con la paleta, nunca el default del navegador */
+  :focus-visible {
+    outline: 2px solid hsl(var(--accent));
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ============================================================
+   ATMÓSFERA — el fondo crea el clima (design-rules.txt §4)
+   ============================================================ */
+
+/* Resplandor rojo desde abajo: se apoya detrás del contenido del hero. */
+@utility brasa-glow {
+  background-image:
+    radial-gradient(
+      75% 58% at 50% 104%,
+      hsl(var(--primary) / 0.32) 0%,
+      hsl(var(--primary) / 0.10) 42%,
+      transparent 74%
+    ),
+    radial-gradient(
+      42% 38% at 12% 92%,
+      hsl(var(--accent) / 0.12) 0%,
+      transparent 70%
+    );
+}
+
+/* Grano fino: le saca el plano digital al fondo oscuro. */
+@utility textura-grano {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+}

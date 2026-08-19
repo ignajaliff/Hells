@@ -1,0 +1,118 @@
+# AI Development Rules — Web
+
+## Stack obligatorio
+
+Todos los proyectos web deben usar el siguiente stack:
+
+* Next.js 15+ con **App Router** (nunca Pages Router)
+* TypeScript con `strict: true`
+* Tailwind CSS (v4 con `@tailwindcss/postcss`, o v3.4+ con `postcss.config.js`)
+* Framer Motion para animaciones (`motion` en npm)
+* Supabase como fuente de contenido dinámico (SOLO lectura desde la web)
+* React Hook Form + Zod — solo si la web tiene formulario de contacto
+* `next/font` para tipografías, `next/image` para imágenes — obligatorios, nunca `<img>` ni `<link>` de Google Fonts
+
+Prohibido en este tipo de proyecto (pertenecen al kit de sistemas):
+* React Query / TanStack Query — la web no tiene suficiente estado de servidor para justificarlo
+* Zustand u otro estado global
+* shadcn/ui como base de UI — la web es diseño a medida (se permite copiar piezas puntuales si un formulario lo amerita)
+* Supabase Auth — la web pública no tiene login
+
+## Arquitectura general
+
+La web es **estática primero, dinámica por islas**:
+
+* Todo lo que no cambia (estructura, diseño, textos fijos) se renderiza en el servidor y se sirve estático
+* Los valores administrados desde el sistema de gestión entran por dos vías según su frescura:
+  * **Revalidate (ISR)**: contenido que puede tardar minutos en reflejarse (promos, textos, precios) → fetch en Server Component con `revalidate`
+  * **Isla de cliente**: toggles que deben verse al instante (botón de WhatsApp on/off) → Client Component chico que consulta al cargar
+* Server Components por defecto. `"use client"` SOLO en componentes que necesitan interactividad, animación con hooks o fetch en el navegador — y lo más abajo posible del árbol
+
+## Estructura del proyecto
+
+```
+src/
+  app/                ← rutas (App Router), layout raíz, metadata, sitemap, robots
+  components/
+    sections/         ← secciones de página (Hero, Servicios, Promos, Contacto)
+    ui/               ← piezas visuales reutilizables (botones, cards, badges)
+    dynamic/          ← islas conectadas a Supabase (WhatsappButton, PromoBanner)
+  lib/                ← cliente Supabase, utilidades, constantes con defaults
+  content/            ← contenido estático tipado (textos, links, datos fijos)
+  styles/             ← globals.css con tokens de diseño
+```
+
+Organizar por **secciones de página**, no por tipo de archivo. Una página es una composición de secciones:
+
+```tsx
+// app/page.tsx
+export default function HomePage() {
+  return (
+    <>
+      <Hero />
+      <Servicios />
+      <PromosVigentes />   {/* isla dinámica */}
+      <Contacto />
+    </>
+  )
+}
+```
+
+## Reglas de código
+
+* Máximo 300 líneas por archivo. Si se supera, dividir en subcomponentes.
+* Tipar todo con TypeScript — prohibido usar `any`
+* Importaciones de tipos siempre con `type` (ej. `import { type Metadata } from 'next'`)
+* Los textos fijos NO van hardcodeados dentro del JSX de las secciones — van en `content/` tipados, para poder editarlos sin tocar componentes:
+
+```ts
+// content/home.ts
+export const heroContent = {
+  titulo: "Pinturas de calidad para tu hogar",
+  subtitulo: "Más de 20 años asesorando a Rosario",
+  cta: "Ver catálogo",
+} as const
+```
+
+* Constantes con defaults de contenido dinámico van en `lib/defaults.ts` (ver error-handling.txt)
+* Antes de hacer cualquier cambio, verificar que no rompe imports existentes ni genera errores de consola
+
+## Server vs Client Components — regla de decisión
+
+| Necesita | Tipo |
+|----------|------|
+| Solo mostrar HTML/CSS, aunque lea de Supabase | Server Component (default) |
+| `useState`, `useEffect`, eventos de usuario | Client Component |
+| Animación de entrada al hacer scroll | Client Component (solo el wrapper animado) |
+| Datos que deben refrescarse al instante | Client Component (isla en `components/dynamic/`) |
+
+Nunca marcar una página entera con `"use client"` — se pierde el pre-renderizado que es la razón de usar Next.js.
+
+## Contenido dinámico
+
+Todo valor administrado desde el sistema de gestión respeta el contrato de la tabla "Contenido dinámico" de CLAUDE.md:
+
+1. Se define la tabla/clave en Supabase (según supabase-web-rules.txt)
+2. Se define el **default hardcodeado** en `lib/defaults.ts`
+3. Se elige la frescura: build / revalidate / cliente
+4. Se registra la fila en CLAUDE.md
+
+Si un valor no está en esa tabla, es contenido fijo y va en `content/`.
+
+## Deploy
+
+* **Vercel** (preferido para webs): deploy directo, ISR y revalidación funcionan sin configuración
+* **CapRover / Docker**: agregar `output: 'standalone'` en `next.config.ts` y usar el Dockerfile estándar de Next.js. Registrar en CLAUDE.md qué método usa el proyecto.
+* Variables de entorno del hosting: `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY` — configurarlas ANTES del primer deploy
+
+## Verificación antes de entregar un cambio
+
+Antes de dar por finalizado cualquier cambio, la IA DEBE:
+
+1. Correr `npx tsc --noEmit` y verificar que pasa sin errores
+2. Verificar que no hay imports rotos
+3. Verificar que no se introdujo ningún `any`
+4. Confirmar que el archivo no supera 300 líneas
+5. Si el cambio toca contenido dinámico: confirmar que existe el default y que la página renderiza bien sin Supabase
+6. Si el cambio toca Supabase: confirmar RLS según supabase-web-rules.txt y correr `get_advisors` del MCP
+7. Si el cambio es grande o toca configuración: verificar que `npm run build` pasa

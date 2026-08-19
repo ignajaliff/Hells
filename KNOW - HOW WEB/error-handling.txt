@@ -1,0 +1,131 @@
+# Error Handling Rules — Web
+
+En un sistema de gestión, un error se muestra y el usuario reintenta. En una web pública **el visitante no reintenta: se va**. Por eso acá el manejo de errores tiene una regla suprema:
+
+> **La web SIEMPRE se renderiza completa y linda, pase lo que pase con Supabase.** Un fallo de la base degrada silenciosamente a los defaults — jamás una página en blanco, un spinner eterno o un mensaje de error técnico.
+
+## 1. Defaults centralizados — lib/defaults.ts
+
+Todo valor dinámico tiene su default hardcodeado en un único archivo, acordado con el cliente:
+
+```ts
+// lib/defaults.ts
+export const DEFAULTS = {
+  whatsapp: {
+    visible: true,
+    numero: '5493411234567',
+    desde: 9,
+    hasta: 18,
+    mensaje: 'Escribinos por WhatsApp',
+  },
+  horarios: { texto: 'Lun a Vie 9-13 y 16-20hs' },
+  banner: { visible: false, texto: '' },
+} as const
+```
+
+Reglas:
+* El default es contenido REAL válido (el último valor conocido y estable), no "N/A" ni texto placeholder
+* Cada default está sincronizado con la tabla "Contenido dinámico" de CLAUDE.md
+* Cuando el cliente cambia algo permanente (ej. número de WhatsApp nuevo), actualizar también el default
+
+## 2. Queries de servidor — nunca lanzan, siempre devuelven
+
+Toda query en `lib/queries.ts` atrapa su propio error y devuelve el default o vacío:
+
+```ts
+export const getPromos = unstable_cache(
+  async (): Promise<Promo[]> => {
+    try {
+      const { data, error } = await supabase
+        .from('promos')
+        .select('*')
+        .eq('publicado', true)
+        .order('orden')
+      if (error) throw error
+      return data
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') console.error('getPromos:', error)
+      return []   // sin promos → la sección no se muestra, la página vive
+    }
+  },
+  ['promos'],
+  { revalidate: 300 }
+)
+```
+
+* Un Server Component NUNCA recibe un throw de una query — el try/catch vive en `lib/queries.ts`
+* Listas fallan a `[]` (la sección se oculta); valores de config fallan a su `DEFAULTS.clave`
+* `console.error` solo en desarrollo — en producción no ensuciar logs del visitante con internals de Supabase
+
+## 3. Islas de cliente — default primero, catch silencioso
+
+```ts
+const [config, setConfig] = useState(DEFAULTS.whatsapp)
+
+useEffect(() => {
+  getConfig('whatsapp').then(setConfig).catch(() => {})
+}, [])
+```
+
+* Se renderiza el default de entrada — sin spinner, sin salto de layout (misma dimensión que el contenido final)
+* Si el fetch falla, el visitante ve el default y nunca se entera — ese es el comportamiento correcto, no un bug
+* Prohibido mostrar "Error al cargar" en una isla decorativa/informativa
+
+## 4. Parseo defensivo del jsonb de web_config
+
+El `valor` de `web_config` lo edita otro sistema — puede venir con forma inesperada. Validar con Zod y caer al default:
+
+```ts
+const whatsappSchema = z.object({
+  visible: z.boolean(),
+  numero: z.string().min(8),
+  desde: z.number().min(0).max(23),
+  hasta: z.number().min(0).max(23),
+  mensaje: z.string(),
+})
+
+export async function getWhatsappConfig() {
+  try {
+    const { data, error } = await supabase
+      .from('web_config').select('valor').eq('clave', 'whatsapp').single()
+    if (error) throw error
+    return whatsappSchema.parse(data.valor)   // forma inválida → catch → default
+  } catch {
+    return DEFAULTS.whatsapp
+  }
+}
+```
+
+## 5. Formulario de contacto — el único lugar con errores visibles
+
+Es la única interacción donde el visitante NECESITA saber si algo falló:
+
+* Validación Zod inline debajo de cada campo (React Hook Form) — nunca con toast
+* Error de envío: mensaje amigable + canal alternativo SIEMPRE:
+
+```tsx
+<p className="text-sm">
+  No pudimos enviar tu mensaje. Escribinos directo por{' '}
+  <a href={`https://wa.me/${DEFAULTS.whatsapp.numero}`}>WhatsApp</a>.
+</p>
+```
+
+* Éxito: confirmación clara y visible, limpiar el formulario
+* Deshabilitar el botón durante el envío (evita dobles inserts)
+
+## 6. Páginas de error de Next.js
+
+* `app/not-found.tsx` — 404 diseñada con la estética del sitio y link a la home
+* `app/error.tsx` — error boundary global, mismo criterio: mensaje amigable, botón "Volver al inicio", cero detalles técnicos
+* Ambas se diseñan al inicio del proyecto, no como afterthought
+
+## 7. Estados de carga — casi no deberían existir
+
+* Contenido ISR llega renderizado del servidor: el visitante nunca ve su carga
+* Islas de cliente muestran el default al instante: tampoco hay loading visible
+* El ÚNICO spinner permitido en toda la web es el del botón de envío del formulario
+* Si aparece la necesidad de un skeleton, es síntoma de que algo que debería ser servidor quedó en cliente — revisar la arquitectura antes de agregar el skeleton
+
+## Regla de oro
+
+> Validar solo en los bordes: respuestas de Supabase (defaults), formulario de contacto (Zod + constraints SQL). Todo lo demás es contenido propio tipado — no agregar manejo preventivo innecesario.

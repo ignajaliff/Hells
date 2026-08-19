@@ -1,0 +1,99 @@
+# Design Rules — Web
+
+En el kit de sistemas, la regla es neutralidad estricta (grises shadcn, la estética se inyecta al final). **Acá es al revés: el diseño ES el producto.** Una web que se ve genérica es una web fallida aunque funcione perfecto. Este documento define cómo se logra una estética premium sin caer en el "look de plantilla".
+
+## 1. Dirección estética — se decide ANTES de codear
+
+Antes de la primera línea de código, definir y registrar en CLAUDE.md:
+
+* **Concepto en una frase**: ej. "minimalismo cálido con acentos terracota", "editorial tipo revista de arquitectura", "oscuro premium con detalles dorados", "brutalista crudo con tipografía gigante"
+* **Tipografía display** (títulos) + **tipografía de texto** (cuerpo)
+* **Paleta**: 1 color dominante, 1 fondo, 1-2 acentos — pocas cosas bien elegidas
+* **2-3 referencias visuales** aprobadas por el cliente (webs reales, capturas)
+
+Regla: la dirección se ejecuta con compromiso total y NO se cambia a mitad de proyecto. Un diseño tibio que mezcla tres estilos se ve peor que cualquier estilo llevado hasta el final.
+
+## 2. Lo que está PROHIBIDO (el look "hecho con IA")
+
+* Fuentes genéricas como única tipografía: Inter, Roboto, Arial, system-ui
+* Gradiente violeta/azul sobre fondo blanco (el cliché número uno)
+* Hero centrado + 3 cards con iconos + testimonios + footer — el layout de plantilla que tienen todas las webs genéricas
+* Emojis como iconografía
+* Colores repartidos en partes iguales — el color dominante debe dominar de verdad
+* Sombras y bordes redondeados idénticos en todos los elementos sin criterio
+
+## 3. Tipografía
+
+* Siempre **dos fuentes**: una display con carácter para títulos + una legible para cuerpo. Cargarlas con `next/font` (nunca `<link>` a Google Fonts — bloquea el render y baja el Lighthouse):
+
+```ts
+// app/fonts.ts
+import { Fraunces, Outfit } from 'next/font/google'
+
+export const display = Fraunces({ subsets: ['latin'], variable: '--font-display' })
+export const body = Outfit({ subsets: ['latin'], variable: '--font-body' })
+```
+
+* Títulos grandes de verdad: el h1 del hero entre `text-5xl` y `text-8xl` según el concepto. El tamaño tipográfico es el recurso premium más barato que existe.
+* Jerarquía clara: si todo pesa igual, nada importa. Usar peso, tamaño y color — no subrayados ni cajas.
+* `text-balance` en títulos y `text-pretty` en párrafos para evitar líneas viudas.
+
+## 4. Color — tokens obligatorios
+
+Los colores se definen UNA vez como variables CSS en `styles/globals.css` y se consumen vía Tailwind. Prohibido `bg-[#DD624A]` suelto en un componente — mismo espíritu que el kit de sistemas, pero acá los tokens son la identidad del cliente:
+
+```css
+:root {
+  --background: 40 33% 97%;     /* crema cálido */
+  --foreground: 24 10% 12%;
+  --primary: 16 65% 48%;        /* terracota */
+  --accent: 150 25% 35%;
+  --muted: 40 15% 90%;
+}
+```
+
+* Contraste AA mínimo (4.5:1 texto normal, 3:1 texto grande) — verificar, no estimar
+* Fondos: nunca blanco puro plano en toda la página. Usar crema/gris cálido, secciones alternadas, gradientes sutiles, textura de ruido o patrones geométricos según el concepto — el fondo crea atmósfera
+
+## 5. Composición y espacio
+
+* Espaciado generoso: secciones con `py-24` a `py-40` en desktop. El aire es lujo.
+* Romper la simetría donde aporte: elementos superpuestos, imágenes que sangran del contenedor, texto que cruza columnas, números de sección gigantes de fondo
+* Grilla máxima de contenido: `max-w-6xl`/`max-w-7xl` centrada, pero dejar que elementos puntuales la rompan a propósito
+* Mobile-first REAL: el 70%+ del tráfico de comercios locales es móvil. Diseñar primero la versión móvil de cada sección, no achicar la de desktop.
+
+## 6. Animación — pocas, buenas, al servicio del contenido
+
+* Framer Motion para: reveal de secciones al hacer scroll (`whileInView`), stagger de listas, hover de cards y micro-interacciones del CTA
+* Un solo momento coreografiado vale más que veinte micro-animaciones: invertir en la entrada del hero (stagger de título, subtítulo, CTA)
+* Duraciones cortas (0.3-0.7s), easing suave (`easeOut`), desplazamientos chicos (20-40px). Nada de elementos volando por la pantalla.
+* Animaciones solo transforman `opacity` y `transform` — nunca `width`, `height` ni `top/left` (reflow = jank)
+* Respetar `prefers-reduced-motion`: envolver la config de Motion o usar la media query CSS
+* El wrapper animado es un Client Component chico que recibe children — la sección en sí sigue siendo Server Component
+
+## 7. Imágenes
+
+* Siempre `next/image` con `width`/`height` o `fill` — nunca `<img>`
+* La imagen del hero con `priority`; el resto lazy (default)
+* Fotos reales del cliente > stock. Si hay que usar stock, elegir con dirección de arte coherente al concepto (misma luz, misma paleta) — nunca la primera foto genérica de oficina
+* Tratamiento consistente: si una imagen lleva overlay o filtro de color, todas las del mismo tipo lo llevan
+
+## 8. Detalles que separan premium de genérico
+
+Checklist de terminación de cada página:
+
+- [ ] Favicon y título de pestaña correctos
+- [ ] Estados hover/focus diseñados en TODOS los elementos interactivos (no el default del navegador)
+- [ ] Selección de texto con color de la paleta (`::selection`)
+- [ ] Scroll suave en anclas internas (`scroll-behavior: smooth`)
+- [ ] 404 personalizada con el mismo diseño (`app/not-found.tsx`)
+- [ ] Footer trabajado — es la sección más descuidada y se nota
+- [ ] Ningún texto "Lorem ipsum" ni imagen placeholder en producción
+- [ ] Revisada en móvil real: tap targets ≥ 44px, nada desborda horizontal
+
+## 9. Accesibilidad (no negociable, también es SEO)
+
+* HTML semántico: `header`, `nav`, `main`, `section`, `footer` — un solo `h1` por página, jerarquía de headings sin saltos
+* `alt` descriptivo en toda imagen con contenido (vacío `alt=""` solo si es decorativa)
+* Botones de icono con `aria-label`
+* Navegable con teclado: el orden de tab sigue el orden visual

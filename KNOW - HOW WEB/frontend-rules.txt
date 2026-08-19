@@ -1,0 +1,114 @@
+# Frontend Rules — Web
+
+Framework: Next.js 15+ con App Router.
+
+## Tipos de componentes
+
+Separar estrictamente:
+
+* **Secciones** (Hero, Servicios, Promos, Contacto) → `components/sections/` — Server Components que componen la página. Reciben o buscan sus datos y arman el layout de esa franja de la web.
+* **UI pura** (Boton, Card, Badge, Titulo) → `components/ui/` — piezas visuales sin datos, reciben todo por props. Acá vive la identidad visual reutilizable.
+* **Islas dinámicas** (WhatsappButton, PromoBanner, EstadoLocal) → `components/dynamic/` — Client Components chicos conectados a Supabase para valores que deben refrescarse al instante.
+* **Wrappers de animación** (FadeIn, StaggerList) → `components/ui/` — Client Components genéricos que solo animan children.
+
+Regla: una sección no sabe cómo se busca un dato (eso está en `lib/`), y una pieza de UI no sabe de dónde viene nada.
+
+## Patrón de sección con datos (ISR)
+
+Para contenido administrado que puede tardar minutos en reflejarse (promos, textos, precios):
+
+```tsx
+// components/sections/PromosVigentes.tsx  (Server Component)
+import { getPromos } from '@/lib/queries'
+
+export async function PromosVigentes() {
+  const promos = await getPromos()        // fetch con revalidate + fallback interno
+  if (promos.length === 0) return null    // sin promos → la sección no existe
+  return (
+    <section>...</section>
+  )
+}
+```
+
+La frescura se define en la query (`lib/queries.ts`), no en el componente:
+
+```ts
+// lib/queries.ts
+import { unstable_cache } from 'next/cache'
+
+export const getPromos = unstable_cache(
+  async () => { /* supabase select con try/catch y fallback */ },
+  ['promos'],
+  { revalidate: 300 }   // 5 minutos
+)
+```
+
+## Patrón de isla dinámica (frescura inmediata)
+
+Para toggles que el cliente cambia desde su sistema y deben verse al instante (ej. botón de WhatsApp):
+
+```tsx
+// components/dynamic/WhatsappButton.tsx
+'use client'
+import { useEffect, useState } from 'react'
+import { getConfig } from '@/lib/queries-client'
+import { DEFAULTS } from '@/lib/defaults'
+
+export function WhatsappButton() {
+  const [config, setConfig] = useState(DEFAULTS.whatsapp)
+
+  useEffect(() => {
+    getConfig('whatsapp').then(setConfig).catch(() => {})  // si falla, queda el default
+  }, [])
+
+  if (!config.visible) return null
+  return <a href={`https://wa.me/${config.numero}`} aria-label="Contactar por WhatsApp">...</a>
+}
+```
+
+Reglas de las islas:
+* Renderizan el **default** primero y actualizan cuando llega la respuesta — nunca un hueco vacío mientras carga
+* El catch silencioso es intencional: si Supabase falla, la web muestra el default y no se entera nadie
+* Mantenerlas chicas: una isla = un valor o grupo de valores relacionados
+
+### Toggles con horario — calcular en el cliente
+
+Si algo depende de una franja horaria (ej. "activos de 16 a 18hs"), NO hacer que el cliente prenda y apague a mano dos veces por día: guardar la franja en `web_config` y comparar contra la hora actual en el navegador:
+
+```ts
+const activo = config.visible && horaActual >= config.desde && horaActual < config.hasta
+```
+
+El sistema de gestión edita la franja; la web se prende y apaga sola.
+
+## Formulario de contacto
+
+Único punto donde la web escribe en Supabase (ver supabase-web-rules.txt §5).
+
+* React Hook Form + Zod, errores inline debajo de cada campo
+* **Honeypot obligatorio**: un input oculto con CSS; si viene con valor, descartar sin insertar (es un bot)
+* Deshabilitar el submit mientras envía; mostrar confirmación clara al éxito ("¡Mensaje enviado! Te respondemos a la brevedad")
+* Si el insert falla: mensaje amigable + link directo de WhatsApp/mail como plan B — nunca dejar al usuario sin canal
+
+## Navegación
+
+* Header fijo o sticky con navegación por anclas (`/#servicios`) en landings de una página, o rutas reales en sitios multi-página
+* Menú móvil diseñado (no un burger genérico sin trabajar) — es lo primero que toca el 70% de los visitantes
+* El link/botón de WhatsApp o teléfono SIEMPRE visible en móvil — es la conversión principal de un comercio local
+
+## Performance
+
+* Server Components por defecto; `"use client"` lo más abajo posible del árbol
+* `next/image` en toda imagen; la del hero con `priority`
+* `next/font` para fuentes (subsets `latin`, solo los pesos usados)
+* No importar librerías enteras — imports específicos
+* Nada de librerías de UI pesadas para una sola pieza — escribirla a medida
+* Framer Motion: importar `motion` desde `motion/react`; wrappers de animación compartidos en vez de repetir configs
+
+## Accesibilidad básica
+
+* Todos los inputs con `label` asociado
+* Botones de icono con `aria-label`
+* Elementos semánticos (`button`, `nav`, `main`, `section`) en lugar de `div` para todo
+* Mensajes de error de formulario visibles y descriptivos
+* Contraste AA verificado en cada combinación texto/fondo de la paleta

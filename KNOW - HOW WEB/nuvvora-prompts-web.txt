@@ -1,0 +1,195 @@
+# Nuvvora Prompts — Flujo de desarrollo web
+
+Prompts base para cada etapa del desarrollo de una web. Reemplazar los valores entre [corchetes] antes de usar.
+
+El orden del flujo es distinto al de sistemas: acá primero se define la estética, después se maqueta todo, y la conexión con Supabase llega al final (cuando el diseño ya está aprobado por el cliente).
+
+---
+
+## 1. INICIO DE PROYECTO
+
+Usar una sola vez al arrancar. Antes de este prompt, completar la sección "Dirección estética" del CLAUDE.md con el cliente.
+
+```
+Vamos a desarrollar la página web de [NOMBRE DEL CLIENTE / COMERCIO].
+
+Antes de escribir cualquier código, lee y respeta estrictamente estos documentos:
+@CLAUDE.md
+@ai-pmp/rules.txt
+@ai-pmp/design-rules.txt
+@ai-pmp/frontend-rules.txt
+@ai-pmp/seo-rules.txt
+@ai-pmp/naming-rules.txt
+
+Tu única tarea en esta sesión:
+1. Crear la estructura base del proyecto (Next.js App Router + TypeScript strict +
+   Tailwind + Framer Motion, carpetas según rules.txt)
+2. Configurar las tipografías con next/font y los tokens de color en globals.css
+   según la "Dirección estética" del CLAUDE.md
+3. Crear el layout raíz con metadata base (title, description, OG según seo-rules.txt)
+4. Crear la página 404 (not-found.tsx) con la estética del sitio
+
+Restricciones:
+- NO conectar nada con Supabase todavía
+- NO crear secciones de contenido todavía — solo estructura, tokens y layout
+- NO instalar dependencias fuera del stack definido en rules.txt
+- Al terminar, listar exactamente qué archivos creaste
+```
+
+---
+
+## 2. NUEVA SECCIÓN O PÁGINA (maquetado)
+
+Usar por cada sección de la home o página nueva. En esta etapa TODO el contenido es estático (textos en `content/`, valores dinámicos usando los defaults) — la conexión llega en el prompt 3.
+
+```
+Ahora vamos a maquetar la sección "[NOMBRE DE LA SECCIÓN]" de la página [/ruta].
+Va [debajo de / encima de] la sección "[SECCIÓN REFERENCIA]".
+
+Antes de empezar respeta los documentos:
+@CLAUDE.md
+@ai-pmp/rules.txt
+@ai-pmp/design-rules.txt
+@ai-pmp/frontend-rules.txt
+@ai-pmp/error-handling.txt
+@ai-pmp/naming-rules.txt
+
+Contenido y diseño: [Describir qué muestra la sección, qué siente/hace el visitante,
+y cualquier referencia visual. Ej: "Grilla de 3 promos con foto, título y precio.
+Al hacer scroll las cards entran con stagger. En móvil es un carrusel deslizable."]
+
+Textos: [Pegar los textos reales del cliente, o indicar "usar textos provisorios
+marcados con TODO" — nunca lorem ipsum]
+
+Restricciones:
+- Contenido estático por ahora: textos en content/, sin conexión a Supabase
+- Si la sección tendrá datos administrados, dejarlos ya separados con su default
+  en lib/defaults.ts y anotarlos en la tabla "Contenido dinámico" del CLAUDE.md
+- Respetar la dirección estética del CLAUDE.md — no inventar colores ni fuentes nuevas
+- Mobile-first: mostrar primero cómo se ve en móvil
+- NO avanzar a otra sección
+- Al terminar, listar qué archivos creaste o modificaste
+```
+
+---
+
+## 3. CONECTAR CONTENIDO DINÁMICO CON SUPABASE
+
+Usar cuando el diseño está aprobado y el proyecto de Supabase (compartido con el sistema de gestión) está creado. El MCP de Supabase debe estar conectado.
+
+```
+Ahora vamos a conectar el contenido dinámico de la web con Supabase. Ya tenés
+conectado el MCP. Este proyecto de Supabase es COMPARTIDO con el sistema de
+gestión del cliente — no tocar tablas que no sean de la web.
+
+Antes de empezar respeta los documentos:
+@CLAUDE.md
+@ai-pmp/supabase-web-rules.txt
+@ai-pmp/error-handling.txt
+
+Valores a conectar (de la tabla "Contenido dinámico" del CLAUDE.md):
+- [ej. Botón de WhatsApp → web_config clave "whatsapp" → isla de cliente]
+- [ej. Horarios del local → web_config clave "horarios" → revalidate 5 min]
+- [ej. Promos → tabla "promos" (solo publicado = true) → revalidate 5 min]
+
+Tareas:
+1. Crear la tabla web_config (y las tablas de contenido que falten) con el RLS
+   exacto de supabase-web-rules.txt: anon solo lee lo publicado, escribe solo
+   el admin del sistema con tiene_rol()
+2. Insertar las claves iniciales de web_config con los valores actuales
+3. Crear el cliente Supabase en lib/supabase.ts (sin sesiones) y las queries en
+   lib/queries.ts con try/catch y fallback a DEFAULTS — la web nunca se rompe
+   si la base no responde
+4. Reemplazar los defaults en las secciones por los datos reales según la
+   frescura definida (ISR o isla de cliente)
+5. Al terminar, correr get_advisors del MCP y corregir cualquier alerta de seguridad
+6. Probar que la web renderiza completa con una URL de Supabase inválida
+
+No hace falta que expliques nada, ejecutá directamente.
+```
+
+---
+
+## 4. FORMULARIO DE CONTACTO
+
+Usar solo si la web lleva formulario.
+
+```
+Vamos a agregar el formulario de contacto en [sección/página].
+
+Antes de empezar respeta los documentos:
+@ai-pmp/frontend-rules.txt
+@ai-pmp/supabase-web-rules.txt
+@ai-pmp/error-handling.txt
+
+Campos: [nombre, email, mensaje — ajustar según el cliente]
+
+Tareas:
+1. Crear la tabla "consultas" con los CHECK de longitud y el RLS exacto de
+   supabase-web-rules.txt §5 (anon solo INSERT, jamás SELECT)
+2. Formulario con React Hook Form + Zod, errores inline, honeypot anti-bots
+3. Estado de envío en el botón, confirmación clara al éxito, y si falla:
+   mensaje amigable con link directo de WhatsApp como alternativa
+4. Al terminar, correr get_advisors y verificar que anon NO puede leer consultas
+
+Al terminar, listar qué archivos creaste o modificaste.
+```
+
+---
+
+## 5. SEO Y ENTREGA
+
+Usar como última sesión antes de publicar.
+
+```
+La web está completa. Vamos a cerrar el SEO y verificar la entrega.
+
+Antes de empezar respeta:
+@CLAUDE.md
+@ai-pmp/seo-rules.txt
+
+Datos del negocio para el SEO:
+- Dominio final: [https://www.dominio.com]
+- Nombre: [nombre del negocio]
+- Rubro y localidad: [ej. pinturería en Rosario]
+- Dirección, teléfono y horarios: [datos reales]
+
+Tareas:
+1. Revisar title y description únicos de cada página (con localidad)
+2. Generar sitemap.ts y robots.ts con el dominio final
+3. Agregar JSON-LD LocalBusiness en lib/schema.ts
+4. Verificar que existe public/og.jpg (1200x630) y que metadataBase apunta al dominio
+5. Correr npm run build y repasar el "Checklist de entrega" completo del CLAUDE.md,
+   marcando cada ítem
+6. Listar todo lo que quede pendiente de hacer a mano (Search Console, DNS,
+   variables de entorno del hosting)
+```
+
+---
+
+### Ejemplo real de cómo completar el prompt 2 (web de una pinturería — sección Promos)
+
+```
+Ahora vamos a maquetar la sección "Promos del mes" de la página /.
+Va debajo de la sección "Servicios".
+
+[...documentos...]
+
+Contenido y diseño: Grilla de hasta 3 promos, cada una con foto del producto,
+título, descripción corta y precio destacado en grande. Las cards entran con
+stagger al hacer scroll. Si no hay promos, la sección no se muestra. En móvil,
+carrusel deslizable con snap. Estilo consistente con el hero: fondo crema,
+acentos terracota, títulos con la fuente display.
+
+Textos: usar 3 promos provisorias realistas de pinturería marcadas con TODO
+(ej. "Látex interior 20L — 20% off").
+
+Restricciones:
+- Contenido estático por ahora, pero las promos van a venir de Supabase:
+  dejar el tipo Promo definido, la lista provisoria en lib/defaults.ts y
+  anotar la fila en "Contenido dinámico" del CLAUDE.md con frescura
+  "Revalidate 5 min"
+- Mobile-first: mostrar primero cómo se ve en móvil
+- NO avanzar a otra sección
+- Al terminar, listar qué archivos creaste o modificaste
+```

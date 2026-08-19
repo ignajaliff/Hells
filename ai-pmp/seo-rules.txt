@@ -1,0 +1,105 @@
+# SEO Rules — Web
+
+Una web premium que Google no encuentra o que carga lenta no es premium. El SEO técnico se construye desde el día uno, no se "agrega al final".
+
+## 1. Metadata — obligatoria en toda página
+
+Usar la Metadata API de Next.js. En `app/layout.tsx` va la base; cada página la especializa:
+
+```ts
+// app/layout.tsx
+export const metadata: Metadata = {
+  metadataBase: new URL('https://www.dominio.com'),
+  title: {
+    default: 'Pinturería Rodeo — Pinturas y asesoramiento en Rosario',
+    template: '%s · Pinturería Rodeo',
+  },
+  description: 'Descripción de 140-160 caracteres con lo que el negocio hace y dónde.',
+  openGraph: {
+    type: 'website',
+    locale: 'es_AR',
+    siteName: 'Pinturería Rodeo',
+    images: [{ url: '/og.jpg', width: 1200, height: 630 }],
+  },
+}
+```
+
+Reglas:
+* `title` único por página, 50-60 caracteres, con el nombre del negocio y la localidad si es un comercio local
+* `description` única por página, 140-160 caracteres, escrita para humanos (es el texto del resultado de Google)
+* **Imagen Open Graph obligatoria** (1200x630, `public/og.jpg`): es la preview al compartir por WhatsApp — para un comercio local, WhatsApp ES el canal. Verificarla compartiendo el link de verdad antes de entregar.
+* `metadataBase` con el dominio final — sin esto las URLs de OG salen rotas
+
+## 2. Sitemap y robots
+
+Generados por código, no archivos a mano:
+
+```ts
+// app/sitemap.ts
+export default function sitemap(): MetadataRoute.Sitemap {
+  return [
+    { url: 'https://www.dominio.com', lastModified: new Date(), priority: 1 },
+    // ...una entrada por página real
+  ]
+}
+
+// app/robots.ts
+export default function robots(): MetadataRoute.Robots {
+  return {
+    rules: { userAgent: '*', allow: '/' },
+    sitemap: 'https://www.dominio.com/sitemap.xml',
+  }
+}
+```
+
+Al publicar: dar de alta el dominio en Google Search Console y enviar el sitemap. Registrar en CLAUDE.md que se hizo.
+
+## 3. Datos estructurados (JSON-LD)
+
+Para comercios locales, agregar `LocalBusiness` en el layout (nombre, dirección, teléfono, horarios, geo). Ayuda a aparecer en el panel lateral de Google y en Maps:
+
+```tsx
+<script
+  type="application/ld+json"
+  dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+/>
+```
+
+El objeto `schema` se arma tipado en `lib/schema.ts`. Si los horarios son administrados (web_config), usar el default — el JSON-LD se genera en build, no necesita frescura.
+
+## 4. Semántica y contenido
+
+* Un solo `h1` por página con la frase clave del negocio (qué + dónde: "Pinturería en Rosario")
+* Jerarquía de headings sin saltos (h1 → h2 → h3)
+* URLs limpias en kebab-case: `/servicios`, `/quienes-somos` — nunca `/page2`
+* Texto real indexable: lo importante nunca solo dentro de una imagen
+* `alt` descriptivo en imágenes de contenido
+* Links internos entre páginas del sitio
+
+## 5. Core Web Vitals — presupuesto de performance
+
+Objetivo en Lighthouse **móvil** (no desktop): Performance ≥ 90, SEO ≥ 95, Accessibility ≥ 90. Correrlo antes de cada entrega.
+
+Las causas de fallo típicas y su regla:
+
+* **LCP** (< 2.5s): imagen del hero con `next/image` + `priority`; fuentes con `next/font` (nunca `<link>` externo); sin videos de fondo pesados
+* **CLS** (< 0.1): toda imagen con dimensiones; las islas dinámicas renderizan su default del MISMO tamaño que el contenido final (el botón de WhatsApp no puede "aparecer" empujando el layout — aparece en posición fija o reserva su espacio)
+* **INP** (< 200ms): JavaScript mínimo — cada `"use client"` innecesario suma bundle; animaciones solo con `transform`/`opacity`
+
+## 6. Lo que NO hacer
+
+* No indexar entornos de prueba: el deploy de staging lleva `robots` con `disallow` o la protección del hosting
+* No usar `next/dynamic` con `ssr: false` para contenido — lo vuelve invisible para Google
+* No meter el contenido principal detrás de un loader o animación de entrada que tarde
+* No usar hash-routing ni SPA-isms — cada página es una URL real
+
+## Checklist SEO al entregar
+
+1. `title` + `description` únicos en cada página
+2. OG image verificada compartiendo el link por WhatsApp
+3. `sitemap.xml` y `robots.txt` accesibles en producción
+4. JSON-LD `LocalBusiness` presente y validado (validator.schema.org)
+5. Lighthouse móvil: Performance ≥ 90, SEO ≥ 95, Accessibility ≥ 90
+6. Dominio dado de alta en Search Console con sitemap enviado
+7. `h1` único por página, headings jerárquicos
+8. Redirect de dominio sin www → con www (o al revés) configurado en el hosting

@@ -1,0 +1,212 @@
+# Supabase Web Rules — Conexión de solo lectura
+
+La web pública y el sistema de gestión comparten UN proyecto de Supabase. El sistema (con auth y roles, según el kit de sistemas) **escribe**; la web **solo lee** con la anon key. La web no tiene login, no tiene sesión, no tiene service key.
+
+> **Principio rector**: asumir que cualquiera tiene la anon key (viaja en el bundle). Todo lo que una política deje leer a `anon` es información pública publicada. Todo lo demás debe ser invisible para la web.
+
+## 1. Cliente Supabase de la web
+
+Un solo cliente, sin auth, en `lib/supabase.ts`:
+
+```ts
+import { createClient } from '@supabase/supabase-js'
+import { type Database } from './database.types'
+
+export const supabase = createClient<Database>(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  { auth: { persistSession: false } }   // la web no maneja sesiones
+)
+```
+
+Nunca crear instancias adicionales. Nunca usar `SUPABASE_SERVICE_ROLE_KEY` en el proyecto web — ni siquiera en Server Components (el riesgo de fuga no se justifica: todo lo que la web muestra es público por definición).
+
+## 2. Tabla web_config — el panel de control de la web
+
+Una tabla clave/valor con todo lo que el cliente administra de su web desde el sistema de gestión:
+
+```sql
+CREATE TABLE web_config (
+  clave       text PRIMARY KEY,
+  valor       jsonb NOT NULL,
+  descripcion text,                    -- para que el sistema muestre qué es cada clave
+  updated_at  timestamp with time zone DEFAULT now()
+);
+
+CREATE TRIGGER set_updated_at
+BEFORE UPDATE ON web_config
+FOR EACH ROW EXECUTE PROCEDURE extensions.moddatetime(updated_at);
+```
+
+Ejemplos de filas:
+
+```
+clave: 'whatsapp'
+valor: { "visible": true, "numero": "5493411234567", "desde": 16, "hasta": 18,
+         "mensaje": "Estamos activos de 16 a 18hs" }
+
+clave: 'horarios'
+valor: { "texto": "Lun a Vie 9-13 y 16-20hs · Sáb 9-13hs" }
+
+clave: 'banner'
+valor: { "visible": false, "texto": "20% off en látex interior hasta el viernes" }
+```
+
+Reglas:
+* Cada clave se tipa en el proyecto web con Zod o un type + parseo defensivo — nunca confiar en la forma del jsonb a ciegas
+* Toda clave nueva se registra en la tabla "Contenido dinámico" de CLAUDE.md con su default
+* El sistema de gestión es quien da de alta las claves (pantalla "Configuración de la web" en el sistema)
+
+### RLS de web_config
+
+```sql
+ALTER TABLE web_config ENABLE ROW LEVEL SECURITY;
+
+-- La web (anon) lee todo: esta tabla ES contenido público por definición
+CREATE POLICY "lectura publica de config web"
+ON web_config FOR SELECT
+TO anon, authenticated
+USING (true);
+
+-- Escribe solo el admin del sistema de gestión
+CREATE POLICY "solo admin modifica config web"
+ON web_config FOR ALL
+TO authenticated
+USING (public.tiene_rol('admin'))
+WITH CHECK (public.tiene_rol('admin'));
+```
+
+> El `USING (true)` en SELECT es una de las pocas excepciones legítimas a la regla del kit de sistemas — y solo porque esta tabla existe exclusivamente para ser leída por la web pública. **Jamás guardar en `web_config` nada que no pueda ver todo el mundo.**
+
+## 3. Tablas de contenido publicable (promos, productos destacados, novedades)
+
+Contenido con filas que el cliente publica y despublica desde su sistema:
+
+```sql
+CREATE TABLE promos (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  titulo      text NOT NULL,
+  descripcion text,
+  imagen_url  text,
+  publicado   boolean NOT NULL DEFAULT false,
+  orden       integer NOT NULL DEFAULT 0,
+  created_at  timestamp with time zone DEFAULT now() NOT NULL,
+  updated_at  timestamp with time zone DEFAULT now()
+);
+```
+
+### RLS — la web solo ve lo publicado
+
+```sql
+ALTER TABLE promos ENABLE ROW LEVEL SECURITY;
+
+-- anon SOLO ve filas publicadas — el borrador es invisible para la web
+CREATE POLICY "web lee solo publicado"
+ON promos FOR SELECT
+TO anon
+USING (publicado = true);
+
+-- El equipo del sistema ve todo (incluidos borradores)
+CREATE POLICY "sistema lee todo"
+ON promos FOR SELECT
+TO authenticated
+USING (public.tiene_rol('admin'));
+
+-- Escritura solo desde el sistema
+CREATE POLICY "solo admin escribe"
+ON promos FOR INSERT TO authenticated
+WITH CHECK (public.tiene_rol('admin'));
+
+CREATE POLICY "solo admin actualiza"
+ON promos FOR UPDATE TO authenticated
+USING (public.tiene_rol('admin'))
+WITH CHECK (public.tiene_rol('admin'));
+
+CREATE POLICY "solo admin borra"
+ON promos FOR DELETE TO authenticated
+USING (public.tiene_rol('admin'));
+```
+
+Patrón obligatorio para TODA tabla que lea la web:
+1. Política `FOR SELECT TO anon` con condición de publicado (o `USING (true)` solo si TODA la tabla es pública por diseño, como `web_config`)
+2. Ninguna política de escritura para `anon` (con una excepción: §5)
+3. Escritura `TO authenticated` con `tiene_rol()` y `WITH CHECK`
+4. Constraints SQL de siempre: `NOT NULL`, `CHECK`, FKs explícitas, trigger de `updated_at`
+
+## 4. Frescura de los datos — decidir por valor
+
+| Tipo de dato | Estrategia | Cómo |
+|--------------|-----------|------|
+| Estructura y textos fijos | Build estático | `content/` en el repo, sin Supabase |
+| Promos, precios, textos administrados | ISR | `unstable_cache` con `revalidate: 300` en `lib/queries.ts` |
+| Toggles inmediatos (whatsapp, banner) | Isla de cliente | Client Component chico, fetch al montar |
+
+* No usar frescura inmediata "por las dudas": cada isla de cliente es un request por visita. ISR de 5 minutos alcanza para la mayoría del contenido.
+* Si el cliente necesita que TODO se refleje al instante, considerar revalidación on-demand (webhook del sistema de gestión a `/api/revalidate` de la web) — registrarlo como decisión técnica en CLAUDE.md.
+
+## 5. Formulario de contacto — la única escritura de la web
+
+Si la web tiene formulario de contacto, es la ÚNICA tabla con INSERT para `anon`, blindada con constraints:
+
+```sql
+CREATE TABLE consultas (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  nombre     text NOT NULL CHECK (char_length(nombre) BETWEEN 2 AND 100),
+  email      text NOT NULL CHECK (email ~* '^[^@\s]+@[^@\s]+\.[^@\s]+$'),
+  mensaje    text NOT NULL CHECK (char_length(mensaje) BETWEEN 10 AND 2000),
+  leida      boolean NOT NULL DEFAULT false,
+  created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+ALTER TABLE consultas ENABLE ROW LEVEL SECURITY;
+
+-- anon puede insertar (con los CHECK como muralla) pero JAMÁS leer
+CREATE POLICY "web inserta consultas"
+ON consultas FOR INSERT TO anon
+WITH CHECK (true);
+
+-- Solo el sistema lee y gestiona las consultas
+CREATE POLICY "solo admin lee consultas"
+ON consultas FOR SELECT TO authenticated
+USING (public.tiene_rol('admin'));
+```
+
+* **Nunca** política de SELECT para `anon` en esta tabla — las consultas de otros visitantes son datos personales
+* Los `CHECK` de longitud son la defensa real contra basura; el honeypot del frontend (frontend-rules.txt) frena a los bots simples
+* Las consultas se leen desde el sistema de gestión (bandeja "Consultas de la web")
+
+## 6. Storage — imágenes administradas desde el sistema
+
+Si el cliente sube imágenes (promos, productos) desde su sistema:
+
+* Bucket **público** dedicado a la web (ej. `web-assets`) — acá lo público es correcto: son assets de una página pública
+* Escritura al bucket solo desde el sistema de gestión (política de `storage.objects` con `tiene_rol()`)
+* Validar en el bucket: `allowed_mime_types` solo imágenes, `file_size_limit` razonable (ej. 2MB)
+* En la web, consumir esas URLs con `next/image` agregando el dominio de Supabase a `images.remotePatterns` en `next.config.ts`
+* JAMÁS mezclar en ese bucket documentos privados del sistema — esos van en buckets privados según el kit de sistemas
+
+## 7. Variables de entorno
+
+```
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+```
+
+* Prefijo `NEXT_PUBLIC_` = visible en el navegador. Solo estas dos pueden llevarlo.
+* `.env.example` commiteado sin valores; `.env.local` en `.gitignore`
+* La service key NO existe en este proyecto — si una tarea parece necesitarla, esa tarea pertenece al sistema de gestión
+
+## 8. MCP de Supabase — reglas de uso
+
+* El MCP debe estar **scoped al proyecto** (project-ref específico), nunca con un token personal con acceso a toda la cuenta
+* **Después de cualquier cambio de schema o políticas**, correr `get_advisors` y corregir todas las alertas de seguridad antes de dar la tarea por terminada
+* Las tablas compartidas con el sistema de gestión se migran con cuidado: un cambio para la web puede romper el sistema (y viceversa). Avisar siempre qué proyecto más usa la tabla.
+
+## Checklist al conectar cualquier tabla nueva a la web
+
+1. ¿La lee `anon`? → política `FOR SELECT TO anon` que filtra publicado (o pública por diseño, justificado)
+2. ¿Ninguna escritura de `anon`? (excepto `consultas` con sus CHECK)
+3. Escritura del sistema con `tiene_rol()` + `WITH CHECK`
+4. Campos estándar + trigger `updated_at` + constraints
+5. Default hardcodeado en `lib/defaults.ts` y fila en "Contenido dinámico" de CLAUDE.md
+6. `get_advisors` sin alertas de seguridad
