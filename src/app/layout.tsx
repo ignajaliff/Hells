@@ -1,28 +1,35 @@
 import { type Metadata, type Viewport } from 'next'
 import { body, display } from './fonts'
-import { NEGOCIO, SITE_URL } from '@/lib/constants'
+import { SITE_URL } from '@/lib/constants'
 import { getRestaurantSchema } from '@/lib/schema'
 import { PantallaCarga } from '@/components/ui/PantallaCarga'
 import '@/styles/globals.css'
 
+/**
+ * Metadata reducida a la marca sola (2026-08-21, pedido del cliente): el copy
+ * anterior ("Hamburguesas a la brasa en Rosario…") era placeholder sin aprobar
+ * y decía cualquier cosa. Hasta que haya copy real, pestaña y previews dicen
+ * solo HELLS BURGUERS.
+ * OJO SEO: una description igual al nombre no cumple seo-rules.txt §1
+ * (140-160 caracteres para el resultado de Google) — reponer cuando el
+ * cliente apruebe el texto definitivo.
+ */
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${NEGOCIO.nombre} — Hamburguesas a la brasa en ${NEGOCIO.ciudad}`,
-    template: `%s · ${NEGOCIO.nombre}`,
+    default: 'HELLS BURGUERS',
+    template: '%s · HELLS BURGUERS',
   },
-  description:
-    'Hamburguesas a la brasa con carne fresca y pan de masa madre. Pedí online o acercate: solo por las noches, en Rosario.',
+  description: 'HELLS BURGUERS',
   openGraph: {
     type: 'website',
     locale: 'es_AR',
-    siteName: NEGOCIO.nombre,
+    siteName: 'HELLS BURGUERS',
     url: SITE_URL,
-    title: `${NEGOCIO.nombre} — Hamburguesas a la brasa en ${NEGOCIO.ciudad}`,
-    description:
-      'Hamburguesas a la brasa con carne fresca y pan de masa madre. Solo por las noches.',
+    title: 'HELLS BURGUERS',
+    description: 'HELLS BURGUERS',
     // TODO(diseño): crear public/og.jpg de 1200x630 y verificar la preview por WhatsApp.
-    images: [{ url: '/og.jpg', width: 1200, height: 630, alt: NEGOCIO.nombre }],
+    images: [{ url: '/og.jpg', width: 1200, height: 630, alt: 'HELLS BURGUERS' }],
   },
   robots: { index: true, follow: true },
 }
