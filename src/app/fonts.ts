@@ -14,9 +14,13 @@ export const display = Anton({
   display: 'swap',
 })
 
+/**
+ * El 800 es para la flecha "→" de los CTAs: el handoff la pide en Archivo
+ * extra bold, y sin ese peso el navegador la simula engrosándola y se ve sucia.
+ */
 export const body = Archivo({
   subsets: ['latin'],
-  weight: ['400', '500', '600'],
+  weight: ['400', '500', '600', '800'],
   variable: '--font-body',
   display: 'swap',
 })

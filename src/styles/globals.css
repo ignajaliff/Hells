@@ -26,6 +26,18 @@
   --border: 0 0% 20%;
 
   --radius: 0.25rem;
+
+  /* Naranja de marca — hover del CTA primario (handoff de diseño, 2026-08-20).
+     Es el mismo naranja de las ilustraciones de llamas y de la mascota. Sobre
+     él el texto va en `--background`: 7.13:1, AA de sobra. */
+  --highlight: 34 98% 47%; /* #ef8f03 */
+  --highlight-foreground: 0 0% 10%;
+
+  /* Las palabras del fondo del hero: apenas más oscuras que el fondo, para que
+     se lean como relieve hundido y no como texto. 1.06:1 y 1.08:1 contra el
+     fondo — son DECORATIVAS, por eso la capa va `aria-hidden`. */
+  --hundida: 0 0% 8%; /* #141414 */
+  --hundida-mas: 0 0% 7%; /* #121212 */
 }
 
 @theme inline {
@@ -38,6 +50,10 @@
   --color-muted: hsl(var(--muted));
   --color-muted-foreground: hsl(var(--muted-foreground));
   --color-border: hsl(var(--border));
+  --color-highlight: hsl(var(--highlight));
+  --color-highlight-foreground: hsl(var(--highlight-foreground));
+  --color-hundida: hsl(var(--hundida));
+  --color-hundida-mas: hsl(var(--hundida-mas));
 
   --font-display: var(--font-display), 'Impact', sans-serif;
   --font-body: var(--font-body), ui-sans-serif, system-ui, sans-serif;
@@ -177,5 +193,25 @@ body {
 @keyframes trazar {
   to {
     stroke-dashoffset: 0;
+  }
+}
+
+/* La barra roja que corre bajo el nav.
+   Se desplaza exactamente -50% porque el contenido va DUPLICADO: cuando la
+   primera copia terminó de salir, la segunda está justo donde arrancó la
+   primera, así que el salto al reiniciar es invisible. Si se cambia la
+   cantidad de copias hay que cambiar este porcentaje.
+   Solo anima `transform`: no dispara layout ni repaint. */
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Con `prefers-reduced-motion` la barra se queda quieta: un texto en loop
+   continuo es justo lo que molesta a quien pidió no ver movimiento. */
+@media (prefers-reduced-motion: reduce) {
+  .marquee-pista {
+    animation: none;
   }
 }

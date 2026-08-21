@@ -74,15 +74,15 @@ export function DiabloHero({ className }: { className?: string }) {
         <Image
           src={diabloContent.abierto}
           alt=""
-          width={900}
-          height={1015}
+          width={620}
+          height={699}
           className="h-auto w-full"
         />
         <Image
           src={diabloContent.guino}
           alt=""
-          width={900}
-          height={1015}
+          width={620}
+          height={699}
           className="absolute inset-0 h-auto w-full transition-opacity duration-150"
           style={{ opacity: guiñando ? 1 : 0 }}
         />

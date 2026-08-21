@@ -7,17 +7,18 @@ import { LOGO_TRAZOS, LOGO_VIEWBOX } from './logoPath'
 /**
  * PantallaCarga — el telón de entrada de la web.
  *
- * Sobre negro absoluto, las líneas van dibujando el logo entero a la vez —
- * cada contorno creciendo en paralelo— y al cerrar se solidifica en el logo
- * pleno (design-rules.txt §6: "un solo momento coreografiado vale más que
- * veinte micro-animaciones").
+ * Sobre el gris de marca —el mismo fondo del hero—, las líneas van dibujando
+ * el logo entero a la vez —cada contorno creciendo en paralelo— y al cerrar se
+ * solidifica en el logo pleno (design-rules.txt §6: "un solo momento
+ * coreografiado vale más que veinte micro-animaciones").
  *
- * Coreografía, ~3.2s (los tiempos se DERIVAN de `TRAZO_TOTAL`, no se
- * hardcodean, así no se pueden desfasar entre sí):
+ * Coreografía, 3.0s de punta a punta (los tiempos se DERIVAN de
+ * `TRAZO_TOTAL`, no se hardcodean, así no se pueden desfasar entre sí):
  *   0.00s  arrancan las líneas, escalonadas por unas décimas
- *   2.10s  cierran todas — el logo está completo en línea
- *   2.28s  el relleno entra y los trazos se apagan: el logo cuaja
- *   2.78s  el telón se va y aparece el hero
+ *   1.65s  cierran todas — el logo está completo en línea
+ *   1.87s  el relleno entra y los trazos se apagan: el logo cuaja
+ *   2.55s  el telón empieza a irse
+ *   3.00s  terminó el fade y el hero queda solo
  *
  * CÓMO SE VE LA LÍNEA FORMANDO EL LOGO:
  * los 28 contornos van como <path> SEPARADOS, no en un solo `d` (con un `d`
@@ -43,48 +44,49 @@ import { LOGO_TRAZOS, LOGO_VIEWBOX } from './logoPath'
  */
 
 /** Lo que tarda el dibujo completo, en segundos. Es el número a tocar si se
- *  quiere más lento o más rápido: el resto se deriva solo. */
-const TRAZO_TOTAL = 2.1
+ *  quiere más lento o más rápido: el resto se deriva solo.
+ *  **El total de la pantalla NO es este número**: hay que sumarle el respiro
+ *  de `SOLIDIFICA`, el `LUCIMIENTO` y el fade de salida (0.45s). Ver `FIN`. */
+const TRAZO_TOTAL = 1.65
 
 /**
- * Cuánto se escalona el arranque de un trazo respecto del anterior, como
- * fracción de `TRAZO_TOTAL`.
+ * Qué fracción de `TRAZO_TOTAL` se reserva para escalonar los arranques.
  *
- * **Todos los trazos se dibujan casi EN PARALELO, no uno tras otro.** Dibujar
- * de a uno hacía que se viera un segmento suelto avanzando —sin la forma
+ * **Todos los trazos se dibujan EN PARALELO, no uno tras otro.** Dibujar de a
+ * uno hacía que se viera un segmento suelto avanzando —sin la forma
  * insinuándose— y por eso se leía como rectas sueltas. Creciendo todos a la
  * vez, el logo entero se va revelando y la silueta se reconoce desde temprano.
- * El escalonado chico es lo que le da vida: sin él arrancarían clavados todos
- * juntos y parecería un fundido, no un trazado.
  */
 const ESCALONADO = 0.18
 
 /**
- * Cada trazo arranca con un retardo según su posición en el orden de dibujo
- * (isotipo → "HELL'S" → "BURGER") y dura **en proporción a su largo**.
+ * Todos los trazos avanzan a la MISMA velocidad y CIERRAN EN EL MISMO INSTANTE.
  *
- * Lo segundo es lo que hace que se vea fluido: si todos duraran lo mismo, la
- * línea avanzaría a velocidades muy distintas según el trazo —medido: hasta
- * 15x de diferencia— y los contornos largos, que son justo los de la
- * hamburguesa, se arrastrarían hasta el final mientras los cortos ya cerraron.
- * Con la duración proporcional, **la punta de la línea viaja siempre a la
- * misma velocidad**, como una mano real: los trazos cortos cierran antes y los
- * largos siguen su recorrido.
+ * Son las dos mitades de un mismo efecto:
+ * - misma velocidad → la punta de la línea viaja como una mano real. Si todos
+ *   duraran lo mismo, los contornos largos (los de la hamburguesa) irían
+ *   disparados y los cortos se arrastrarían: medido, hasta 16.9x de diferencia.
+ * - mismo cierre → el logo se completa de una y no de a pedazos. Cada trazo se
+ *   RETRASA lo que haga falta: los cortos (las semillas del pan, las
+ *   contraformas de las letras) entran casi al final.
  *
- * La velocidad se calcula sobre el trazo MÁS LARGO, que es el que marca el
- * ritmo: es el último en cerrar y define el final del dibujo.
+ * Antes la duración era proporcional al largo pero los arranques estaban
+ * repartidos parejo, y eso hacía que los trazos cortos cerraran a los 0.2s
+ * mientras los largos seguían hasta los 2.1s: las semillas aparecían solas al
+ * principio, sueltas, en vez de completarse junto con el resto del logo.
  */
 function calcularTiempos() {
-  const n = LOGO_TRAZOS.length
   const masLargo = Math.max(...LOGO_TRAZOS.map((t) => t.largo))
 
-  return LOGO_TRAZOS.map((trazo, i) => {
-    const inicio = (i / (n - 1)) * TRAZO_TOTAL * ESCALONADO
-    // El más largo ocupa todo el tiempo que le queda tras su retardo; los
-    // demás, la fracción proporcional a su largo. Misma velocidad para todos.
-    const disponible = TRAZO_TOTAL - inicio
-    const duracion = disponible * (trazo.largo / masLargo)
-    return { inicio, duracion }
+  // Una sola velocidad para todos, fijada por el trazo más largo: es el que
+  // marca el ritmo, porque arranca primero y cierra al final.
+  const velocidad = masLargo / (TRAZO_TOTAL * (1 - ESCALONADO))
+
+  return LOGO_TRAZOS.map((trazo) => {
+    // Cada trazo tarda lo que mide dividido la velocidad, y se RETRASA su
+    // arranque para que todos cierren en el mismo instante.
+    const duracion = trazo.largo / velocidad
+    return { inicio: TRAZO_TOTAL - duracion, duracion }
   })
 }
 
@@ -104,8 +106,39 @@ const SOLIDIFICA = FIN_TRAZO + 0.22
  * Es una pausa deliberada: sin ella el logo cuaja y desaparece en el mismo
  * gesto, y no se llega a leer la marca — que es todo el punto de la pantalla.
  */
-const LUCIMIENTO = 1.1
+const LUCIMIENTO = 0.68
+/**
+ * Cuándo se va el telón. El TOTAL que percibe quien entra es esto **más el
+ * fade de salida** (`exit`, 0.45s): 2.55 + 0.45 = 3.0s.
+ * Si se quiere otro total, el reparto es:
+ *   TRAZO_TOTAL + 0.22 (respiro) + LUCIMIENTO + 0.45 (fade) = total
+ */
 const FIN = SOLIDIFICA + LUCIMIENTO
+
+/**
+ * Las dos capas del trazo de neón, de abajo hacia arriba.
+ *
+ * **El grosor va en PÍXELES DE PANTALLA, no en unidades del viewBox**, porque
+ * el grupo lleva `vector-effect="non-scaling-stroke"`. Es lo que hace que la
+ * línea mida lo mismo en un monitor que en un celular.
+ *
+ * Sin eso el grosor se interpreta en unidades del viewBox y encoge junto con
+ * el SVG: **la línea NUNCA debe quedar por debajo de 1px real** —un trazo
+ * sub-pixel el navegador lo pinta entrecortado y grisáceo, y eso es lo que
+ * antes se veía como "pixelado" (no era el path)—. Medido: con el grosor
+ * atado al viewBox, en un celular de 390px el núcleo caía a 0.55px, o sea que
+ * **en móvil venía roto de antes**, que es donde está casi todo el tráfico.
+ * Con `non-scaling-stroke` el problema desaparece por construcción y ya no hay
+ * que recalcular nada si cambia el tamaño del logo.
+ */
+const ANIMADAS = [
+  // El cuerpo del tubo: un rojo apagado, más oscuro que el de marca, con el
+  // halo encima. Es lo que hace que el resplandor respire en vez de quemar.
+  { stroke: '#b81815', ancho: 2.2, filtro: 'url(#neonLogo)' },
+  // El núcleo: el rojo del logo, fino y sin halo propio. Antes era casi blanco
+  // (`#ff8f8a`) y eso era la mitad de lo que hacía ver la línea tan fuerte.
+  { stroke: '#e3211f', ancho: 1.2, filtro: undefined },
+] as const
 
 export function PantallaCarga() {
   const sinMovimiento = useReducedMotion()
@@ -144,15 +177,16 @@ export function PantallaCarga() {
           // Puramente decorativa: el lector de pantalla debe leer el hero,
           // no anunciar un logo que se dibuja.
           aria-hidden
-          className="fixed inset-0 z-[100] flex items-center justify-center"
-          // Arranca en NEGRO PURO —no en el carbón del sitio— para que la
-          // pantalla se lea como vacía y todo nazca del trazo. Pero antes de
-          // salir vira al carbón del hero: si se fuera desde negro, el cambio
-          // de tono contra el fondo del sitio se notaría como un parpadeo.
-          initial={{ opacity: 1, backgroundColor: '#000000' }}
-          animate={{ backgroundColor: solido ? 'hsl(0 0% 10%)' : '#000000' }}
+          // El fondo es SIEMPRE el gris de marca, el mismo del hero
+          // (`--background`, #1a1a1a). Se toma del token vía la clase de
+          // Tailwind y no de un color escrito a mano, así no se pueden
+          // desincronizar si algún día se retoca la paleta.
+          // Antes arrancaba en negro puro y viraba al gris al final; el
+          // cliente lo pidió parejo de punta a punta (2026-08-20). De paso se
+          // fue el riesgo de que se notara el cambio de tono como un parpadeo.
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-background"
+          initial={{ opacity: 1 }}
           exit={{ opacity: 0, transition: { duration: 0.45, ease: [0.4, 0, 0.2, 1] } }}
-          transition={{ duration: 0.5, ease: 'easeInOut' }}
         >
           {/* El SVG va dentro de un contenedor con ancho propio.
               IMPORTANTE: un <svg> sin `height` dentro de un flex se ESTIRA a
@@ -160,14 +194,15 @@ export function PantallaCarga() {
               se veía gigante y desbordado. El wrapper fija el ancho y el
               `h-auto` del svg deja que la altura salga del viewBox. */}
           <motion.div
-            // `-translate-y` es corrección ÓPTICA, no un error de centrado: el
-            // viewBox está ajustado al logo, pero una pieza centrada de forma
-            // geométrica se percibe caída. Subirla ~4% la asienta.
-            className="w-[74vw] max-w-[560px] -translate-y-[4%]"
+            // Centrado EXACTO: el `flex items-center justify-center` del telón
+            // lo centra solo, sin corrección óptica encima. Antes llevaba un
+            // `-translate-y-[4%]` que lo subía a propósito, y por eso no
+            // quedaba en el medio (2026-08-20, pedido del cliente).
+            className="w-[58vw] max-w-[440px]"
             // SIN fade de entrada: el SVG está presente desde el frame 0 pero
             // vacío, y lo único que aparece es lo que la línea va trazando.
             // Con un fade encima, la línea se materializaba mientras dibujaba
-            // en vez de construirse desde cero sobre negro.
+            // en vez de construirse desde cero sobre el fondo.
             initial={false}
             animate={{ scale: solido ? 1.02 : 1 }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
@@ -177,31 +212,20 @@ export function PantallaCarga() {
             className="block h-auto w-full overflow-visible"
           >
             <defs>
-              {/* Trazo BRASA: de amarillo incandescente arriba a rojo profundo
-                  abajo, como metal al rojo vivo. Es el orden real de
-                  temperatura del fuego, y por eso se lee como calor y no como
-                  un degradé decorativo. El amarillo y el naranja no están en
-                  la paleta de UI, pero acá es lo mismo que las ilustraciones
-                  de llamas: imagen de marca, no interfaz. */}
-              <linearGradient id="trazoLogo" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#ffd24a" />
-                <stop offset="35%" stopColor="#ef8f03" />
-                <stop offset="70%" stopColor="#e3211f" />
-                <stop offset="100%" stopColor="#8f0f0c" />
-              </linearGradient>
-
-              {/* Halo: dos desenfoques, uno cerrado y otro abierto. Con un solo
-                  blur el resplandor se ve como una mancha; en dos capas queda
-                  el brillo pegado a la línea más un halo amplio, que es como se
-                  comporta la luz de verdad.
+              {/* Halo del neón: UN solo desenfoque, fusionado una sola vez.
+                  Antes eran dos blurs con el ancho puesto dos veces y el
+                  resplandor quemaba — el cliente lo pidió más tranquilo
+                  (2026-08-20). Con una sola pasada la luz se insinúa alrededor
+                  de la línea en vez de saturarla.
                   El área del filtro es 180% porque el halo se extiende bastante
-                  más allá del path: con el default (110%) se recorta. */}
+                  más allá del path: con el default (110%) se recorta.
+                  **El halo también recorta contra el viewBox**, y por eso
+                  `logoPath.ts` lleva 28 unidades de margen: si se sube el
+                  `stdDeviation`, agrandar ese margen (3 * stdDeviation). */}
               <filter id="neonLogo" x="-40%" y="-40%" width="180%" height="180%">
-                <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="cerca" />
                 <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="lejos" />
                 <feMerge>
                   <feMergeNode in="lejos" />
-                  <feMergeNode in="cerca" />
                   <feMergeNode in="SourceGraphic" />
                 </feMerge>
               </filter>
@@ -224,24 +248,9 @@ export function PantallaCarga() {
                 INVISIBLE, y ese valor inline rige también durante su delay:
                 así en el frame 0 no hay absolutamente nada dibujado y todo
                 aparece a medida que la línea lo traza.
-                El `drop-shadow` le da un halo tenue del mismo rojo: sobre el
-                negro una línea fina se ve apagada, y el halo la hace leer
-                como encendida sin engrosarla. */}
+                Sobre el fondo oscuro una línea fina se ve apagada, y el halo la
+                hace leer como encendida sin engrosarla. */}
             <g
-              stroke="url(#trazoLogo)"
-              fill="none"
-              // El grosor va en unidades del viewBox (854 de ancho) y el SVG se
-              // dibuja a ~560px, así que 1 unidad = ~0.66px reales. Con 3.2 la
-              // línea mide ~2.1px: sólida y nítida.
-              // **La línea NUNCA debe quedar por debajo de 1px real** — un
-              // trazo sub-pixel el navegador lo pinta entrecortado y grisáceo,
-              // y eso es lo que antes se veía como "pixelado" (no era el path).
-              // Si cambia el viewBox o el `max-w`, recalcular:
-              //   grosor = 2.1 * anchoViewBox / anchoEnPx
-              strokeWidth={3.2}
-              strokeLinejoin="round"
-              strokeLinecap="round"
-              filter="url(#neonLogo)"
               style={{
                 // Se apagan cuando el relleno ya entró: si quedaran, el logo
                 // se vería con un borde más grueso que el original.
@@ -249,20 +258,41 @@ export function PantallaCarga() {
                 transition: 'opacity 0.4s ease-out',
               }}
             >
-              {LOGO_TRAZOS.map((trazo, i) => (
-                <path
-                  key={i}
-                  d={trazo.d}
-                  style={{
-                    strokeDasharray: trazo.largo,
-                    strokeDashoffset: trazo.largo,
-                    // Curva suave (no `linear`): la línea sale con impulso y
-                    // cierra frenando, que es como se dibuja a mano. Con
-                    // `linear` el avance es mecánico y parece una barra de
-                    // progreso en vez de un trazo.
-                    animation: `trazar ${TIEMPOS[i].duracion}s cubic-bezier(0.33, 0.1, 0.24, 1) ${TIEMPOS[i].inicio}s forwards`,
-                  }}
-                />
+              {/* NEÓN ROJO, en dos capas: abajo un rojo apagado con el halo, y
+                  encima un núcleo del rojo de marca, fino. Así se lee como un
+                  tubo encendido —donde el centro satura— y no como una línea
+                  con sombra. Todo el trazo es rojo: el degradé a amarillo de
+                  antes se cambió por pedido del cliente. */}
+              {ANIMADAS.map(({ stroke, ancho, filtro }, capa) => (
+                <g
+                  key={capa}
+                  stroke={stroke}
+                  fill="none"
+                  // El grosor en píxeles de PANTALLA: así la línea mide lo
+                  // mismo en un monitor que en un celular, y no cae en
+                  // sub-pixel cuando el logo se dibuja chico (ver ANIMADAS).
+                  vectorEffect="non-scaling-stroke"
+                  strokeWidth={ancho}
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                  filter={filtro}
+                >
+                  {LOGO_TRAZOS.map((trazo, i) => (
+                    <path
+                      key={i}
+                      d={trazo.d}
+                      style={{
+                        strokeDasharray: trazo.largo,
+                        strokeDashoffset: trazo.largo,
+                        // Curva suave (no `linear`): la línea sale con impulso y
+                        // cierra frenando, que es como se dibuja a mano. Con
+                        // `linear` el avance es mecánico y parece una barra de
+                        // progreso en vez de un trazo.
+                        animation: `trazar ${TIEMPOS[i].duracion}s cubic-bezier(0.33, 0.1, 0.24, 1) ${TIEMPOS[i].inicio}s forwards`,
+                      }}
+                    />
+                  ))}
+                </g>
               ))}
             </g>
           </svg>
