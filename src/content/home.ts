@@ -4,10 +4,17 @@
  */
 
 export const heroContent = {
+  /**
+   * `linea2` se parte en dos en móvil (`linea2a` / `linea2b`) para que la
+   * tipografía pueda crecer: el tamaño del h1 lo limita la línea más larga, y
+   * con "hechas en el" entera no había margen. En desktop las dos se muestran
+   * en la misma línea, así que el texto leído es idéntico.
+   */
   titulo: {
     linea1: 'Hamburguesas',
-    linea2: 'hechas en',
-    destacado: 'el infierno',
+    linea2a: 'Hechas',
+    linea2b: 'en el',
+    destacado: 'Infierno',
   },
   /**
    * Foto de producto del hero. Es decorativa (`alt=""` en el componente): el
@@ -19,13 +26,46 @@ export const heroContent = {
     src: '/burger-hero.png',
     alt: 'Hamburguesa de Hell’s Burger',
   },
+  cta: {
+    primario: 'Pedi ya',
+    secundario: 'Las burguers',
+  },
 } as const
 
 /**
- * La mascota. Salen del mismo archivo (`diablos.jpg`, los dos stickers sobre
- * fondo negro), así que comparten contorno, iluminación y encuadre.
- * Se recortaron con la MISMA caja centrada — ratio 0.882 y 0.887 — así que
- * se pueden superponer para animar el guiño sin que la cabeza se mueva.
+ * Links del navegador.
+ *
+ * `BURGUERS`, `NOSOTROS` y `WORK` todavía no tienen sección a la que apuntar:
+ * quedan en `#` a propósito hasta que existan. `activo` marca cuál lleva el
+ * óvalo rojo dibujado a mano.
+ */
+export const navLinks = [
+  { label: 'Inicio', href: '#inicio', activo: true },
+  { label: 'Burguers', href: '#', activo: false },
+  { label: 'Nosotros', href: '#', activo: false },
+  { label: 'Work', href: '#', activo: false },
+] as const
+
+/**
+ * Frases de la barra roja que corre bajo el nav.
+ *
+ * Se listan UNA vez: el componente las repite las veces que hagan falta para
+ * que el loop no deje huecos. Si se agregan o sacan frases no hay que tocar
+ * nada más.
+ */
+export const marqueeFrases = [
+  "Hell's Burguer",
+  'Smash Burguer',
+  '10% Off Cash',
+  'Envios a Domicilio',
+] as const
+
+/**
+ * La mascota. `diablo.png` viene del handoff de diseño (2026-08-20) y
+ * `diablo-guino.png` del sticker fotografiado que ya estaba en el proyecto.
+ * Son cortes de origen distinto, así que se RE-ENCUADRARON a una caja común
+ * de 620x699 alineando por el ancho del dibujo: sin eso la cabeza saltaba al
+ * cruzarlas para el guiño. Verificado: 95.7% de silueta compartida.
  * Decorativas siempre: van con alt="".
  */
 export const diabloContent = {
