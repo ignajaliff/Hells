@@ -100,7 +100,7 @@ npm run lint         → linter
 
 | Página | Ruta | Estado | Notas |
 |--------|------|--------|-------|
-| Home | `/` | En desarrollo | Solo el Hero maquetado |
+| Home | `/` | En desarrollo | Hero completo (handoff v3); faltan el resto de las secciones |
 | 404 | — | Maquetada | `app/not-found.tsx` |
 | Error global | — | Maquetada | `app/error.tsx` |
 
@@ -147,6 +147,29 @@ Candidatos ya previstos en `defaults.ts`: `whatsapp` (visible + número + franja
 
 ---
 
+## Trampas del entorno de desarrollo
+
+* **NUNCA correr `npm run build` con el dev server levantado**: los dos escriben en el
+  mismo `.next/`. El build borra y reescribe `.next/static/`, y el dev server queda
+  apuntando a archivos que ya no existen → **el CSS y el JS dan 404 y la página se sirve
+  sin estilos**. Se ve como "no carga el fondo / no se ve el sticker", pero el HTML está
+  perfecto y los assets responden 200: lo que falta es la hoja de estilos.
+  Síntomas para reconocerlo rápido: el `<section>` mide miles de píxeles de alto en vez de
+  `100svh`, las imágenes salen a su tamaño natural y `getComputedStyle` devuelve
+  `display:inline` y `z-index:auto` en todo.
+  **Arreglo**: frenar el dev server, `rm -rf .next`, y volver a levantarlo.
+  Lo mismo vale para tener **dos `npm run dev` a la vez** sobre este proyecto: se pisan el
+  caché y tiran `__webpack_modules__[moduleId] is not a function`.
+* **Playwright está instalado como devDependency (2026-08-21)** justamente por esto: sin
+  ver el render no se pueden distinguir estos fallos de un bug de CSS, y varios problemas
+  reales (el h1 desbordando en móvil) no aparecen en ningún cálculo de layout.
+  Uso: `chromium.launch()` → `page.goto('http://localhost:3000')` → esperar ~4s (la
+  pantalla de carga dura 3.0s) → `screenshot()` o medir con `getBoundingClientRect()`.
+  **Verificar siempre que el CSS cargó** antes de sacar conclusiones:
+  `document.styleSheets[0].cssRules.length` tiene que ser > 0.
+
+---
+
 ## Decisiones técnicas tomadas
 
 * **Next.js 15.5 y no 16**: el kit fija "15+" y 15.5 es la versión estable probada con
@@ -159,11 +182,160 @@ Candidatos ya previstos en `defaults.ts`: `whatsapp` (visible + número + franja
   grano (`brasa-glow` y `textura-grano` en `globals.css`) para no dejar un placeholder roto.
   Cuando llegue la foto de producto va con `next/image` + `priority` (es el LCP).
 * **Sin header ni footer todavía**: se agregan cuando existan más secciones que anclar.
-* **Hero tipográfico plano (decisión del cliente, 2026-08-18)**: sin degradé rojo, sin eyebrow,
-  sin subtítulo y sin CTAs — solo el logo y el h1 sobre el gris `--background`. El tamaño del
-  h1 es `text-[16vw]`, calculado midiendo la fuente: Anton da 5.938em de ancho para
-  "HAMBURGUESAS", así que a 16vw la línea más larga abarca el viewport completo.
-  **Ojo**: al no haber CTA en el hero, la conversión depende de las secciones siguientes.
+* **Hero según el handoff de diseño "Hero HELLS v3" (2026-08-20)**: reemplazó al hero
+  tipográfico plano del 2026-08-18 (que era solo logo + h1, sin CTAs). Ahora ocupa una
+  pantalla exacta con seis capas: fondo ilustrado, nav con sticker, barra promo tipo
+  marquee, burger sangrando por la derecha, mascota y columna de texto con dos CTAs.
+  **Esto resuelve la deuda de "el hero no tiene CTA"** que venía arrastrándose.
+  * **`100svh`, no `100vh`**: en móvil `vh` incluye la barra de direcciones, así que un
+    hero de `100vh` queda cortado justo donde van los CTAs. `svh` mide el viewport chico
+    y entra siempre.
+  * **Los tamaños van en `vh` y no en `vw`**: la restricción real es la ALTURA, porque
+    todo tiene que entrar en una pantalla. Con `vw`, en un monitor ancho y bajo el h1
+    desbordaría por abajo.
+  * **El diseño es solo desktop (1440x900)**: no define móvil, y ahí no entra —la columna
+    de texto ocupa 62% y la burger 54%, se pisarían—. Se resolvió apilando: en móvil la
+    burger pasa a fondo atenuado (`opacity-25`) detrás del texto, los CTAs se apilan y
+    los links del nav se pliegan en un menú. De `lg` para arriba es el diseño tal cual.
+  * **Los colores del handoff coinciden con la paleta**: fondo `#1a1a1a` idéntico y rojo
+    `#e32521` contra `#e42421` del token — 1/255, imperceptible. Se usan **los tokens**,
+    no los hex del handoff (design-rules.txt §4). Se agregaron `--highlight` (el naranja
+    del hover) y `--hundida`/`--hundida-mas` (las palabras del fondo).
+  * **Las fuentes ya estaban** con `next/font`; el README pedía un `<link>` a Google
+    Fonts y eso iría contra las reglas y empeoraría el LCP. Solo se sumó el peso 800 de
+    Archivo, que es el de la flecha "→".
+* **El fondo del hero pasó a ser una IMAGEN (2026-08-21, aporte del cliente)**:
+  `public/fondo-fuegitos.webp` reemplaza a la capa `MarcaAgua`, que dibujaba las palabras
+  de fondo en HTML. **La imagen ya trae esas mismas palabras** (DEMONS CREW, BURGUERS,
+  HELL'S, I LOVE, los nombres de demonios) más el zócalo de fuego dentado al pie, así que
+  mantener las dos capas las duplicaba. Se eliminaron `components/ui/MarcaAgua.tsx` y
+  `marcaAguaFilas` de `content/home.ts`.
+  **De paso resuelve la deuda del zócalo de fuego**, que figuraba como pendiente desde el
+  2026-08-19 porque `FuegoZocalo.tsx` nunca existió en `src/`.
+  * **Se sirve optimizada, no como vino**: el original era un JPEG de 8000x4500 y 1.2MB
+    para un fondo que además es el LCP. A 2560px y WebP q82 pesa **31KB** — 40x menos, sin
+    pérdida visible porque es arte plano, sin fotografía. Va con `unoptimized` justo por
+    eso: ya está en su tamaño y formato final, pasarla otra vez por el optimizador de Next
+    solo agregaría latencia. **El JPEG original se borró.**
+  * **En móvil NO se usa esta imagen** (2026-08-21): es 16:9 y el hero en celular es mucho
+    más alto, así que `object-cover` la escala por ALTURA y **solo entra un 25-32% del
+    ancho** — el lettering queda gigante y cortado justo detrás del h1. Se probaron los
+    dos anclajes y ninguno sirve: centrada se ve el interior de una letra, y con
+    `object-left-bottom` se lee el margen izquierdo pero igual de grande. `object-contain`
+    tampoco: deja la imagen ocupando el 26% de abajo, el fuego en 21px y el 74% vacío.
+    En su lugar va `public/zocalo-fuego.webp` (ver abajo) sobre el fondo liso.
+    De `lg` para arriba sí se usa, centrada y con `object-bottom`.
+  * **El ancla es INFERIOR**: el zócalo de fuego tiene que quedar pegado al pie del hero.
+    Anclado al centro se recorta fuera de vista.
+  * **El nav perdió su fondo sólido**: lo llevaba para tapar las palabras que se dibujaban
+    por detrás. Ahora la imagen ya reserva ese aire —las palabras arrancan al 17.2% del
+    alto, por debajo del nav— y un fondo sólido solo cortaría el fondo ilustrado en una
+    banda plana. **El desplegable de móvil sí conserva el fondo** (se abre sobre las
+    palabras) y se estira con márgenes negativos hasta los bordes de la pantalla.
+  * **En 21:9 se pierde la primera fila de palabras** (`cover` recorta 25% de arriba). Se
+    aceptó: es fondo decorativo, quedan las otras cinco filas y el zócalo de fuego intacto.
+  * El fondo de la imagen es `#1a1a1a` **exacto** (muestreado: 26,26,26), o sea el mismo
+    `--background`, así que se funde sin costura con el resto del hero.
+* **El hero en móvil se APILA, no se superpone (2026-08-21)**: se veía todo encimado
+  porque había **tres capas peleando el mismo espacio** — el fondo con su lettering
+  gigante, la burger al 120% de ancho con `opacity-25` justo detrás del h1 (ocupaba el
+  40-51% del alto de la zona central), y el texto encima de las dos. Se separó cada una:
+  * **Las palabras de marca van en MOSAICO vertical** (`public/fondo-palabras.webp`,
+    1280x648, 3.5KB): el fondo recortado ANTES del fuego, repetido con
+    `bg-[length:100%_auto] bg-repeat-y`. Al mostrarse al ancho completo de la pantalla
+    las palabras quedan a escala legible, y las ~3.8 copias cubren todo el alto.
+    Es `background-image` y no `<Image>` porque `next/image` no repite patrones, y con
+    `object-contain` la imagen ocuparía apenas el 26% del alto.
+    **Se llegó acá después de dos intentos peores**: ocultar el fondo (`hidden lg:block`)
+    dejaba la pantalla negra y perdía las palabras, que son parte del diseño; y mostrarlo
+    con `object-cover` —con o sin `opacity`— las agranda tanto que se ven como manchas.
+    El recorte tiene que excluir el fuego: si viniera incluido se repetiría en mitad de
+    la pantalla.
+  * **El fondo ilustrado grande se oculta** (`hidden lg:block`) y el zócalo lo aporta
+    `public/zocalo-fuego.webp` — el recorte del 12% inferior de `fondo-fuegitos`
+    (2560x173, 25KB), o sea **el mismo dibujo de llamas**, pegado al pie y a todo el
+    ancho. Se dimensiona por ALTURA (`h-[max(34px,7svh)]`, tope 64px) y no por ancho:
+    con ratio 14.8:1, a ancho completo quedaría en ~26px, un hilito.
+    **No va en mosaico**: los bordes del recorte no coinciden (46px de diferencia en el
+    perfil de las llamas) y el empalme se notaría. Se escala por alto y se recortan los
+    lados, que en un patrón repetido no se ve.
+  * **La burger deja de estar detrás del texto**: en móvil pasa a ser un hijo más del
+    flex, con `order-2`, apoyada en el espacio libre que queda entre los CTAs y el fuego
+    (medido: 120px en el iPhone SE, 198 en el 14, 228 en Android). Lleva `flex-1` +
+    `min-h-0` para que, si la pantalla es baja, **lo que ceda sea ella y no el h1** — la
+    columna de texto va `shrink-0`. De `lg` para arriba vuelve a `absolute`.
+  * **El contenedor reserva el alto del fuego** con un `pb` que repite la misma expresión
+    del `h-` del zócalo, así la burger apoya justo encima de las llamas en vez de
+    pisarlas. Sin eso llegaba hasta el borde en los cinco tamaños probados.
+  * Verificado por cálculo en 280x653 (Galaxy Fold), 360x740, 375x667, 390x844, 412x915 y
+    430x932: en todos entra el texto completo y la burger conserva 97px o más.
+  * **El h1 se limita por ancho ADEMÁS de por alto (2026-08-21)**: era
+    `clamp(38px,9vh,110px)`, y `vh` solo mide altura — en un celular alto y angosto
+    (390x844) daba 76px y **"HAMBURGUESAS" se salía de la pantalla**. Ahora en móvil va
+    `clamp(38px,min(9vh,11.5vw),110px)`; de `lg` para arriba queda el original, donde
+    manda el `9vh`. Verificado sin desborde ni scroll horizontal de 280px a 1920px.
+    **Este bug no lo detectó ningún cálculo de altura** — apareció recién al ver la
+    captura del render.
+  * **La mascota ahora TAMBIÉN se ve en móvil (2026-08-21, pedido del cliente)**: iba
+    `hidden lg:block` porque la burger estaba detrás del texto y el diablillo caía encima
+    del h1. Con el apilado eso ya no pasa —la burger tiene su espacio abajo—, así que se
+    apoya sobre ella anclada por ABAJO (`bottom`, no `top`), con el mismo `min/max` del
+    zócalo de fuego + 2% para no pisar las llamas, y a la derecha (`right-[6%]`) para no
+    taparle la cara a la hamburguesa. Más chica que en desktop (64-92px contra 110-170px):
+    al tamaño de desktop ocuparía casi un cuarto del ancho de la pantalla.
+    Verificado visible y sin pisar el fuego de 280px a 1440px.
+* **Jerarquía del hero en DESKTOP (2026-08-21, pedido del cliente)**: se subieron logo y
+  título, y se bajó la mascota. Valores finales en `lg`:
+  * **h1**: `min(13vh, 9.2vw)` con tope 150px — 117px en 1440x900, 140px en Full HD
+    (venía de 90px). El `9.2vw` no es decorativo: **el límite en desktop es el ANCHO**,
+    porque "HAMBURGUESAS" tiene que terminar antes de donde arranca el dibujo de la
+    burger. Ese punto está en el **58.6% del viewport** (medido sobre el PNG: el dibujo
+    empieza al 1.2% de su ancho, y la imagen se coloca a `right:-8%` con `w:50%`).
+    **Si se mueve o redimensiona la burger, recalcular ese 9.2vw.**
+  * **logo**: `16vh` con tope 190px (144px en 1440).
+  * **mascota**: `8.5vw` con tope 132px — el cliente la quiso chica. Al achicarla hubo
+    que correr el `right` a **33.5%** y bajarla a `top-[3%]` para que siguiera apoyada
+    sobre la burger.
+  * **El contenedor central lleva `lg:pb-[12svh]`**: sin él los CTAs se metían entre 7 y
+    21px dentro del zócalo de fuego en las cuatro resoluciones probadas (1024x768,
+    1280x720, 1366x768, 1440x900). Es el equivalente al `pb` que ya tenía móvil.
+    El caso más ajustado es **1280x720**, que queda con 23px de aire.
+* **Ajustes de jerarquía del hero (2026-08-21, pedido del cliente)**: el logo se veía
+  chico, el h1 tenía poco peso contra la foto de la burger, y el nav dejaba ver las
+  palabras del fondo cruzando los links.
+  * **El logo pasó de `52-100px` a `70-150px`** de alto (13vh), en dos rondas.
+  * **El h1 crece partiendo "hechas en el" en dos líneas SOLO en móvil**: el tamaño lo
+    limita la línea más larga, y con tres líneas ("HAMBURGUESAS" ya al límite del ancho)
+    no había margen — solo daba para un 3-5% más. Con cuatro líneas sube ~25%.
+    Las dos mitades viven en `content/home.ts` (`linea2a`/`linea2b`) y se juntan en
+    desktop con `lg:inline`, así el texto leído es idéntico y no hay copy hardcodeado.
+  * **El h1 se limita por ALTO además de por ancho** (`min(8.5vh, 12.2vw)` en móvil,
+    `10vh` con tope 124px en desktop): al agrandarlo,
+    las cuatro líneas + el logo más grande dejaban la burger en 73px en un iPhone SE —una
+    franja aplastada—. **Esto no se ve en desktop ni en un iPhone 14**: aparece solo en
+    pantallas cortas.
+  * **En pantallas BAJAS los CTAs van lado a lado** (`@media(max-height:740px)`), no
+    apilados: apilados se llevan 130px y eran el verdadero cuello de botella —bajar el h1
+    hasta 5.5vh no alcanzaba, y con los CTAs en fila la burger pasa de 73px a 139px—.
+    La condición es por ALTURA y no por ancho, que es la restricción real.
+  * **El nav recuperó su `bg-background`**: se le había sacado cuando el fondo era una
+    imagen única que reservaba aire arriba; con el mosaico las palabras vuelven a llegar
+    al borde superior y se leían por detrás de los links.
+  * **La mascota**: se achicó y se separó del pie (+6% en vez de +2%) porque quedaba
+    pegada a la barra de promos. Quedó en **48-68px en móvil y 140-210px en desktop**.
+    En móvil se probó agrandarla a 66-96px y el cliente la quiso chica de nuevo: **en
+    celular va discreta al lado de la burger, no compitiendo con ella.** Al agrandarla
+    en desktop hubo
+    que correrle el `right` de 32.7% a **31%** para que siguiera apoyada sobre la burger:
+    **ese valor depende del ancho de la mascota Y del de la burger, así que si se toca
+    cualquiera de los dos hay que recalcularlo.**
+  * **CUIDADO — este apilado no debe filtrarse a desktop**: al agregarlo, el
+    `justify-center` del contenedor se aplicó también en `lg` y **corrió el texto del hero
+    al centro**, cuando el diseño lo quiere pegado a la izquierda. Toda clase del apilado
+    móvil lleva su reseteo explícito en `lg`: `lg:justify-start`, `lg:pb-0`,
+    `lg:order-none` y `lg:shrink`. En desktop la burger y el diablillo son `absolute`, o
+    sea que el texto es el ÚNICO hijo en flujo — por eso `lg:flex-row lg:items-center
+    lg:justify-start` reproduce exactamente el `flex items-center` original.
 * **Zócalo de fuego en el hero (2026-08-19)**: banda ilustrada al pie, en `-z-20`,
   derivada de `llama1.png` (la más apaisada de las tres: ratio 2.30 contra 1.37 de
   `llama3`). Se dimensiona por ALTURA (`h-[26vh]` + `object-cover`) y no por ancho:
@@ -174,7 +346,7 @@ Candidatos ya previstos en `defaults.ts`: `whatsapp` (visible + número + franja
   llamas (`#e32521`) sí coincide con el del logo.
 * **Pantalla de carga: el logo se dibuja solo (2026-08-19, decisión del cliente)**:
   las líneas dibujan el logo entero a la vez sobre negro y al cerrar se solidifica en el
-  logo pleno. Coreografía ~3.9s: trazan (0→2.10s) → solidifica (2.32s) → pausa 1.1s → hero (3.42s + fade).
+  logo pleno. Coreografía 3.0s: trazan (0→1.65s) → solidifica (1.87s) → pausa 0.68s → sale el telón (2.55s) → fade (3.0s).
   Con `prefers-reduced-motion` se saltea entera. Bloquea el scroll mientras está puesta.
   **Los tiempos se DERIVAN, no se hardcodean**: el único número a tocar es `TRAZO_TOTAL`;
   `FIN_TRAZO` sale de recorrer los tiempos reales con `Math.max` y `SOLIDIFICA`/`FIN` se
@@ -186,16 +358,20 @@ Candidatos ya previstos en `defaults.ts`: `whatsapp` (visible + número + franja
   "HELL'S" → "BURGER"). Con un `d` único no se puede escalonar, la animación es una sola.
   Los largos están precalculados en `logoPath.ts` — medirlos con `getTotalLength()`
   obligaría a 28 refs y un render extra.
-  **Arranca en NEGRO PURO y el frame 0 está vacío** (2026-08-19, decisión del cliente):
-  el fondo del telón es `#000000`, no el carbón del sitio — a viewport completo el
-  `#1a1a1a` se lee gris y no como "pantalla apagada". Todo lo que aparece lo dibuja la
-  línea: los 28 trazos arrancan con `strokeDashoffset` = su largo (invisibles) y ese
-  valor inline rige también durante su delay. **El SVG no lleva fade de entrada**
-  (`initial={false}`): con el fade, la línea se materializaba mientras dibujaba en vez de
-  construirse desde cero. Verificado en el HTML servido: 28/28 trazos con
-  `dashoffset === dasharray` y el relleno en `opacity: 0`.
-  Antes de salir el telón **vira del negro al carbón** del hero: si se fuera desde negro
-  puro, el salto de tono contra el fondo del sitio se vería como un parpadeo.
+  **El fondo del telón es SIEMPRE el gris de marca** (2026-08-20, decisión del cliente):
+  el mismo `--background` (#1a1a1a) que usa el hero, parejo de punta a punta. Se toma
+  del token con la clase `bg-background` y **no de un color escrito a mano**, así no se
+  pueden desincronizar si algún día se retoca la paleta. Verificado en el CSS servido:
+  `.bg-background` → `hsl(var(--background))` → `0 0% 10%`.
+  Antes (2026-08-19) arrancaba en `#000000` y viraba al carbón sobre el final, para que
+  se leyera como "pantalla apagada". Al unificarlo desaparece de paso el riesgo de que
+  ese cambio de tono se notara como un parpadeo.
+  **El frame 0 está vacío**: todo lo que aparece lo dibuja la línea. Los 28 trazos
+  arrancan con `strokeDashoffset` = su largo (invisibles) y ese valor inline rige
+  también durante su delay. **El SVG no lleva fade de entrada** (`initial={false}`): con
+  el fade, la línea se materializaba mientras dibujaba en vez de construirse desde cero.
+  Verificado en el HTML servido: 28/28 trazos con `dashoffset === dasharray` y el
+  relleno en `opacity: 0`.
   **Los 28 trazos crecen EN PARALELO, no en secuencia** (2026-08-19, corrección final —
   esta es la que quedó). Se probaron las dos alternativas y las dos quedaban mal:
   * con solape parcial se dibujaban 4 trazos sueltos a la vez en puntos distintos y se
@@ -222,81 +398,116 @@ Candidatos ya previstos en `defaults.ts`: `whatsapp` (visible + número + franja
   wrapper y el SVG va con `block h-auto w-full`, así la altura sale del viewBox.
   **Regla: todo SVG dentro de un flex necesita altura explícita o `h-auto` con el ancho
   fijado por un wrapper.**
-* **El trazo es BRASA (2026-08-19, pedido del cliente)**: degradé vertical de amarillo
-  incandescente a rojo profundo (`#ffd24a` → `#ef8f03` → `#e3211f` → `#8f0f0c`), el orden
-  real de temperatura del fuego — por eso se lee como calor y no como degradé decorativo.
-  El amarillo y el naranja no están en la paleta de UI: mismo criterio que las
-  ilustraciones de llamas, es imagen de marca y no interfaz. **El relleno final sigue
-  siendo `fill-primary`** (el rojo del logo): solo el trazo es brasa.
-  Encima va un filtro de dos desenfoques (`stdDeviation` 1.5 y 6) fusionados sobre el
-  original: con un solo blur el resplandor queda como mancha, en dos capas hay brillo
-  pegado a la línea más halo amplio, que es como se comporta la luz real.
-  Se probaron y quedaron descartadas otras variantes (rojo plano fino, tubo de neón con
-  núcleo claro, trazo grueso sólido) — están en el historial por si se quiere volver.
+* **El trazo es NEÓN ROJO (2026-08-20, pedido del cliente)**: reemplazó al degradé
+  brasa (amarillo → rojo), que el cliente pidió cambiar por algo **todo rojo**.
+  Son **dos capas superpuestas**: abajo el rojo del logo (`#e3211f`, grosor 5) con el
+  halo, y encima un núcleo más claro y fino (`#ff8f8a`, grosor 1.8) sin halo propio.
+  Con una sola capa se lee como "contorno con sombra"; con el núcleo claro se lee como
+  un tubo encendido, que es lo que satura en el centro en un neón real.
+  El halo son dos desenfoques (`stdDeviation` 2 y 7) fusionados, con el `lejos` **dos
+  veces** para que el resplandor tenga cuerpo: con un solo blur queda como mancha.
+  El `#ff8f8a` no está en la paleta de UI — mismo criterio que las ilustraciones de
+  llamas: es imagen de marca, no interfaz. **El relleno final sigue siendo
+  `fill-primary`.**
+* **Los trazos son POLILÍNEAS, no curvas Bézier (2026-08-20)** — y esta fue la causa
+  REAL de las "líneas que sobresalen", que se buscó durante varias rondas en el viewBox
+  y en el filtro, donde no estaba.
+  El pipeline viejo hacía Chaikin + Catmull-Rom → Bézier, y las dos etapas deformaban:
+  * **Chaikin encoge el polígono en cada iteración** y se comía las capas finas de la
+    hamburguesa (la lechuga, el queso), dejándolas como barras sueltas;
+  * **Catmull-Rom deformaba la silueta** y abría los contornos finos.
+  Verificado aislando cada etapa: con solo Douglas-Peucker el logo sale idéntico al
+  original, y al agregar cualquiera de las otras dos aparecen los trazos sueltos.
+  Como el contorno ahora se traza sobre el JPG a su resolución REAL (4000x2250, antes
+  se reducía), la poligonal ya se ve curva al tamaño en que se muestra (~560px) — y es
+  exacta. **Si se re-vectoriza, no volver a meter suavizado.**
+* **El contorno se traza siguiendo las ARISTAS, no los píxeles (2026-08-20)**: se arma
+  el conjunto de aristas dirigidas entre lleno y vacío y se encadenan. Cada arista se
+  consume una sola vez, así que **el recorrido siempre termina** y los 28 contornos
+  salen CERRADOS (verificado: 0 abiertos).
+  Esto importa: los dos intentos previos de seguir la grieta con tablas de giro
+  escritas a mano se colgaban en bucle infinito y morían por falta de memoria — el
+  caso de los vértices "silla" (dos diagonales opuestas) es ambiguo y hay que
+  resolverlo consumiendo aristas, no adivinando el giro.
+  Douglas-Peucker con ε 0.9 px deja 1.532 puntos de los 17.270 sin desviación visible.
 * **El halo necesita MARGEN dentro del viewBox (2026-08-19)**: era la causa de que los
   bordes se siguieran viendo cortados. Un `feGaussianBlur` de `stdDeviation` N se
   extiende ~3N unidades, y **el filtro recorta contra el viewBox** — el
   `overflow: visible` de CSS no lo evita, porque el recorte lo hace el filtro y no la
   caja del elemento. Con 6 unidades de margen y un halo que necesitaba 22.6, el
   resplandor se cortaba en los cuatro lados.
-  Ahora el viewBox lleva **28 unidades de margen** (898x521) y el filtro declara
+  Ahora el viewBox lleva **28 unidades de margen** (899x527) y el filtro declara
   `x/y="-40%" width/height="180%"` — con el default (110%) también se recorta.
   **Si se sube el `stdDeviation` del halo, agrandar el margen: `3 * stdDeviation`.**
 * **El viewBox tiene que ABARCAR los paths, no el tamaño de la máscara (2026-08-19)**:
-  era la causa de que el logo se viera cortado por los bordes. El viewBox se tomaba del
-  tamaño de la máscara de píxeles, pero los paths no coinciden con ella — el suavizado de
-  Chaikin y los puntos de control de las Bézier corren los trazos hacia afuera. Medido:
-  el contenido se salía **24.3 unidades por la izquierda y 3.3 por abajo**, y el SVG
-  recorta todo lo que cae fuera del viewBox.
-  Ahora el viewBox se ajusta al bbox REAL de los paths (854x477) con 6 unidades de
-  margen, que incluyen medio grosor de trazo: un `stroke` se dibuja centrado en el path,
-  así que la mitad queda para afuera y también necesita lugar.
+  el viewBox se tomaba del tamaño de la máscara de píxeles, pero los paths no coinciden
+  con ella, y el SVG recorta todo lo que cae fuera. Ahora se ajusta al bbox REAL de los
+  paths, calculado **después** de generarlos, con 28 unidades de margen en los 4 lados
+  (verificado: izq 28.0, der 28.2, arr 28.0, aba 28.6).
   **Si se re-vectoriza, volver a ajustar el viewBox al contenido — el vectorizador emite
-  el tamaño de la máscara y reintroduce el recorte.** Verificado en el HTML servido:
-  contenido en x 6.0→847.3 e y 6.0→470.3, todo dentro.
-* **El grosor del trazo tiene que dar ≥ 1px REAL (2026-08-19)**: era la causa del
-  "pixelado", y **no era el path**. El `strokeWidth` va en unidades del viewBox y el SVG
-  se dibuja a ~560px: con el valor viejo la línea medía **0.82px, menos de un píxel**, y
-  un trazo sub-pixel el navegador lo pinta entrecortado y grisáceo.
-  Fórmula: `grosor = 1.8 * anchoViewBox / anchoEnPx`. Con viewBox 854 a 560px → 2.7.
-  **Si cambia el viewBox o el `max-w` del SVG, recalcular.**
-* **Pausa de lucimiento antes de pasar al hero (2026-08-19, pedido del cliente)**: el
-  logo queda **1.1s ya sólido** en pantalla (`LUCIMIENTO`) antes de que salga el telón.
-  Sin esa pausa el logo cuajaba y desaparecía en el mismo gesto y no se llegaba a leer
-  la marca, que es todo el punto de la pantalla. Total ~3.9s.
-* **El `largo` de los trazos se mide sobre las CURVAS, no sobre la poligonal
-  (2026-08-19)**: era un bug real y visible. El valor se calculaba sumando los segmentos
-  rectos entre puntos, pero los tramos se emiten como Bézier cúbicas, que son más largas
-  que la poligonal que las aproxima. Con el largo subestimado el `stroke-dasharray`
-  quedaba corto y **hasta un 18% del contorno nunca se dibujaba** — se notaba sobre todo
-  en la hamburguesa, que tiene los contornos más largos y curvos, como trazos que no
-  cerraban. Ahora se mide por subdivisión de cada Bézier, con +1.5% de margen porque el
-  `getTotalLength()` del navegador puede diferir unas décimas: quedarse corto deja el
-  trazo abierto, pasarse solo termina un instante antes y no se nota.
-  **Si se re-vectoriza el logo, recalcular los largos con la medición de curvas** — el
-  vectorizador los emite sumando rectas y reintroduciría el bug.
+  el tamaño de la máscara y reintroduce el recorte.**
+* **El grosor del trazo va con `vector-effect="non-scaling-stroke"` (2026-08-20)**:
+  o sea en píxeles de PANTALLA, no en unidades del viewBox. Así la línea mide lo mismo
+  en un monitor que en un celular, y **deja de haber que recalcular nada cuando cambia
+  el tamaño del logo**.
+  Antes el grosor estaba atado al viewBox y encogía junto con el SVG. La regla era que
+  la línea nunca podía bajar de 1px real —un trazo sub-pixel el navegador lo pinta
+  entrecortado y grisáceo, y eso era el "pixelado" (no era el path)—, pero se cumplía
+  solo en desktop: medido, **en un celular de 390px el núcleo caía a 0.55px**, así que
+  en móvil venía roto desde el principio, que es justo donde está casi todo el tráfico.
+  Se detectó al achicar el logo, comprobando que el problema ya existía antes.
+* **Tamaño y centrado del logo de la carga (2026-08-20, pedido del cliente)**:
+  `min(58vw, 440px)` —antes `min(74vw, 560px)`— y **centrado exacto**, sin corrección
+  óptica. Llevaba un `-translate-y-[4%]` que lo subía a propósito (una pieza centrada
+  geométricamente se percibe caída) y por eso no quedaba en el medio.
+* **La pantalla dura 3.0s exactos (2026-08-20, pedido del cliente)**: bajó de ~3.9s.
+  El reparto es `TRAZO_TOTAL` (1.65) + respiro (0.22) + `LUCIMIENTO` (0.68) + fade de
+  salida (0.45) = 3.0s.
+  **El total NO es `TRAZO_TOTAL`**: hay que sumarle las otras tres partes, y el fade de
+  salida es fácil de olvidar porque vive en el `exit` del `motion.div`, no en las
+  constantes. Verificado en el HTML servido.
+  De los 0.87s que había que recortar, se sacaron 0.45 del trazado y 0.42 de la pausa:
+  bajar solo el trazado lo dejaba acelerado (la punta ya va 27% más rápido) y bajar solo
+  la pausa se come el momento de leer la marca.
+  **La pausa de lucimiento no se puede eliminar** (2026-08-19, pedido del cliente): el
+  logo queda `LUCIMIENTO` segundos ya sólido antes de que salga el telón. Sin ella
+  cuajaba y desaparecía en el mismo gesto y no se llegaba a leer la marca, que es todo
+  el punto de la pantalla.
+* **El `largo` de los trazos (2026-08-20)**: al ser polilíneas, la suma de los segmentos
+  ES el largo exacto — no hay que subdividir nada (con las Bézier de antes había que
+  medir por subdivisión, porque sumar rectas subestimaba hasta un 18% y dejaba contornos
+  sin cerrar). Se le suma **+1% de holgura** porque el `getTotalLength()` del navegador
+  puede diferir unas décimas: quedarse corto deja el trazo ABIERTO, pasarse solo lo
+  termina un instante antes y no se nota. Verificado: 0 trazos quedarían abiertos.
+* **Todos los trazos CIERRAN EN EL MISMO INSTANTE, a una sola velocidad (2026-08-20)**:
+  son las dos mitades de un mismo efecto. Misma velocidad → la punta viaja como una mano
+  real (si todos duraran lo mismo habría 16.9x de diferencia entre el trazo más corto y
+  el más largo). Mismo cierre → el logo se completa de una y no de a pedazos: cada trazo
+  se **retrasa** lo que haga falta, así que los cortos (semillas del pan, contraformas de
+  las letras) entran casi al final.
+  Antes la duración era proporcional al largo pero los arranques estaban repartidos
+  parejo, y los trazos cortos cerraban a los 0.2s mientras los largos seguían hasta los
+  2.1s: **las semillas aparecían solas al principio**, sueltas, en vez de completarse con
+  el resto. Verificado en el HTML servido: 56 paths, cierres con 0.000s de diferencia y
+  velocidad con variación 1.00x.
   **Son DOS capas superpuestas, no una animando `fill`**: abajo el relleno (entra con
   fade al final) y arriba los trazos (que se apagan cuando el relleno ya entró). Con una
   sola capa, el relleno aparecería de golpe en toda la silueta.
-  El `-translate-y-[4%]` del SVG es corrección **óptica**, no un error de centrado: el
-  viewBox está ajustado al logo (verificado: márgenes de 0-1px), pero una pieza centrada
-  geométricamente se percibe caída. El `drop-shadow` del mismo rojo enciende la línea sin
-  engrosarla — a 1.1 de grosor sobre el carbón, sin halo se ve apagada.
-* **El logo tuvo que vectorizarse a mano (2026-08-19)**: la animación de línea necesita
-  paths reales y el logo de marca es un **JPG de píxeles**. No hay potrace ni inkscape en
-  el entorno y no se agregaron dependencias, así que se trazó con `sharp` + código:
-  máscara binaria por rojez sobre `logo.jpg`, Moore-neighbor tracing de los 28 contornos
-  (exteriores y agujeros) y Douglas-Peucker para simplificar.
-  Vive en `components/ui/logoPath.ts` (viewBox 607x339, ~18KB). Con `fill-rule="evenodd"`
+  (El `-translate-y-[4%]` que llevaba el SVG como corrección óptica se sacó el
+  2026-08-20: el cliente lo quiso centrado exacto.)
+* **El logo tuvo que vectorizarse a mano (2026-08-19, re-hecho el 2026-08-20)**: la
+  animación de línea necesita paths reales y el logo de marca es un **JPG de píxeles**.
+  No hay potrace ni inkscape en el entorno y no se agregaron dependencias, así que se
+  trazó con `sharp` + código: máscara binaria por rojez sobre `logo.jpg` **a su
+  resolución real de 4000x2250** (antes se reducía, y de ahí salía casi todo el
+  problema), recorrido de aristas para los 28 contornos y Douglas-Peucker.
+  Vive en `components/ui/logoPath.ts` (viewBox 899x527, ~21KB). Con `fill-rule="evenodd"`
   los agujeros (contraformas de las letras, semillas del pan) se recortan solos.
-  **Los tramos se emiten como CURVAS Bézier, no como polilíneas** (2026-08-19,
-  corrección): la primera versión usaba solo segmentos rectos (`L`) y las curvas del logo
-  se veían dentadas — eso era el "pixelado". Ahora se convierten con Catmull-Rom, y las
-  esquinas vivas (ángulo < 100°) se dejan rectas a propósito porque el logo tiene cantos
-  que redondear arruinaría. **Ojo con los umbrales de filtrado**: si se suben, el
-  apóstrofo de "HELL'S" desaparece (pasó dos veces) — tienen que quedar en 28 trazos.
+  **Ojo con los umbrales de filtrado**: si se suben, el apóstrofo de "HELL'S" desaparece
+  (pasó dos veces) — tienen que quedar en 28 trazos.
   **Es una aproximación, no el original**: cuando llegue el logo vectorial de marca,
-  reemplazar estos trazos por los suyos y listo — el componente no cambia.
+  reemplazar estos trazos por los suyos y listo — el componente no cambia. Sigue siendo
+  el pendiente que mejor resolvería todo esto de una.
 * **El incendio con las llamas de marca se descartó (2026-08-19)**: hubo una versión
   previa de la pantalla de carga donde el diablo guiñaba y un incendio se comía la
   pantalla. Se eliminó y se reemplazó por la del logo. Si alguna vez se retoma, los
@@ -313,7 +524,27 @@ Candidatos ya previstos en `defaults.ts`: `whatsapp` (visible + número + franja
   Para lo que quede está `grano-sutil`, una capa de ruido al 14% en `overlay` que rompe
   los escalones — el mismo truco que usa el cine para el banding de los cielos.
   **Regla: ningún degradé de este proyecto debe terminar en `transparent`.**
-* **Assets de la mascota — versión definitiva (2026-08-19)**: salen de `diablos.jpg`,
+* **Assets del handoff — cuidado con el aire de los PNG (2026-08-20)**: el sticker
+  "Demons Crew" venía en 1580x1644 con **32% de aire arriba y 27% abajo**, y el handoff
+  lo pedía a `height: 130px` — o sea que el lettering visible quedaba en ~53px y lo que
+  desbordaba del nav era transparencia, no dibujo.
+  Al recortarlo para optimizarlo (53KB → 30KB) ese aire desaparece, así que **a 130px se
+  vería más del doble de grande que en el diseño**. Va a `h-[53px]`, verificado
+  comparando los dos renders lado a lado. Por lo mismo tampoco lleva el `margin: -22px`
+  del original: sin aire alrededor, el dibujo no necesita desbordar.
+  **Regla: si un asset se recorta, recalcular el tamaño de display — las medidas del
+  handoff están tomadas sobre el archivo CON su aire.**
+  De los 4 assets del zip, `logo.png` y `burger-hero.png` son byte a byte idénticos a
+  los que ya estaban (verificado por md5): solo eran nuevos el sticker y el diablillo.
+  El diablillo venía en 4500x6000 (620KB) para mostrarse a ~170px.
+* **La mascota nueva conserva el guiño (2026-08-20, decisión del cliente)**: el handoff
+  trae un diablillo más limpio pero **es una sola imagen, sin guiño**. Se combinó con el
+  `diablo-guino.png` que ya existía, que es el mismo personaje fotografiado.
+  Como son cortes de origen distinto (ratio 0.921 contra 0.887), **se re-encuadraron a
+  una caja común de 620x699 alineando por el ancho del dibujo**: sin eso la cabeza
+  saltaba al cruzarlas. Verificado: 95.7% de silueta compartida, y lo que no coincide es
+  el contorno blanco, apenas más grueso en el del guiño.
+* **Assets de la mascota — versión previa (2026-08-19)**: salían de `diablos.jpg`,
   los dos stickers fotografiados sobre fondo negro. Reemplazaron a los primeros
   (`diablillo.png` + `diabloguiñando.jfif.jpeg`), que venían de fuentes distintas y por
   eso no compartían contorno ni iluminación. Los nuevos son la misma foto, así que el
@@ -337,23 +568,29 @@ Candidatos ya previstos en `defaults.ts`: `whatsapp` (visible + número + franja
 
 ## Estado actual del desarrollo
 
-**Última sesión**: 2026-08-19
-**Próximo paso**: definir las secciones de la landing y su orden; luego header sticky con
-CTA de WhatsApp fijo en móvil.
+**Última sesión**: 2026-08-21
+**Próximo paso**: **verificar el fondo nuevo en un celular real** — el encuadre de móvil
+(`object-left-bottom`) se decidió por cálculo, no viéndolo, y es la parte del cambio que
+puede necesitar ajuste. Después, definir las secciones que siguen — el nav ya las anticipa
+(BURGUERS, NOSOTROS, WORK) pero todavía apuntan a `#`.
 
 **Lo que está funcionando**:
 * Arquitectura completa del proyecto (App Router, `src/` por secciones, tokens de diseño)
 * Sistema tipográfico y paleta cargados como tokens CSS + tema de Tailwind
-* Sección Hero tipográfica: logo + h1 a ancho completo, entrada animada, respeto de `prefers-reduced-motion`
+* Hero completo según el handoff v3: pantalla exacta con nav (`NavHero`), barra promo
+  animada (`BarraPromo`), fondo ilustrado (`fondo-fuegitos.webp`, que trae las palabras
+  de marca y el zócalo de fuego), burger, mascota, h1 y dos CTAs. Adaptado a móvil por
+  fuera del diseño, que era solo desktop
 * Favicon generado desde el isotipo (`src/app/icon.png`)
 * Metadata base, Open Graph, `sitemap.ts`, `robots.ts` y JSON-LD de `Restaurant`
 * 404 y error boundary diseñados con la estética del sitio
 * Mascota en el hero (`components/ui/DiabloHero.tsx`): guiña cada 4.2s y se
   desvanece al salir del hero vía `IntersectionObserver`. La web entra directo al
   hero
-* Pantalla de carga (`components/ui/PantallaCarga.tsx`): la línea forma el logo trazo
-  por trazo y al cerrar se solidifica (~3s). Los 28 trazos vectorizados con curvas,
-  ordenados y con su largo precalculado están en `components/ui/logoPath.ts`
+* Pantalla de carga (`components/ui/PantallaCarga.tsx`): la línea de **neón rojo** forma
+  el logo —los 28 trazos crecen en paralelo y cierran todos juntos— y al cerrar se
+  solidifica (3.0s). Los trazos, ordenados y con su largo precalculado, están en
+  `components/ui/logoPath.ts`
 
 **Lo que está pendiente**:
 * Datos reales del negocio (dirección, teléfono, WhatsApp, horarios, dominio) — marcados con ⚠
@@ -366,13 +603,16 @@ CTA de WhatsApp fijo en móvil.
 
 **Problemas conocidos o deuda técnica**:
 * Los textos del hero son una primera propuesta de copy, sin aprobar por el cliente
-* El hero no tiene CTA: hay que garantizar uno visible apenas se scrollea (o un header sticky)
 * `brasa-glow` sigue aplicado en 404 y `error.tsx`, pero ya no en el hero — unificar cuando
   se defina si esas pantallas conservan el degradé
 * `textura-grano` quedó definida en `globals.css` pero sin uso
-* El CLAUDE.md daba por hecho `components/ui/FuegoZocalo.tsx` (zócalo de fuego del
-  hero) pero **ese archivo no existe en `src/`** — o nunca se commiteó o se borró.
-  El hero actual no tiene zócalo de fuego. Decidir si se rehace o se descarta.
+* Los tokens `--hundida` / `--hundida-mas` quedaron en `globals.css` sin uso desde que
+  las palabras del fondo pasaron a estar dentro de la imagen (2026-08-21). Se dejaron por
+  si vuelve a hacer falta una capa de texto hundido; si no, borrarlos
+* **El fondo del hero es un raster con texto adentro**: las palabras ya no escalan con la
+  pantalla ni se pueden editar sin volver a exportar la imagen. Es la contrapartida
+  aceptada de usar el arte tal como lo entregó el cliente. Si en algún momento hay que
+  cambiar una palabra, hay que pedir el archivo fuente
 * La pantalla de carga se muestra en **cada recarga**, sin recordar si ya se vio.
   Si molesta en visitas repetidas, guardar una marca en `sessionStorage`.
 * El naranja de la mascota (`#e8912a`) tampoco está en la paleta, igual que las
