@@ -72,3 +72,11 @@ export const diabloContent = {
   abierto: '/diablo.png',
   guino: '/diablo-guino.png',
 } as const
+
+/**
+ * Sección "Las Burgas" — la carta. Por ahora solo el título: el listado de
+ * hamburguesas entra cuando el cliente pase los productos y las fotos.
+ */
+export const burgasContent = {
+  titulo: 'Las Burgas',
+} as const

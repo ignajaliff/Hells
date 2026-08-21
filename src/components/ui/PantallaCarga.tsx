@@ -99,8 +99,16 @@ const TIEMPOS = calcularTiempos()
  */
 const FIN_TRAZO = Math.max(...TIEMPOS.map((t) => t.inicio + t.duracion))
 
-/** Un respiro para ver el logo ya cerrado en línea: es el momento del efecto. */
-const SOLIDIFICA = FIN_TRAZO + 0.22
+/**
+ * El relleno entra EN CUANTO cierra el último trazo, sin respiro intermedio.
+ *
+ * Antes había 0.22s de pausa para ver el logo cerrado en línea. Se sacó
+ * (decisión del cliente, 2026-08-21): con el corte, el dibujo y el relleno se
+ * leen como un solo gesto continuo en vez de dos momentos separados.
+ * No usar `TRAZO_TOTAL` acá: `FIN_TRAZO` es el cierre real del último trazo y
+ * si el relleno entrara antes, el logo cuajaría a medio dibujar.
+ */
+const SOLIDIFICA = FIN_TRAZO
 /**
  * Cuánto queda el logo YA SÓLIDO en pantalla antes de que se vaya el telón.
  * Es una pausa deliberada: sin ella el logo cuaja y desaparece en el mismo
@@ -109,9 +117,10 @@ const SOLIDIFICA = FIN_TRAZO + 0.22
 const LUCIMIENTO = 0.68
 /**
  * Cuándo se va el telón. El TOTAL que percibe quien entra es esto **más el
- * fade de salida** (`exit`, 0.45s): 2.55 + 0.45 = 3.0s.
+ * fade de salida** (`exit`, 0.45s): 2.33 + 0.45 = 2.78s.
  * Si se quiere otro total, el reparto es:
- *   TRAZO_TOTAL + 0.22 (respiro) + LUCIMIENTO + 0.45 (fade) = total
+ *   TRAZO_TOTAL (1.65) + LUCIMIENTO (0.68) + fade (0.45) = total
+ * La palanca más grande es `TRAZO_TOTAL`: es el 59% del tiempo.
  */
 const FIN = SOLIDIFICA + LUCIMIENTO
 

@@ -1,4 +1,5 @@
 import { Hero } from '@/components/sections/Hero'
+import { LasBurgas } from '@/components/sections/LasBurgas'
 
 /**
  * Home — una landing es una composición de secciones.
@@ -8,6 +9,7 @@ export default function HomePage() {
   return (
     <>
       <Hero />
+      <LasBurgas />
     </>
   )
 }

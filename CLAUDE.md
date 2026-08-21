@@ -174,8 +174,16 @@ Candidatos ya previstos en `defaults.ts`: `whatsapp` (visible + número + franja
 
 * **Next.js 15.5 y no 16**: el kit fija "15+" y 15.5 es la versión estable probada con
   Tailwind v4 y Motion 13. Revisar el salto a 16 recién cuando haya que tocar el stack.
-* **`output: standalone` en `next.config.ts`**: el deploy previsto es CapRover/Docker.
-  Si el proyecto termina en Vercel, borrar esa línea.
+* **Deploy en CapRover con Docker (2026-08-21)**: `captain-definition` apunta a un
+  `Dockerfile` multi-etapa (deps → builder → runner) que se apoya en el
+  `output: standalone` de `next.config.ts`. La imagen final corre como usuario sin
+  privilegios y escucha en `PORT=80` con `HOSTNAME=0.0.0.0` — sin esa segunda
+  variable el server queda en localhost y CapRover no lo alcanza.
+  `public/` y `.next/static` se copian aparte porque el standalone no los incluye.
+  Verificado corriendo el `server.js` standalone fuera de Docker: páginas, sitemap,
+  robots, favicon, 404, assets y el optimizador de imágenes (AVIF) responden OK.
+  **No verificado**: el build del Dockerfile en sí — no hay Docker en el entorno.
+  Si el proyecto termina en Vercel, borrar `output: standalone` y estos tres archivos.
 * **Supabase preparado pero no conectado**: existen `lib/defaults.ts` y `components/dynamic/`,
   pero no hay `lib/supabase.ts` ni `lib/queries.ts` hasta que exista el proyecto de Supabase.
 * **Hero sin foto en la versión inicial**: la atmósfera se resuelve con gradientes de brasa y

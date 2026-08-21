@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { navLinks, heroContent } from '@/content/home'
-import { NEGOCIO } from '@/lib/constants'
+import { LINK_PEDIDOS } from '@/lib/constants'
 
 /**
  * NavHero — el navegador del hero.
@@ -96,7 +96,9 @@ export function NavHero() {
             </a>
           ))}
           <a
-            href={`https://wa.me/${NEGOCIO.telefono.replace(/\D/g, '')}`}
+            href={LINK_PEDIDOS}
+            target="_blank"
+            rel="noopener noreferrer"
             className="mt-1 inline-flex items-center gap-3 self-start rounded-xl bg-primary px-7 py-4 font-display text-[15px] uppercase tracking-[0.06em] text-primary-foreground"
           >
             {heroContent.cta.primario}{' '}

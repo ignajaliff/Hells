@@ -1,0 +1,43 @@
+# Lo que NO se manda al build de Docker.
+# Sin esto, el contexto incluiría node_modules (cientos de MB) y el build
+# tardaría muchísimo más en subir.
+
+node_modules
+.next
+out
+
+# Secretos: nunca dentro de una imagen
+.env
+.env.local
+.env.*.local
+
+# Git y herramientas
+.git
+.gitignore
+.vscode
+.idea
+
+# Documentación y reglas del proyecto: no hacen falta para compilar
+ai-pmp
+KNOW - HOW WEB
+CLAUDE.md
+README.md
+
+# Imágenes originales de las que se derivaron los assets de public/.
+# Los assets ya están en public/ y esas fuentes pesan ~2.6MB.
+*.psd
+burga1.png
+burgas.png
+llama1.png
+llama2.png
+llama3.png
+diablillo.png
+diablos.jpg
+logo.jpg
+
+# Basura de trabajo
+*.log
+*.html
+c*.css
+tsconfig.tsbuildinfo
+.DS_Store

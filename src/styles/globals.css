@@ -33,6 +33,16 @@
   --highlight: 34 98% 47%; /* #ef8f03 */
   --highlight-foreground: 0 0% 10%;
 
+  /* Rojo de las secciones ilustradas — el fondo de "Las Burgas".
+     Es el rojo tal como aparece en los assets de llamas (`fondo-fuegitos.webp`
+     lo trae en #d72219 por la compresión WebP), un 13% más oscuro que el
+     `--primary` de marca. Elegido por el cliente (2026-08-21) para que la
+     sección empalme con la ilustración del hero sin salto de tono.
+     CONTRASTE: el gris carbón encima da 3.40:1 — AA solo para TEXTO GRANDE.
+     Para texto chico sobre este fondo hay que usar blanco (5.12:1). */
+  --superficie-fuego: 3 80% 47%; /* #d62218 */
+  --superficie-fuego-foreground: 0 0% 10%;
+
   /* Las palabras del fondo del hero: apenas más oscuras que el fondo, para que
      se lean como relieve hundido y no como texto. 1.06:1 y 1.08:1 contra el
      fondo — son DECORATIVAS, por eso la capa va `aria-hidden`. */
@@ -52,6 +62,8 @@
   --color-border: hsl(var(--border));
   --color-highlight: hsl(var(--highlight));
   --color-highlight-foreground: hsl(var(--highlight-foreground));
+  --color-superficie-fuego: hsl(var(--superficie-fuego));
+  --color-superficie-fuego-foreground: hsl(var(--superficie-fuego-foreground));
   --color-hundida: hsl(var(--hundida));
   --color-hundida-mas: hsl(var(--hundida-mas));
 

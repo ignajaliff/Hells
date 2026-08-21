@@ -19,6 +19,13 @@ export const NEGOCIO = {
   instagram: 'https://instagram.com/hellsburger', // ⚠
 } as const
 
+/**
+ * Menú de pedidos online (Fudo). Es el destino real del CTA "Pedí ya"
+ * (2026-08-21): antes abría WhatsApp, pero el pedido se toma acá.
+ * Externo: los links a este dominio van con `rel="noopener noreferrer"`.
+ */
+export const LINK_PEDIDOS = 'https://menu.fu.do/hellsburger'
+
 /** Anclas internas de la landing. Se van agregando a medida que nacen las secciones. */
 export const SECCIONES = {
   hero: 'inicio',
