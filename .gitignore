@@ -18,3 +18,6 @@ c*.css
 # (verificado por md5). El cliente los pasó dos veces con distinto nombre.
 llamas-04.png
 llamas-05.png
+
+# Handoffs de diseño: se consumen una vez y los assets ya viven en public/
+*.zip
