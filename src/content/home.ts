@@ -88,8 +88,8 @@ export const diabloContent = {
  * reordenan los items o cambia la cantidad de columnas, rehacer ese chequeo.**
  * Cuando lleguen las otras 4 fotos, se reemplazan y el problema desaparece.
  *
- * El `tono` decide el color del recuadro: la grilla alterna rojo, naranja y
- * carbón para que no se lea como una tabla.
+ * El `tono` YA NO SE USA (2026-08-26): las tarjetas perdieron el recuadro y
+ * son bloques negros planos. Se deja el campo por si se vuelve atrás.
  *
  * La `etiqueta` es la forma del sticker. **Las ocho son distintas** (decisión
  * del cliente, 2026-08-24): cada burga tiene su nombre propio —Lucifer,
@@ -108,12 +108,28 @@ export const burgasContent = {
       foto: '/burga-destacada.webp',
       recorte: 'contain',
       /**
-       * La primera se ARMA SOLA: encadena `burga-fase-1` (ingredientes
-       * separados), `burga-fase-2` (a medio juntar) y `burga-destacada`
-       * (terminada). Arranca al entrar en pantalla y se reproduce una vez.
-       * Solo ésta: con más de una animándose se pierde el efecto.
+       * PRUEBA (2026-08-26, pedido del cliente): la primera burga muestra un
+       * VIDEO movido por el scroll en vez de la secuencia de fotos. Llega al
+       * frame final cuando el bloque queda centrado en la pantalla.
+       * `final` es el último frame como imagen: se usa con movimiento reducido.
+       * `belsebu.mp4` está re-codificado con todos los frames como keyframe
+       * (ver `BurgaVideo`); el original del cliente quedó en la raíz.
+       *
+       * Para volver a la secuencia de fotos: borrar `video` y poner
+       * `animada: true` (encadena `burga-fase-1`, `burga-fase-2` y
+       * `burga-destacada`; arranca al entrar en pantalla y corre una vez).
        */
-      animada: true,
+      video: {
+        src: '/belsebu.mp4',
+        final: '/belsebu-final.webp',
+        alt: 'La hamburguesa Belcebú',
+      },
+      /**
+       * El sticker con el nombre, hecho por el cliente (2026-08-26). Reemplaza
+       * a la etiqueta blanca. Recortado al dibujo desde `belsevusticker.png`
+       * (raíz), que venía con 2481x1282 de lienzo y el sello ocupando la mitad.
+       */
+      sticker: { src: '/sticker-belcebu.webp', alt: 'Belcebú' },
       tono: 'carbon',
       etiqueta: 'recta',
     },

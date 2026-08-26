@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import { ETIQUETAS, type FormaEtiqueta } from '@/components/ui/etiquetasBurga'
 import { BurgaArmado } from '@/components/ui/BurgaArmado'
+import { BurgaVideo } from '@/components/ui/BurgaVideo'
 
 /**
  * BurgaCard — una hamburguesa de la carta.
@@ -16,28 +17,24 @@ import { BurgaArmado } from '@/components/ui/BurgaArmado'
  * (Lucifer, Crepúsculo, Jesús...), así que el sello acompaña esa identidad en
  * vez de repetir el mismo recuadro.
  *
- * ROTACIÓN ALTERNADA de la TARJETA: las pares se inclinan al revés que las
- * impares. Con todas rotadas igual la grilla se lee como un error de
- * alineación; en contrafase se lee como stickers pegados uno por uno.
+ * SIN RECUADRO (2026-08-26, pedido del cliente): la tarjeta ya no tiene
+ * esquinas redondeadas, rotación, sombra ni color de fondo propio. Es un
+ * bloque negro plano con la foto (o el video) adentro y la etiqueta encima.
+ * En móvil va de borde a borde de la pantalla. Se hizo primero con la burga
+ * del video y el cliente pidió lo mismo para todas: las otras siete van a
+ * recibir su propio video.
+ * Antes tenía rotación alternada, sombra desplazada y tres tonos de fondo
+ * (carbón, rojo oscuro y naranja); todo eso se sacó junto.
  */
-
-/** El color del recuadro. La grilla los alterna para que no parezca una tabla. */
-const TONOS = {
-  carbon: 'bg-background',
-  rojo: 'bg-[#b81a12]',
-  naranja: 'bg-highlight',
-} as const
-
-export type TonoBurga = keyof typeof TONOS
 
 export function BurgaCard({
   nombre,
   foto,
   recorte = 'cover',
   animada = false,
-  tono,
+  video,
+  sticker,
   etiqueta,
-  indice,
 }: {
   nombre: string
   foto: string | null
@@ -55,34 +52,35 @@ export function BurgaCard({
    * la sección y con más de una compitiendo se perdería el efecto.
    */
   animada?: boolean
-  tono: TonoBurga
+  /**
+   * Si viene, la tarjeta muestra un VIDEO movido por el scroll (`BurgaVideo`)
+   * en vez de la foto. Empezó con la primera burga (2026-08-26) y las demás
+   * van a seguir el mismo camino cuando lleguen sus videos.
+   */
+  video?: { src: string; final: string; alt: string }
+  /**
+   * El sticker REAL con el nombre, hecho por el cliente (2026-08-26). Si
+   * viene, REEMPLAZA a la etiqueta blanca: la etiqueta era el hueco reservado
+   * para esto. Va arriba a la izquierda, encima del video/foto.
+   */
+  sticker?: { src: string; alt: string }
   etiqueta: FormaEtiqueta
-  indice: number
 }) {
-  const par = indice % 2 === 1
   const forma = ETIQUETAS[etiqueta]
 
   return (
-    <article className="group relative">
-      {/* La sombra dura: un bloque carbón corrido en diagonal. Da el volumen de
-          sticker recortado sin usar `box-shadow`, que sobre un fondo rojo
-          saturado se ve como una mancha gris sucia. */}
-      <div
-        aria-hidden
-        className={`absolute inset-0 translate-x-[6px] translate-y-[6px] rounded-[18px] bg-background/70 transition-transform duration-200 ${
-          par ? '-rotate-1' : 'rotate-1'
-        } group-hover:translate-x-[10px] group-hover:translate-y-[10px]`}
-      />
-
-      <div
-        className={`relative overflow-hidden rounded-[18px] ${TONOS[tono]} transition-transform duration-200 ${
-          par ? '-rotate-1' : 'rotate-1'
-        } group-hover:rotate-0`}
-      >
+    <article className="relative">
+      {/* Bloque negro plano. Es `#000` a propósito y no `--background`: el
+          video arranca en negro puro y así el primer frame se funde con el
+          bloque en vez de verse como un cuadrado apenas más oscuro. Mismo
+          negro que el fondo de la sección. */}
+      <div className="relative overflow-hidden bg-black">
         {/* La foto. `aspect-square` fija la caja ANTES de que cargue la imagen,
             así la grilla no salta cuando entran las 8 fotos. */}
         <div className="relative aspect-square">
-          {animada ? (
+          {video ? (
+            <BurgaVideo src={video.src} final={video.final} alt={video.alt} />
+          ) : animada ? (
             <BurgaArmado />
           ) : foto ? (
             <Image
@@ -105,12 +103,26 @@ export function BurgaCard({
           )}
         </div>
 
-        {/* LA ETIQUETA — el hueco del sticker con el nombre.
+        {sticker ? (
+          /* EL STICKER del cliente, arriba a la izquierda sobre el video. El
+             PNG ya trae la chapa negra con las letras blancas, así que no
+             lleva fondo ni sombra propios. Ancho relativo a la tarjeta para que
+             escale con ella: 36% en móvil, casi pegado a la esquina (1.5%).
+             Venía en 48% y 4%; el cliente lo quiso más chico y más esquinado. */
+          <Image
+            src={sticker.src}
+            alt={sticker.alt}
+            width={900}
+            height={367}
+            className="absolute left-[1.5%] top-[1.5%] z-[2] h-auto w-[36%] sm:w-[42%]"
+          />
+        ) : (
+        /* LA ETIQUETA — el hueco del sticker con el nombre.
             Forma, esquina y ángulo salen de `ETIQUETAS[etiqueta]`: las ocho son
             distintas entre sí. Sobresale del borde de la tarjeta para que se
             lea como algo pegado ENCIMA y no como parte del diseño.
             Alto mínimo fijo: sin él, al estar vacía colapsaría a un hilo y no
-            se vería el espacio reservado. */}
+            se vería el espacio reservado. */
         <div
           className={`absolute z-[2] min-h-[40px] bg-foreground shadow-[4px_4px_0_rgba(26,26,26,.45)] sm:min-h-[38px] sm:shadow-[3px_3px_0_rgba(26,26,26,.45)] ${forma.caja} ${forma.pastilla} ${forma.ancho}`}
         >
@@ -131,6 +143,7 @@ export function BurgaCard({
             </span>
           )}
         </div>
+        )}
       </div>
     </article>
   )

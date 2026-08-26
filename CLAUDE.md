@@ -252,6 +252,55 @@ Candidatos ya previstos en `defaults.ts`: `whatsapp` (visible + número + franja
     hamburguesa**. Medido: la comida ocupa del 33% al 94% del alto, así que las etiquetas
     grandes viven en la franja alta (sobre el fondo oscuro de la foto, que además es
     donde más contrastan) y solo la chapita chica queda abajo, sobre la madera.
+* **La primera burga es un VIDEO movido por el scroll (2026-08-26, prueba pedida por el
+  cliente)**: `belsebu.mp4` reemplaza a la secuencia de fotos (`BurgaArmado`, que sigue
+  en el código por si se vuelve atrás: basta borrar `video` y poner `animada: true` en
+  `content/home.ts`). Vive en `components/ui/BurgaVideo.tsx`.
+  * **No se reproduce solo: el tiempo lo fija el scroll.** Progreso 0 cuando el bloque
+    asoma por abajo y 100% cuando queda **centrado en el viewport**; de ahí en adelante
+    se queda en el frame final. Fórmula: `(vh − top) / (vh/2 + alto/2)`. Verificado en
+    390x844: 60px asomando → 0.48s, centrado → 5.02s de 5.04.
+  * **El mp4 tiene TODOS los frames como keyframe** (`ffmpeg -g 1 -keyint_min 1`). El
+    original del cliente (960x960, 3.5MB) traía **1 keyframe en 121 frames**: cada
+    `currentTime` obligaba a decodificar desde el principio y el scrub se trababa.
+    Re-codificado a 720x720 all-intra queda en 1.4MB. **Si se reemplaza el video,
+    volver a hacerlo.** El original quedó en la raíz (`belsebu.mp4`), sin trackear.
+  * **En móvil la tarjeta pierde el recuadro**: sin rotación, sin esquinas ni sombra, y
+    el `<li>` se sale del padding de la sección (`-mx-4`) para que el bloque **negro**
+    llegue de borde a borde. Es `#000` y no `--background` a propósito: el video
+    arranca en negro puro y así el primer frame se funde con el bloque. **De `sm` para
+    arriba conserva la tarjeta** como las demás para no romper la grilla (verificado:
+    4 columnas alineadas en 1440).
+  * Solo escucha el scroll mientras el bloque está cerca (`IntersectionObserver`,
+    `rootMargin: 25%`) y encola un seek por frame con `requestAnimationFrame`.
+    Con `prefers-reduced-motion` se muestra `belsebu-final.webp` (el último frame) y
+    el video ni se descarga.
+  * **No verificado en un celular real**: en iOS el seek de un `<video>` muted inline
+    debería funcionar sin gesto, pero es lo primero a probar.
+  * **Arranca cuando entró el 45% del bloque** (`ARRANQUE` en `BurgaVideo.tsx`), no
+    apenas asoma: el cliente lo vio "empezar sin que se esté viendo" (con un 10% del
+    bloque asomando ya iba por 0.5s). Verificado: 0.00s al 10% y al 45%, 1.10s al 70%,
+    5.01s centrado.
+* **"Las Burgas" pasó a FONDO NEGRO PURO con títulos en rojo y SIN recuadros
+  (2026-08-26, pedido del cliente)**: reemplaza a la sección roja con tarjetas rotadas.
+  * El negro es `#000` y no `--background` (#1a1a1a): el video arranca en negro puro y
+    tiene que fundirse con el fondo. Entre el hero (carbón) y la sección hay un escalón
+    de tono, aceptado.
+  * `--primary` sobre negro da **4.50:1 — justo el mínimo AA** para texto normal, así la
+    bajada puede ir en rojo pero sin margen. Sobre carbón no llegaba (3.79:1).
+  * **Todas las tarjetas son bloques planos**: se sacaron rotación alternada, sombra
+    desplazada, esquinas redondeadas y los tres tonos de fondo. En móvil cada `<li>`
+    va `-mx-4` para ir de borde a borde. El campo `tono` de `content/home.ts` quedó
+    sin uso. Las etiquetas que sobresalían del canto ahora se recortan contra el borde
+    de la pantalla (sección `overflow-hidden`); si molesta, quitarles el offset negativo.
+  * El plan del cliente es que **las 8 tarjetas lleven video**; las otras 7 siguen con
+    foto hasta que los mande. Cada uno tiene que re-codificarse all-intra (ver arriba).
+  * `--superficie-fuego` quedó definido en `globals.css` sin uso.
+  * **El primer sticker real llegó (2026-08-26)**: `sticker-belcebu.webp` (recortado de
+    `belsevusticker.png`, que traía el sello ocupando la mitad del lienzo; 14KB). Va como
+    `sticker` en `content/home.ts` y **reemplaza a la etiqueta blanca** de esa tarjeta:
+    arriba a la izquierda, 36% del ancho en móvil a 1.5% del borde (bajó de 48% y 4%: el cliente lo quiso más chico y más esquinado). Las otras 7 siguen con la etiqueta
+    hasta que lleguen sus stickers. El PNG del cliente ya trae alfa fuera de la chapa.
 * **Deploy en CapRover con Docker (2026-08-21)**: `captain-definition` apunta a un
   `Dockerfile` multi-etapa (deps → builder → runner) que se apoya en el
   `output: standalone` de `next.config.ts`. La imagen final corre como usuario sin
@@ -654,11 +703,11 @@ Candidatos ya previstos en `defaults.ts`: `whatsapp` (visible + número + franja
 
 ## Estado actual del desarrollo
 
-**Última sesión**: 2026-08-21
-**Próximo paso**: **verificar el fondo nuevo en un celular real** — el encuadre de móvil
-(`object-left-bottom`) se decidió por cálculo, no viéndolo, y es la parte del cambio que
-puede necesitar ajuste. Después, definir las secciones que siguen — el nav ya las anticipa
-(BURGUERS, NOSOTROS, WORK) pero todavía apuntan a `#`.
+**Última sesión**: 2026-08-26
+**Próximo paso**: **probar el video por scroll de la primera burga en un celular real**
+(sobre todo iOS) y decidir si la prueba queda o se vuelve a la secuencia de fotos.
+Después, definir las secciones que siguen — el nav ya las anticipa (BURGUERS, NOSOTROS,
+WORK) pero todavía apuntan a `#`.
 
 **Lo que está funcionando**:
 * Arquitectura completa del proyecto (App Router, `src/` por secciones, tokens de diseño)
