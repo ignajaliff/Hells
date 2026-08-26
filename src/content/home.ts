@@ -74,9 +74,55 @@ export const diabloContent = {
 } as const
 
 /**
- * Sección "Las Burgas" — la carta. Por ahora solo el título: el listado de
- * hamburguesas entra cuando el cliente pase los productos y las fotos.
+ * Sección "Las Burgas" — la carta.
+ *
+ * ⚠ FALTAN LOS NOMBRES. `nombre` va vacío a propósito: la etiqueta blanca de
+ * cada tarjeta es el HUECO donde el cliente va a pegar su sticker con el nombre
+ * (Lucifer, Crepúsculo, Jesús, Antidemonio...). Si acá se escribe algo, se
+ * dibuja como texto provisional dentro de esa etiqueta.
+ *
+ * FOTOS (2026-08-24, aportadas por el cliente): son **4 fotos para 8 tarjetas**,
+ * así que se repiten. El orden `1,2,3,4,2,1,4,3` está elegido para que dos
+ * tarjetas vecinas —la de al lado y la de abajo— nunca muestren la misma foto,
+ * y eso vale en las dos grillas: 2 columnas en móvil y 4 en desktop. **Si se
+ * reordenan los items o cambia la cantidad de columnas, rehacer ese chequeo.**
+ * Cuando lleguen las otras 4 fotos, se reemplazan y el problema desaparece.
+ *
+ * El `tono` decide el color del recuadro: la grilla alterna rojo, naranja y
+ * carbón para que no se lea como una tabla.
+ *
+ * La `etiqueta` es la forma del sticker. **Las ocho son distintas** (decisión
+ * del cliente, 2026-08-24): cada burga tiene su nombre propio —Lucifer,
+ * Crepúsculo, Jesús, Antidemonio— así que su sello no puede ser el mismo
+ * recuadro repetido ocho veces. Cada variante combina forma, esquina y ángulo,
+ * y **dos tarjetas vecinas nunca comparten esquina**, ni la de al lado ni la
+ * de abajo (verificado sobre la grilla de 2 columnas de móvil).
  */
 export const burgasContent = {
   titulo: 'Las Burgas',
+  bajada: 'Ocho maneras de pecar',
+  items: [
+    {
+      id: 'burga-1',
+      nombre: '',
+      foto: '/burga-destacada.webp',
+      recorte: 'contain',
+      /**
+       * La primera se ARMA SOLA: encadena `burga-fase-1` (ingredientes
+       * separados), `burga-fase-2` (a medio juntar) y `burga-destacada`
+       * (terminada). Arranca al entrar en pantalla y se reproduce una vez.
+       * Solo ésta: con más de una animándose se pierde el efecto.
+       */
+      animada: true,
+      tono: 'carbon',
+      etiqueta: 'recta',
+    },
+    { id: 'burga-2', nombre: '', foto: '/burga-2.webp', tono: 'naranja', etiqueta: 'pildora' },
+    { id: 'burga-3', nombre: '', foto: '/burga-3.webp', tono: 'carbon', etiqueta: 'banda' },
+    { id: 'burga-4', nombre: '', foto: '/burga-4.webp', tono: 'rojo', etiqueta: 'sello' },
+    { id: 'burga-5', nombre: '', foto: '/burga-2.webp', tono: 'naranja', etiqueta: 'cortada' },
+    { id: 'burga-6', nombre: '', foto: '/burga-1.webp', tono: 'carbon', etiqueta: 'vertical' },
+    { id: 'burga-7', nombre: '', foto: '/burga-4.webp', tono: 'rojo', etiqueta: 'chapa' },
+    { id: 'burga-8', nombre: '', foto: '/burga-3.webp', tono: 'carbon', etiqueta: 'diagonal' },
+  ],
 } as const
