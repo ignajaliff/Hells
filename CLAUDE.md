@@ -100,7 +100,7 @@ npm run lint         → linter
 
 | Página | Ruta | Estado | Notas |
 |--------|------|--------|-------|
-| Home | `/` | En desarrollo | Hero completo (handoff v3); faltan el resto de las secciones |
+| Home | `/` | En desarrollo | Hero (handoff v3) y Las Burgas maquetadas; faltan fotos y nombres |
 | 404 | — | Maquetada | `app/not-found.tsx` |
 | Error global | — | Maquetada | `app/error.tsx` |
 
@@ -174,6 +174,84 @@ Candidatos ya previstos en `defaults.ts`: `whatsapp` (visible + número + franja
 
 * **Next.js 15.5 y no 16**: el kit fija "15+" y 15.5 es la versión estable probada con
   Tailwind v4 y Motion 13. Revisar el salto a 16 recién cuando haya que tocar el stack.
+* **Grilla de "Las Burgas" (2026-08-24)**: 8 tarjetas cuadradas con la foto adentro y una
+  **etiqueta blanca en la esquina** que es el HUECO donde el cliente pega su sticker con
+  el nombre (decisión del cliente: los nombres los define él más adelante).
+  * **La etiqueta se dibuja aunque `nombre` esté vacío**, con dos rayas grises adentro:
+    si desapareciera al no haber texto, no se vería dónde va el sticker. Cuando el
+    nombre exista, se escribe en `content/home.ts` y la etiqueta lo dibuja sola.
+  * **LAS OCHO ETIQUETAS SON DISTINTAS** (2026-08-24, pedido del cliente): cada burga
+    tiene nombre propio —Lucifer, Crepúsculo, Jesús, Antidemonio— así que su sello no
+    puede ser el mismo recuadro repetido. Viven en `components/ui/etiquetasBurga.ts`:
+    recta, píldora, banda, sello redondo, esquina cortada, vertical, chapa y diagonal.
+    * Cada variante cambia **tres cosas a la vez**: forma, esquina y ángulo. Con una
+      sola de las tres se siguen leyendo como la misma etiqueta corrida de lugar.
+    * **Dos tarjetas vecinas no comparten esquina** —ni la de al lado ni la de abajo—
+      sobre la grilla de 2 columnas de móvil. Si se reordenan los items, rehacer ese
+      chequeo. Verificado 8/8 posiciones distintas de 280px a 1920px.
+    * **El sello redondo NO sangra el borde**, a diferencia de las otras: un círculo
+      cortado por el canto se lee como un error de recorte, no como un sello pegado.
+    * La banda cruzada va a media altura y la chapa sube su `bottom`: al pie tapaban la
+      leyenda "Foto pendiente" (y taparían la foto real).
+    * Las clases se escriben COMPLETAS, no armadas por template string: Tailwind escanea
+      el fuente y una clase construida en runtime no se compila.
+  * **1 columna en móvil** (decisión del cliente, 2026-08-24), 3 de `sm` y 4 de `lg`.
+    Se había pasado a 2 columnas cuando las tarjetas eran placeholders grises: ahí una
+    sola columna daba 3284px de scroll para ver ocho recuadros vacíos y se leía como una
+    lista larga. **Con las fotos reales el criterio cambia**: cada tarjeta tiene algo que
+    mirar, la burger se ve al tamaño que merece (343px en un iPhone SE contra 164px a dos
+    columnas) y el sticker del nombre entra a ancho completo. La sección mide ~3.3k px en
+    móvil y eso ahora es el recorrido de la carta, no un costo.
+    Al pasar a una columna se agrandaron la etiqueta y su tipografía **solo en móvil**:
+    a doble ancho de tarjeta, las medidas de la grilla de 2 columnas quedaban chicas en
+    proporción.
+  * **Las tarjetas rotan en CONTRAFASE** (pares al revés que impares): con todas
+    inclinadas igual la grilla se lee como un error de alineación; alternadas se lee
+    como stickers pegados a mano, que es la estética que pidió el cliente.
+  * **La sombra es un bloque desplazado, no `box-shadow`**: sobre el rojo saturado de la
+    sección un `box-shadow` se ve como una mancha gris sucia.
+  * **Los recuadros alternan tres tonos** (carbón, rojo oscuro y el naranja `--highlight`)
+    para que la grilla no se lea como una tabla.
+  * **La bajada va en BLANCO y no en carbón**: es texto chico, y el carbón sobre el rojo
+    de la sección da 3.40:1 — solo alcanza para texto grande. Misma regla para precios.
+  * **Mientras no hay foto se dibuja un marcador con el isotipo** y la leyenda "Foto
+    pendiente", no un gris plano: deja la grilla presentable y a la vez es evidente que
+    falta el material real. (Ya no se usa: las 8 tarjetas tienen foto.)
+  * **FOTOS (2026-08-24, aportadas por el cliente)**: 4 fotos de estudio para 8 tarjetas,
+    repetidas en el orden `1,2,3,4,2,1,4,3` — elegido para que **dos tarjetas vecinas
+    nunca muestren la misma foto**, y eso vale en las dos grillas (2 columnas en móvil y
+    4 en desktop). Si se reordenan los items, rehacer el chequeo.
+    Los JPG venían en 3840x2880 y ~540KB cada uno; se recortaron a cuadrado y se
+    convirtieron a WebP: **2.1MB → 258KB**. El recorte se centra en el sujeto, detectado
+    por centro de masa de brillo (está en el 41-45% del ancho en las cuatro).
+  * **La primera tarjeta SE ARMA SOLA (2026-08-25, pedido del cliente)**: encadena tres
+    fotos de la misma burga —ingredientes separados, a medio juntar, terminada— con un
+    crossfade, en `components/ui/BurgaArmado.tsx`. Es el gancho de la sección.
+    * **Arranca al entrar en pantalla**, no al cargar la página: la carta está debajo del
+      hero y si corriera al montar el visitante se la perdería entera. Lo dispara un
+      `IntersectionObserver` con threshold 0.45.
+    * **Se reproduce UNA vez** y queda en la foto final. En bucle competiría con el resto
+      de la grilla, y la burga terminada es la que conviene dejar puesta.
+    * **Las tres se montan desde el arranque** con opacidad 0. Si entraran a demanda, el
+      cambio de fase mostraría un hueco mientras baja el archivo.
+    * Con `prefers-reduced-motion` se muestra directo la foto final.
+    * **Las dos primeras fases venían con fondo BLANCO** (las originales del cliente son
+      JPG). Se les quitó con flood-fill desde los bordes, no por umbral de color: el
+      queso y el pan claro del interior no llegan al borde, así que el relleno no los
+      alcanza. Con un umbral plano se habrían borrado.
+    * **Ojo con el contenedor**: `BurgaArmado` va en `absolute inset-0` y NO en
+      `relative`. Sus tres imágenes son `fill` —o sea absolutas—, así que un `relative`
+      sin alto propio colapsa el div a 6px y la tarjeta se ve vacía. Pasó al armarlo.
+  * **La primera tarjeta lleva una foto SIN FONDO** (`burga-destacada.webp`, PNG con
+    alpha aportado por el cliente). Va con `recorte: 'contain'` y no `cover`: la burger
+    está recortada y flota sobre el color del recuadro, así que `cover` se la comería.
+    Lleva `translate-y-[7%] scale-[0.94]` para que la etiqueta no le caiga sobre el pan,
+    y un `drop-shadow` que le da el volumen que las otras tienen por la foto.
+  * **Las etiquetas se reubicaron al entrar las fotos**: con el marcador gris daba igual
+    dónde caían, pero sobre una foto real la banda cruzada y la chapa **tapaban la
+    hamburguesa**. Medido: la comida ocupa del 33% al 94% del alto, así que las etiquetas
+    grandes viven en la franja alta (sobre el fondo oscuro de la foto, que además es
+    donde más contrastan) y solo la chapita chica queda abajo, sobre la madera.
 * **Deploy en CapRover con Docker (2026-08-21)**: `captain-definition` apunta a un
   `Dockerfile` multi-etapa (deps → builder → runner) que se apoya en el
   `output: standalone` de `next.config.ts`. La imagen final corre como usuario sin
@@ -606,6 +684,11 @@ puede necesitar ajuste. Después, definir las secciones que siguen — el nav ya
 * Logo **vectorial** (.svg): los PNG actuales se derivaron del JPG, sirven bien pero
   un SVG escalaría mejor y pesaría menos
 * Foto de producto del hero
+* **Las 8 fotos de las burgas** (`content/home.ts` → `burgasContent.items[].foto`, todas
+  en `null`). Cuadradas, sobre fondo carbón para que peguen con la estética
+* **Los 8 nombres** (`items[].nombre`, todos vacíos): el cliente los va a pegar como
+  stickers sobre las etiquetas blancas. Si en algún momento se quieren como texto, se
+  escriben ahí y la etiqueta los dibuja sola
 * Resto de las secciones de la landing
 * Conexión con Supabase cuando exista el sistema de gestión
 
