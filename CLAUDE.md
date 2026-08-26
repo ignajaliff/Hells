@@ -275,8 +275,13 @@ Candidatos ya previstos en `defaults.ts`: `whatsapp` (visible + número + franja
     `rootMargin: 25%`) y encola un seek por frame con `requestAnimationFrame`.
     Con `prefers-reduced-motion` se muestra `belsebu-final.webp` (el último frame) y
     el video ni se descarga.
-  * **No verificado en un celular real**: en iOS el seek de un `<video>` muted inline
-    debería funcionar sin gesto, pero es lo primero a probar.
+  * **En producción el celular NO mostraba el video (2026-08-26)** mientras en escritorio
+    andaba: iOS Safari y Chrome con ahorro de datos **ignoran `preload="auto"`** y no
+    bajan ni un byte hasta que alguien reproduce; sin datos el `<video>` no dibuja
+    ningún frame y sobre el bloque negro se ve vacío. Se "destraba" con `play()` +
+    `pause()` la primera vez que el bloque se acerca (permitido sin gesto por ser
+    muted + playsInline). Si vuelve a fallar, lo siguiente a revisar es que el server
+    responda `Accept-Ranges: bytes` para el mp4 — sin rangos, iOS tampoco reproduce.
   * **Arranca cuando entró el 45% del bloque** (`ARRANQUE` en `BurgaVideo.tsx`), no
     apenas asoma: el cliente lo vio "empezar sin que se esté viendo" (con un 10% del
     bloque asomando ya iba por 0.5s). Verificado: 0.00s al 10% y al 45%, 1.10s al 70%,

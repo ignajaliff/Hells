@@ -87,10 +87,43 @@ export function BurgaVideo({
 
     if (v.readyState >= 1) alCargarMetadata()
     else v.addEventListener('loadedmetadata', alCargarMetadata, { once: true })
+    // Cuando llega el primer frame decodificado hay que volver a pedir uno:
+    // el seek hecho antes de tener datos no dibuja nada.
+    v.addEventListener('loadeddata', pedirFrame, { once: true })
+
+    /**
+     * DESTRABE PARA MÓVIL (2026-08-26): iOS Safari y Chrome con ahorro de
+     * datos IGNORAN `preload="auto"` y no bajan ni un byte del video hasta
+     * que alguien lo reproduce. Sin datos el `<video>` no dibuja ningún
+     * frame, y sobre el bloque negro eso se ve como "no hay video" — en
+     * producción se veía la tarjeta vacía en el celular mientras en el
+     * escritorio andaba. Un `play()` seguido de `pause()` obliga a cargar;
+     * está permitido sin gesto del usuario porque es muted + playsInline.
+     * Se hace una sola vez, la primera vez que el bloque se acerca.
+     */
+    let destrabado = false
+    const destrabar = () => {
+      if (destrabado) return
+      destrabado = true
+      // `load()` reinicia el elemento: solo si todavía no bajó nada.
+      if (v.readyState === 0) v.load()
+      const intento = v.play()
+      if (intento) {
+        intento
+          .then(() => {
+            v.pause()
+            pedirFrame()
+          })
+          .catch(() => {
+            /* Si el navegador lo rechaza, el `load()` ya pidió los datos. */
+          })
+      }
+    }
 
     const observer = new IntersectionObserver(
       ([entrada]) => {
         if (entrada.isIntersecting) {
+          destrabar()
           window.addEventListener('scroll', pedirFrame, { passive: true })
           window.addEventListener('resize', pedirFrame)
           pedirFrame()
@@ -110,6 +143,7 @@ export function BurgaVideo({
       window.removeEventListener('scroll', pedirFrame)
       window.removeEventListener('resize', pedirFrame)
       v.removeEventListener('loadedmetadata', alCargarMetadata)
+      v.removeEventListener('loadeddata', pedirFrame)
       if (raf) cancelAnimationFrame(raf)
     }
   }, [sinMovimiento])
