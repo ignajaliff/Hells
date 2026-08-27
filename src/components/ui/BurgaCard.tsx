@@ -57,7 +57,7 @@ export function BurgaCard({
    * en vez de la foto. Empezó con la primera burga (2026-08-26) y las demás
    * van a seguir el mismo camino cuando lleguen sus videos.
    */
-  video?: { src: string; final: string; alt: string }
+  video?: { src: string; poster: string; final: string; alt: string }
   /**
    * El sticker REAL con el nombre, hecho por el cliente (2026-08-26). Si
    * viene, REEMPLAZA a la etiqueta blanca: la etiqueta era el hueco reservado
@@ -79,7 +79,12 @@ export function BurgaCard({
             así la grilla no salta cuando entran las 8 fotos. */}
         <div className="relative aspect-square">
           {video ? (
-            <BurgaVideo src={video.src} final={video.final} alt={video.alt} />
+            <BurgaVideo
+              src={video.src}
+              poster={video.poster}
+              final={video.final}
+              alt={video.alt}
+            />
           ) : animada ? (
             <BurgaArmado />
           ) : foto ? (

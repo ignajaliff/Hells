@@ -263,8 +263,25 @@ Candidatos ya previstos en `defaults.ts`: `whatsapp` (visible + número + franja
   * **El mp4 tiene TODOS los frames como keyframe** (`ffmpeg -g 1 -keyint_min 1`). El
     original del cliente (960x960, 3.5MB) traía **1 keyframe en 121 frames**: cada
     `currentTime` obligaba a decodificar desde el principio y el scrub se trababa.
-    Re-codificado a 720x720 all-intra queda en 1.4MB. **Si se reemplaza el video,
-    volver a hacerlo.** El original quedó en la raíz (`belsebu.mp4`), sin trackear.
+    **Si se reemplaza el video, volver a hacerlo.** El original quedó en la raíz
+    (`belsebu.mp4`), sin trackear.
+  * **RECETA PARA LOS 8 VIDEOS (2026-08-26)** — la primera visita se veía trabada y
+    van a entrar siete más. El comando exacto está en `BurgaVideo.tsx`:
+    `scale=720:720,fps=12 -g 1 -crf 25 -preset veryslow -movflags +faststart`
+    → **765KB** contra 1.37MB de la primera versión (**-44%**).
+    * **Se recortan los FRAMES, no la resolución**: a 12 fps el scrub se ve igual
+      porque el frame lo elige el dedo, no un reloj. **No bajar de 720px** — a 540
+      (509KB) en pantallas 3x la cebolla crocante se ve pastosa. Comparado por
+      recorte de detalle antes de decidir.
+    * **Carga en cascada**: `preload="none"` + `rootMargin: 150%`. El video ya NO se
+      descarga con la página (competía con el JS y llegaba tarde: ése era el tirón de
+      la primera visita), sino cuando el visitante se le acerca. Con ocho videos es lo
+      que evita que se peleen ocho descargas a la vez. Medido en 4G simulado: el
+      video queda **completamente buffereado antes de que el visitante llegue**.
+    * **`poster` con el primer frame** (`belsebu-poster.webp`, 5KB): mientras el video
+      no tiene datos se ve la foto en vez de un rectángulo negro sobre fondo negro.
+      Es lo que más cambia la percepción — el video tarda lo mismo pero nunca hay un
+      hueco. Tiene que ser el PRIMER frame: con cualquier otro habría un salto.
   * **En móvil la tarjeta pierde el recuadro**: sin rotación, sin esquinas ni sombra, y
     el `<li>` se sale del padding de la sección (`-mx-4`) para que el bloque **negro**
     llegue de borde a borde. Es `#000` y no `--background` a propósito: el video

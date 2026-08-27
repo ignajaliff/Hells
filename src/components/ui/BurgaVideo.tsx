@@ -27,6 +27,31 @@ import { useReducedMotion } from 'motion/react'
  * del cliente traía 1 keyframe en 121 frames; `public/belsebu.mp4` está
  * re-codificado. Si se reemplaza el video, volver a hacerlo.
  *
+ * PESO — LA RECETA (2026-08-26, medida sobre Belcebú): all-intra multiplica
+ * el peso por ~5 contra un video normal, y la carta va a tener OCHO.
+ *
+ *   ffmpeg -i <origen> -vf "scale=720:720,fps=12" -an -c:v libx264  *     -g 1 -keyint_min 1 -crf 25 -preset veryslow -pix_fmt yuv420p  *     -movflags +faststart public/<burga>.mp4
+ *
+ * Da 765KB contra los 1.37MB de la primera versión (720px/24fps): **-44%**.
+ * Lo que se recorta son los FRAMES, no la resolución. A 12 fps el scrub se
+ * ve igual de fluido porque el frame lo elige el dedo del visitante y no un
+ * reloj — la mitad de los frames no se nota.
+ *
+ * **No bajar de 720px**: se probó 540 (509KB, -33% más) y en pantallas 3x la
+ * cebolla crocante pierde las hebras y se ve pastosa. Como la carga en
+ * cascada evita que se bajen los ocho juntos, el límite real es el peso de
+ * UNO —765KB entran de sobra en el margen de anticipación— y no el total.
+ *
+ * CARGA EN CASCADA: `preload="none"` + `rootMargin` amplio. El video no se
+ * descarga con la página —competía con el JS y llegaba tarde, que era el
+ * tirón de la primera visita— sino cuando el visitante se le acerca. Con
+ * ocho videos esto es lo que evita que se peleen ocho descargas a la vez.
+ *
+ * POSTER: mientras el video no tiene datos se ve `poster`, el primer frame
+ * como imagen (3KB). Sin él la tarjeta queda negra sobre fondo negro y se
+ * lee como un hueco roto. Es lo que más cambia la percepción de fluidez: el
+ * video sigue tardando lo mismo, pero nunca hay nada vacío a la vista.
+ *
  * Solo escucha el scroll mientras el bloque está cerca de la pantalla
  * (`IntersectionObserver`), y encola una sola actualización por frame con
  * `requestAnimationFrame`: sin eso se dispararían decenas de seeks por
@@ -40,11 +65,18 @@ const ARRANQUE = 0.45
 
 export function BurgaVideo({
   src,
+  poster,
   final,
   alt,
   className = '',
 }: {
   src: string
+  /**
+   * Primer frame como imagen. Se ve mientras el video no tiene datos, así la
+   * tarjeta nunca queda vacía. Tiene que ser el PRIMER frame y no cualquiera:
+   * si no, al llegar el video habría un salto visible.
+   */
+  poster: string
   /** Imagen del último frame: se usa con movimiento reducido. */
   final: string
   alt: string
@@ -132,9 +164,10 @@ export function BurgaVideo({
           window.removeEventListener('resize', pedirFrame)
         }
       },
-      // Empieza a escuchar un poco antes de que asome, así el primer frame
-      // ya está puesto cuando entra.
-      { rootMargin: '25% 0px' },
+      /* Un margen GRANDE: es lo que dispara la descarga (`destrabar`), así
+         que tiene que empezar bastante antes de que el bloque se vea. Con
+         25% el video llegaba justo cuando ya había que reproducirlo. */
+      { rootMargin: '150% 0px' },
     )
     observer.observe(v)
 
@@ -164,9 +197,12 @@ export function BurgaVideo({
     <video
       ref={video}
       src={src}
+      poster={poster}
       muted
       playsInline
-      preload="auto"
+      /* `none` y no `auto`: la descarga la dispara el observer cuando el
+         bloque se acerca, no el boot de la página. */
+      preload="none"
       disablePictureInPicture
       aria-label={alt}
       className={`absolute inset-0 h-full w-full object-cover ${className}`}

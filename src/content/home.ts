@@ -121,6 +121,8 @@ export const burgasContent = {
        */
       video: {
         src: '/belsebu.mp4',
+        /** Primer frame: se ve mientras el video baja, así no hay hueco. */
+        poster: '/belsebu-poster.webp',
         final: '/belsebu-final.webp',
         alt: 'La hamburguesa Belcebú',
       },
