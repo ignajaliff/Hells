@@ -33,6 +33,7 @@ export function BurgaCard({
   recorte = 'cover',
   animada = false,
   video,
+  ingredientes,
   sticker,
   etiqueta,
 }: {
@@ -59,6 +60,12 @@ export function BurgaCard({
    */
   video?: { src: string; poster: string; final: string; alt: string }
   /**
+   * La lista de ingredientes, DEBAJO de la tarjeta y en rojo (2026-08-27,
+   * pedido del cliente). Solo la llevan las burgas que ya la tienen definida;
+   * la tarjeta se dibuja igual sin ella.
+   */
+  ingredientes?: string
+  /**
    * El sticker REAL con el nombre, hecho por el cliente (2026-08-26). Si
    * viene, REEMPLAZA a la etiqueta blanca: la etiqueta era el hueco reservado
    * para esto. Va arriba a la izquierda, encima del video/foto.
@@ -73,8 +80,18 @@ export function BurgaCard({
       {/* Bloque negro plano. Es `#000` a propósito y no `--background`: el
           video arranca en negro puro y así el primer frame se funde con el
           bloque en vez de verse como un cuadrado apenas más oscuro. Mismo
-          negro que el fondo de la sección. */}
-      <div className="relative overflow-hidden bg-black">
+          negro que el fondo de la sección.
+
+          BORDES ROJOS arriba y abajo cuando hay video (2026-08-27, pedido del
+          cliente): enmarcan el video contra el fondo negro, que si no se funde
+          con él sin límite visible. Solo los horizontales — en móvil la tarjeta
+          va de borde a borde de la pantalla, así que unos verticales quedarían
+          pegados al canto. Es el mismo rojo del título de la sección. */}
+      <div
+        className={`relative overflow-hidden bg-black ${
+          video ? 'border-y-2 border-primary' : ''
+        }`}
+      >
         {/* La foto. `aspect-square` fija la caja ANTES de que cargue la imagen,
             así la grilla no salta cuando entran las 8 fotos. */}
         <div className="relative aspect-square">
@@ -150,6 +167,19 @@ export function BurgaCard({
         </div>
         )}
       </div>
+
+      {/* LOS INGREDIENTES, debajo de la tarjeta y en rojo.
+          CONTRASTE: `--primary` sobre negro da 4.50:1, JUSTO el mínimo AA para
+          texto normal. Cumple, pero sin margen: si se achica por debajo de
+          estos tamaños o se aclara el fondo, deja de cumplir.
+          El `px-4` de móvil compensa el `-mx-4` que la tarjeta lleva para ir de
+          borde a borde: sin él el texto quedaría pegado al canto de la
+          pantalla. De `sm` para arriba la tarjeta ya está dentro de la grilla. */}
+      {ingredientes ? (
+        <p className="px-4 py-4 text-center font-body text-[clamp(13px,3.4vw,15px)] font-semibold uppercase leading-snug tracking-[0.08em] text-primary sm:px-0 sm:py-3 sm:text-[clamp(11px,1.5vw,14px)]">
+          {ingredientes}
+        </p>
+      ) : null}
     </article>
   )
 }

@@ -46,11 +46,20 @@ export function Hero() {
           como manchas y no se lee ninguna. Ahí va la capa en mosaico de abajo.
           `object-bottom`: el zócalo de fuego tiene que quedar pegado al pie.
 
-          `unoptimized`: ya está servida en WebP a su tamaño final (2560px, 31KB
-          contra los 1.2MB del JPEG original), así que volver a pasarla por el
-          optimizador de Next solo agregaría latencia. */}
+          SIN EL ZÓCALO DE FUEGO (2026-08-27): `fondo-fuegitos.webp` traía las
+          llamas HORNEADAS en su 9.8% inferior. Al cambiar el dibujo de llamas
+          por el nuevo (`zocalo-llamas.webp`) ese fuego viejo habría quedado
+          por debajo, duplicado. `fondo-sin-fuego.webp` es la misma imagen
+          recortada justo donde arrancaba el fuego, así que ahora las llamas
+          las pone UNA sola capa —la de abajo— en móvil y en desktop.
+          El borde inferior del recorte quedó en #1a1a1a exacto (muestreado),
+          o sea el mismo `--background`: empalma sin costura con la banda.
+
+          `unoptimized`: ya está servida en WebP a su tamaño final (2560px,
+          10KB), así que volver a pasarla por el optimizador de Next solo
+          agregaría latencia. */}
       <Image
-        src="/fondo-fuegitos.webp"
+        src="/fondo-sin-fuego.webp"
         alt=""
         aria-hidden
         fill
@@ -76,39 +85,36 @@ export function Hero() {
         className="pointer-events-none absolute inset-0 -z-10 select-none bg-[url('/fondo-palabras.webp')] bg-[length:100%_auto] bg-repeat-y lg:hidden"
       />
 
-      {/* MÓVIL: solo la franja de llamas, al pie y a todo el ancho. Es el
-          recorte del 12% inferior de `fondo-fuegitos` (2560x173), así que el
-          dibujo es exactamente el mismo que en desktop.
-          Va por ALTURA (`h-[11svh]` con mínimo y máximo) y no por ancho: a ancho
-          completo el ratio 14.8:1 lo dejaría en ~26px, un hilito. Al fijar la
-          altura se recortan los lados, que en un patrón de llamas repetido no
-          se nota.
+      {/* LA FRANJA DE LLAMAS al pie, a todo el ancho.
 
-          BANDA MÁS ALTA (2026-08-21): pasó de `clamp(34,7svh,64)` a
-          `clamp(52,11svh,96)`. La burger ahora se hunde un cuarto en el fuego y
-          con la banda anterior no alcanzaba: medido, 59px de llamas contra 296px
-          de burger tapaban solo el 20%, no el 25%. Con la banda nueva el cuarto
-          queda cubierto en iPhone SE, 14, XR y Android de 360px.
+          DIBUJO NUEVO (2026-08-27, aportado por el cliente): `llamasnegras.png`
+          reemplaza al recorte del fondo ilustrado. Son picos NEGROS con el
+          contorno rojo, y ahora se usan en móvil Y en desktop — antes el
+          desktop tenía su fuego horneado dentro del fondo (ver arriba).
 
-          `z-[5]`: tiene que quedar por ENCIMA de la burger (que va en `z-[4]`)
-          para taparla. Antes iba en `-z-10` porque era solo fondo.
+          EN MOSAICO (`repeat-x` + `background-size: auto 100%`) y no estirada:
+          así el dibujo conserva su forma en cualquier ancho. El patrón EMPALMA
+          consigo mismo —verificado: los dos extremos caen en el valle, con 1px
+          de diferencia sobre 422— que es justo lo que el zócalo anterior no
+          podía hacer (sus bordes diferían 46px, por eso iba estirado).
+          Es `background-image` y no `<Image>` porque `next/image` no repite
+          patrones.
 
-          CON TRANSPARENCIA (2026-08-21): el asset original (`zocalo-fuego.webp`)
-          es un recorte del fondo ilustrado y trae el gris #1a1a1a HORNEADO — al
-          ponerlo sobre la burger la cortaba con un rectángulo gris. La variante
-          `-alpha` es el mismo dibujo con el fondo extraído por croma (los grises
-          son acromáticos, las llamas saturadas), así que sobre la burger se ven
-          solo las llamas. Si el dibujo del zócalo cambia, regenerarla. */}
-      <Image
-        src="/zocalo-fuego-alpha.webp"
-        alt=""
+          Va por ALTURA y no por ancho: el dibujo tiene ratio 6:1, así que a
+          ancho completo de una pantalla quedaría en una franja finita. Al
+          fijar el alto, el mosaico repite las copias que hagan falta.
+          El alto de móvil (`max(52px,11svh)`, tope 96px) es el mismo que tenía
+          la banda anterior: está calculado para que la burger se hunda un
+          cuarto en las llamas. **Si se cambia, rehacer esa cuenta.**
+          En desktop toma el 10% del alto, que es lo que ocupaba el fuego
+          horneado del fondo (medido: 9.8%).
+
+          `z-[5]` en móvil: tiene que quedar por ENCIMA de la burger (`z-[4]`)
+          para taparle la base. En desktop vuelve a ser fondo (`lg:-z-10`): ahí
+          la burger va por delante del fuego, como en el diseño original. */}
+      <div
         aria-hidden
-        width={2560}
-        height={173}
-        priority
-        unoptimized
-        sizes="100vw"
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-[max(52px,11svh)] max-h-[96px] w-full select-none object-cover object-bottom lg:-z-10 lg:hidden"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-[max(52px,11svh)] max-h-[96px] select-none bg-[url('/zocalo-llamas.webp')] bg-[length:auto_100%] bg-bottom bg-repeat-x lg:-z-10 lg:h-[10svh] lg:max-h-[110px]"
       />
 
       <NavHero />

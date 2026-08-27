@@ -81,12 +81,21 @@ export const diabloContent = {
  * (Lucifer, Crepúsculo, Jesús, Antidemonio...). Si acá se escribe algo, se
  * dibuja como texto provisional dentro de esa etiqueta.
  *
- * FOTOS (2026-08-24, aportadas por el cliente): son **4 fotos para 8 tarjetas**,
- * así que se repiten. El orden `1,2,3,4,2,1,4,3` está elegido para que dos
- * tarjetas vecinas —la de al lado y la de abajo— nunca muestren la misma foto,
- * y eso vale en las dos grillas: 2 columnas en móvil y 4 en desktop. **Si se
- * reordenan los items o cambia la cantidad de columnas, rehacer ese chequeo.**
- * Cuando lleguen las otras 4 fotos, se reemplazan y el problema desaparece.
+ * FOTOS (2026-08-24, aportadas por el cliente): son **4 fotos para las tarjetas
+ * que todavía no tienen video**, así que se repiten. El orden está elegido para
+ * que dos tarjetas vecinas —la de al lado y la de abajo— nunca muestren la misma
+ * foto. **Si se reordenan los items o cambia la cantidad de columnas, rehacer
+ * ese chequeo.**
+ * REHECHO EL 2026-08-27 al entrar la burga de prueba como primera: el orden
+ * anterior (`2,3,4,2,1,4,3`) se había calculado para 2 columnas de móvil y 4 de
+ * desktop, pero la grilla pasó a 1/3/4 y **en 3 columnas ya chocaba desde antes**
+ * —dos pares quedaban uno encima del otro—. El orden nuevo (`2,3,1,4,1,4,3`,
+ * dos fotos cambiadas) está verificado en las TRES grillas.
+ * Cuando lleguen las otras fotos o sus videos, se reemplazan y esto desaparece.
+ *
+ * `ingredientes` (2026-08-27, pedido del cliente): la lista que va DEBAJO de la
+ * tarjeta, en rojo. Por ahora solo la llevan las dos burgas con video, que son
+ * las que están en prueba. Las demás la reciben cuando el cliente las mande.
  *
  * El `tono` YA NO SE USA (2026-08-26): las tarjetas perdieron el recuadro y
  * son bloques negros planos. Se deja el campo por si se vuelve atrás.
@@ -102,6 +111,30 @@ export const burgasContent = {
   titulo: 'Las Burgas',
   bajada: 'Ocho maneras de pecar',
   items: [
+    {
+      /**
+       * PRUEBA DE VIDEO (2026-08-27, pedido del cliente): un segundo video de
+       * Belcebú, para compararlo con el que ya estaba. Es la MISMA burga y
+       * lleva el MISMO sticker, así que las dos primeras tarjetas son la misma
+       * hamburguesa filmada distinto — es deliberado y temporal: cuando el
+       * cliente elija cuál queda, se borra la que pierda.
+       * Este video arranca con los ingredientes flotando separados y los va
+       * juntando; el otro arranca del pan de abajo.
+       */
+      id: 'burga-belcebu-nueva',
+      nombre: '',
+      foto: '/belsebu2-final.webp',
+      video: {
+        src: '/belsebu2.mp4',
+        poster: '/belsebu2-poster.webp',
+        final: '/belsebu2-final.webp',
+        alt: 'La hamburguesa Belcebú',
+      },
+      sticker: { src: '/sticker-belcebu.webp', alt: 'Belcebú' },
+      ingredientes: 'Doble medallón, cheddar x4, cebolla crispy y barbacoa',
+      tono: 'carbon',
+      etiqueta: 'recta',
+    },
     {
       id: 'burga-1',
       nombre: '',
@@ -132,13 +165,14 @@ export const burgasContent = {
        * (raíz), que venía con 2481x1282 de lienzo y el sello ocupando la mitad.
        */
       sticker: { src: '/sticker-belcebu.webp', alt: 'Belcebú' },
+      ingredientes: 'Doble medallón, cheddar x4, cebolla crispy y barbacoa',
       tono: 'carbon',
       etiqueta: 'recta',
     },
     { id: 'burga-2', nombre: '', foto: '/burga-2.webp', tono: 'naranja', etiqueta: 'pildora' },
     { id: 'burga-3', nombre: '', foto: '/burga-3.webp', tono: 'carbon', etiqueta: 'banda' },
-    { id: 'burga-4', nombre: '', foto: '/burga-4.webp', tono: 'rojo', etiqueta: 'sello' },
-    { id: 'burga-5', nombre: '', foto: '/burga-2.webp', tono: 'naranja', etiqueta: 'cortada' },
+    { id: 'burga-4', nombre: '', foto: '/burga-1.webp', tono: 'rojo', etiqueta: 'sello' },
+    { id: 'burga-5', nombre: '', foto: '/burga-4.webp', tono: 'naranja', etiqueta: 'cortada' },
     { id: 'burga-6', nombre: '', foto: '/burga-1.webp', tono: 'carbon', etiqueta: 'vertical' },
     { id: 'burga-7', nombre: '', foto: '/burga-4.webp', tono: 'rojo', etiqueta: 'chapa' },
     { id: 'burga-8', nombre: '', foto: '/burga-3.webp', tono: 'carbon', etiqueta: 'diagonal' },

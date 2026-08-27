@@ -303,6 +303,36 @@ Candidatos ya previstos en `defaults.ts`: `whatsapp` (visible + número + franja
     apenas asoma: el cliente lo vio "empezar sin que se esté viendo" (con un 10% del
     bloque asomando ya iba por 0.5s). Verificado: 0.00s al 10% y al 45%, 1.10s al 70%,
     5.01s centrado.
+* **DOS VIDEOS DE BELCEBÚ EN PRUEBA (2026-08-27, pedido del cliente)**: entró un
+  segundo video (`belsebuprueba2.mp4` → `public/belsebu2.mp4`) como PRIMERA tarjeta, y
+  el que ya estaba pasó a la segunda. Es la MISMA burga con el MISMO sticker, filmada
+  distinto: el nuevo arranca con los ingredientes flotando separados y los va juntando;
+  el viejo arranca del pan de abajo. **Es temporal** — cuando el cliente elija, se borra
+  la que pierda (y con ella su mp4, su poster y su final).
+  * Codificado con la receta ya documentada (720px, 12fps, all-intra): **933KB** y
+    61/61 keyframes. Su original traía 1 keyframe en 121, igual que el primero.
+  * **Su fondo es negro puro**, sin el degradé rojizo que tiene el otro, así que se
+    funde mejor con la sección. Y su poster ya muestra la burga entera (28KB contra
+    5KB del otro, que arrancaba casi vacío): la percepción de carga es mejor.
+  * La grilla quedó en **9 tarjetas** mientras dure la prueba; la bajada sigue diciendo
+    "Ocho maneras de pecar" y es correcto — son 8 burgas, una filmada dos veces.
+  * **Al reordenar hubo que rehacer el orden de las fotos** (regla del proyecto). De
+    paso apareció que el orden anterior **ya chocaba en la grilla de 3 columnas** desde
+    que se pasó de 2 a 1/3/4 columnas: dos pares de fotos iguales quedaban uno encima
+    del otro. El orden nuevo (`2,3,1,4,1,4,3` — dos fotos cambiadas, en `burga-4` y
+    `burga-5`) está verificado en las TRES grillas.
+* **BORDES ROJOS E INGREDIENTES en las tarjetas con video (2026-08-27, pedido del
+  cliente)**: la tarjeta del video lleva una línea de `--primary` arriba y abajo, y
+  debajo de la burga va la lista de ingredientes en el mismo rojo del título.
+  * **Solo los bordes HORIZONTALES**: en móvil la tarjeta va de borde a borde de la
+    pantalla, así que unos verticales quedarían pegados al canto. Enmarcan el video,
+    que sobre el fondo negro se fundía sin límite visible.
+  * Los bordes se atan a `video` y los ingredientes a `ingredientes`, así que las
+    demás tarjetas siguen igual hasta que el cliente mande sus datos.
+  * `ingredientes` vive en `content/home.ts`, no en el JSX. Va en versalitas con
+    tracking: el texto se guarda con su ortografía normal y el uppercase es CSS.
+  * **CONTRASTE al límite**: rojo sobre negro da 4.50:1, justo el mínimo AA para texto
+    normal. A 13-15px cumple, pero **no achicar más ni aclarar el fondo**.
 * **"Las Burgas" pasó a FONDO NEGRO PURO con títulos en rojo y SIN recuadros
   (2026-08-26, pedido del cliente)**: reemplaza a la sección roja con tarjetas rotadas.
   * El negro es `#000` y no `--background` (#1a1a1a): el video arranca en negro puro y
@@ -323,6 +353,37 @@ Candidatos ya previstos en `defaults.ts`: `whatsapp` (visible + número + franja
     `sticker` en `content/home.ts` y **reemplaza a la etiqueta blanca** de esa tarjeta:
     arriba a la izquierda, 36% del ancho en móvil a 1.5% del borde (bajó de 48% y 4%: el cliente lo quiso más chico y más esquinado). Las otras 7 siguen con la etiqueta
     hasta que lleguen sus stickers. El PNG del cliente ya trae alfa fuera de la chapa.
+* **LLAMAS NUEVAS en el hero (2026-08-27, dibujo aportado por el cliente)**:
+  `llamasnegras.png` reemplaza a TODAS las llamas anteriores — picos negros con el
+  contorno rojo, en `public/zocalo-llamas.webp` (2560x422, 52KB).
+  * **Ahora hay UNA sola capa de llamas para móvil y desktop.** Antes eran dos: la
+    banda `zocalo-fuego-alpha.webp` en móvil y el fuego **horneado dentro de**
+    `fondo-fuegitos.webp` en desktop (su 9.8% inferior, medido). Si solo se cambiaba
+    la banda, en desktop habría quedado el fuego viejo por debajo, duplicado. Por eso
+    se generó `fondo-sin-fuego.webp`: la misma imagen recortada justo donde arrancaba
+    el fuego. Su nuevo borde inferior quedó en **#1a1a1a exacto** (muestreado), o sea
+    `--background`, así que empalma sin costura.
+  * **VA EN MOSAICO** (`repeat-x` + `background-size: auto 100%`), no estirada: así el
+    dibujo conserva su forma en cualquier ancho. **El patrón EMPALMA consigo mismo** —
+    verificado: los dos extremos caen en el valle con 1px de diferencia sobre 422. Esto
+    es lo que el zócalo anterior NO podía hacer (sus bordes diferían 46px, por eso iba
+    estirado con `object-cover`). Es `background-image` y no `<Image>` porque
+    `next/image` no repite patrones.
+  * **Se dimensiona por ALTURA**: ratio 6:1, a ancho completo quedaría en una franja
+    finita. Móvil conserva `max(52px,11svh)` tope 96px —el mismo valor calculado para
+    que la burger se hunda en las llamas—; desktop toma el 10% del alto, que es lo que
+    ocupaba el fuego horneado.
+  * **El negro del dibujo es `#000` puro y el fondo del hero es #1a1a1a**, así que el
+    relleno casi se funde con el fondo y lo que dibuja el filo es el **contorno rojo**.
+    Es deliberado y se ve bien; donde la banda cruza la burger, el negro sí contrasta.
+  * **Tapa un poco más que el dibujo anterior**: 58% de cobertura opaca contra 47%, y
+    el dibujo ocupa el 58% del alto de su caja contra el 48%. En 390x844 se ve bien; en
+    pantallas BAJAS (375x667) la burger —que es `flex-1` y ahí colapsa a ~94px— queda
+    casi tapada. Eso ya venía de antes por el `flex-1`, el dibujo nuevo solo lo hace más
+    evidente. Si molesta, bajarle la altura a la banda con un `@media(max-height:700px)`.
+  * `zocalo-fuego.webp` y `zocalo-fuego-alpha.webp` quedaron **sin uso**;
+    `fondo-fuegitos.webp` se conserva porque es la fuente de la que salen
+    `fondo-sin-fuego.webp` y `fondo-palabras.webp`.
 * **Deploy en CapRover con Docker (2026-08-21)**: `captain-definition` apunta a un
   `Dockerfile` multi-etapa (deps → builder → runner) que se apoya en el
   `output: standalone` de `next.config.ts`. La imagen final corre como usuario sin
