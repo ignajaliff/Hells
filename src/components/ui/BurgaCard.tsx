@@ -1,6 +1,5 @@
 import Image from 'next/image'
 import { ETIQUETAS, type FormaEtiqueta } from '@/components/ui/etiquetasBurga'
-import { BurgaArmado } from '@/components/ui/BurgaArmado'
 import { BurgaVideo } from '@/components/ui/BurgaVideo'
 
 /**
@@ -31,7 +30,6 @@ export function BurgaCard({
   nombre,
   foto,
   recorte = 'cover',
-  animada = false,
   video,
   ingredientes,
   sticker,
@@ -47,12 +45,6 @@ export function BurgaCard({
    * la comería el recorte.
    */
   recorte?: 'cover' | 'contain'
-  /**
-   * Si es `true`, en vez de una foto fija se muestra la secuencia de la burga
-   * armándose (`BurgaArmado`). Solo la primera tarjeta lo usa: es el gancho de
-   * la sección y con más de una compitiendo se perdería el efecto.
-   */
-  animada?: boolean
   /**
    * Si viene, la tarjeta muestra un VIDEO movido por el scroll (`BurgaVideo`)
    * en vez de la foto. Empezó con la primera burga (2026-08-26) y las demás
@@ -102,8 +94,6 @@ export function BurgaCard({
               final={video.final}
               alt={video.alt}
             />
-          ) : animada ? (
-            <BurgaArmado />
           ) : foto ? (
             <Image
               src={foto}

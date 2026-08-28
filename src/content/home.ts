@@ -146,11 +146,7 @@ export const burgasContent = {
        * frame final cuando el bloque queda centrado en la pantalla.
        * `final` es el último frame como imagen: se usa con movimiento reducido.
        * `belsebu.mp4` está re-codificado con todos los frames como keyframe
-       * (ver `BurgaVideo`); el original del cliente quedó en la raíz.
-       *
-       * Para volver a la secuencia de fotos: borrar `video` y poner
-       * `animada: true` (encadena `burga-fase-1`, `burga-fase-2` y
-       * `burga-destacada`; arranca al entrar en pantalla y corre una vez).
+       * (ver `BurgaVideo`); el original del cliente está en `originales/`.
        */
       video: {
         src: '/belsebu.mp4',

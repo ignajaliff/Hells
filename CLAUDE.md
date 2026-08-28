@@ -147,6 +147,35 @@ Candidatos ya previstos en `defaults.ts`: `whatsapp` (visible + número + franja
 
 ---
 
+## Dónde vive cada cosa
+
+```
+public/       SOLO lo que la web sirve. Si un archivo no se referencia desde
+              src/, no va acá.
+originales/   Los archivos del cliente de los que se derivaron esos assets
+              (videos sin comprimir, logo.jpg, llamasnegras.png, las fotos de
+              producto en JPG). La web no los usa; están para poder re-derivar.
+              Excluidos del build de Docker.
+ai-pmp/       Las reglas que el proyecto respeta.
+src/          El código.
+```
+
+**LIMPIEZA DEL 2026-08-27**: la raíz tenía 11MB de originales sueltos y `public/`
+otros 3.4MB de fuentes que no se servían. Se movieron a `originales/` (21 archivos,
+15MB) y se borró lo que ya no usaba nadie:
+* `BurgaArmado.tsx` y sus dos fotos de fase — **nunca se renderizaba** desde que la
+  primera burga pasó a video: ninguna burga tenía ya `animada: true`. Con él se fue
+  el prop `animada` de `BurgaCard` y de `LasBurgas`.
+* `zocalo-fuego.webp` y `zocalo-fuego-alpha.webp` — las llamas viejas, reemplazadas
+  por `zocalo-llamas.webp`.
+* `llamas-burger.png` — sin una sola referencia.
+* `dev.log` y `tsconfig.tsbuildinfo` — generados, ya estaban en `.gitignore`.
+
+`fondo-fuegitos.webp` **se conserva aunque no se renderice**: es la fuente de la que
+salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentarios.
+
+---
+
 ## Trampas del entorno de desarrollo
 
 * **NUNCA correr `npm run build` con el dev server levantado**: los dos escriben en el

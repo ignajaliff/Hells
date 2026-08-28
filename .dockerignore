@@ -23,30 +23,11 @@ KNOW - HOW WEB
 CLAUDE.md
 README.md
 
-# Originales de los que se derivaron los assets de public/.
-# Los assets ya están en public/ y estas fuentes suman ~11MB: si viajan al
-# build engordan la imagen sin que la web los use nunca.
-#
-# Se listan UNO POR UNO a propósito. Un patrón por extensión (`*.png`) sería
-# más corto, pero en .dockerignore es fácil leerlo como recursivo y dejar
-# afuera `public/` — que es justo lo único que la web sirve. Con los nombres
-# explícitos no hay forma de romper eso por accidente.
-# Actualizado 2026-08-27 al entrar los videos de las burgas y las llamas nuevas.
-*.psd
-belsebu.mp4
-belsebuprueba2.mp4
-belsevusticker.png
-burga1.png
-burgas.png
-diablillo.png
-diabloguiñando.jfif.jpeg
-diablos.jpg
-llama1.png
-llama2.png
-llama3.png
-llamasnegras.png
-llamasnegras.webp
-logo.jpg
+# Originales del cliente: los archivos de los que se derivaron los assets de
+# public/ (videos sin comprimir, el logo en JPG, los dibujos de llamas...).
+# La web NO los sirve —lo que sirve vive en public/— y pesan ~15MB, así que
+# fuera del build. Se conservan en el repo por si hay que re-derivar un asset.
+originales/
 
 # Basura de trabajo
 *.log

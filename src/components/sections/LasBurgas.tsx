@@ -59,7 +59,6 @@ export function LasBurgas() {
               nombre={burga.nombre}
               foto={burga.foto}
               recorte={'recorte' in burga ? burga.recorte : undefined}
-              animada={'animada' in burga ? Boolean(burga.animada) : undefined}
               video={'video' in burga ? burga.video : undefined}
               ingredientes={'ingredientes' in burga ? burga.ingredientes : undefined}
               sticker={'sticker' in burga ? burga.sticker : undefined}
