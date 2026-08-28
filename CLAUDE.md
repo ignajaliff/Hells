@@ -332,56 +332,37 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
     apenas asoma: el cliente lo vio "empezar sin que se esté viendo" (con un 10% del
     bloque asomando ya iba por 0.5s). Verificado: 0.00s al 10% y al 45%, 1.10s al 70%,
     5.01s centrado.
-* **DOS VIDEOS DE BELCEBÚ EN PRUEBA (2026-08-27, pedido del cliente)**: entró un
-  segundo video (`belsebuprueba2.mp4` → `public/belsebu2.mp4`) como PRIMERA tarjeta, y
-  el que ya estaba pasó a la segunda. Es la MISMA burga con el MISMO sticker, filmada
-  distinto: el nuevo arranca con los ingredientes flotando separados y los va juntando;
-  el viejo arranca del pan de abajo. **Es temporal** — cuando el cliente elija, se borra
-  la que pierda (y con ella su mp4, su poster y su final).
-  * Codificado con la receta ya documentada (720px, 12fps, all-intra): **933KB** y
-    61/61 keyframes. Su original traía 1 keyframe en 121, igual que el primero.
-  * **Su fondo es negro puro**, sin el degradé rojizo que tiene el otro, así que se
-    funde mejor con la sección. Y su poster ya muestra la burga entera (28KB contra
-    5KB del otro, que arrancaba casi vacío): la percepción de carga es mejor.
-  * La grilla quedó en **9 tarjetas** mientras dure la prueba; la bajada sigue diciendo
-    "Ocho maneras de pecar" y es correcto — son 8 burgas, una filmada dos veces.
-  * **Al reordenar hubo que rehacer el orden de las fotos** (regla del proyecto). De
-    paso apareció que el orden anterior **ya chocaba en la grilla de 3 columnas** desde
-    que se pasó de 2 a 1/3/4 columnas: dos pares de fotos iguales quedaban uno encima
-    del otro. El orden nuevo (`2,3,1,4,1,4,3` — dos fotos cambiadas, en `burga-4` y
-    `burga-5`) está verificado en las TRES grillas.
-* **BORDES ROJOS E INGREDIENTES en las tarjetas con video (2026-08-27, pedido del
-  cliente)**: la tarjeta del video lleva una línea de `--primary` arriba y abajo, y
-  debajo de la burga va la lista de ingredientes en el mismo rojo del título.
-  * **Solo los bordes HORIZONTALES**: en móvil la tarjeta va de borde a borde de la
-    pantalla, así que unos verticales quedarían pegados al canto. Enmarcan el video,
-    que sobre el fondo negro se fundía sin límite visible.
-  * Los bordes se atan a `video` y los ingredientes a `ingredientes`, así que las
-    demás tarjetas siguen igual hasta que el cliente mande sus datos.
-  * `ingredientes` vive en `content/home.ts`, no en el JSX. Va en versalitas con
-    tracking: el texto se guarda con su ortografía normal y el uppercase es CSS.
-  * **CONTRASTE al límite**: rojo sobre negro da 4.50:1, justo el mínimo AA para texto
-    normal. A 13-15px cumple, pero **no achicar más ni aclarar el fondo**.
-* **"Las Burgas" pasó a FONDO NEGRO PURO con títulos en rojo y SIN recuadros
-  (2026-08-26, pedido del cliente)**: reemplaza a la sección roja con tarjetas rotadas.
-  * El negro es `#000` y no `--background` (#1a1a1a): el video arranca en negro puro y
-    tiene que fundirse con el fondo. Entre el hero (carbón) y la sección hay un escalón
-    de tono, aceptado.
-  * `--primary` sobre negro da **4.50:1 — justo el mínimo AA** para texto normal, así la
-    bajada puede ir en rojo pero sin margen. Sobre carbón no llegaba (3.79:1).
-  * **Todas las tarjetas son bloques planos**: se sacaron rotación alternada, sombra
-    desplazada, esquinas redondeadas y los tres tonos de fondo. En móvil cada `<li>`
-    va `-mx-4` para ir de borde a borde. El campo `tono` de `content/home.ts` quedó
-    sin uso. Las etiquetas que sobresalían del canto ahora se recortan contra el borde
-    de la pantalla (sección `overflow-hidden`); si molesta, quitarles el offset negativo.
-  * El plan del cliente es que **las 8 tarjetas lleven video**; las otras 7 siguen con
-    foto hasta que los mande. Cada uno tiene que re-codificarse all-intra (ver arriba).
-  * `--superficie-fuego` quedó definido en `globals.css` sin uso.
-  * **El primer sticker real llegó (2026-08-26)**: `sticker-belcebu.webp` (recortado de
-    `belsevusticker.png`, que traía el sello ocupando la mitad del lienzo; 14KB). Va como
-    `sticker` en `content/home.ts` y **reemplaza a la etiqueta blanca** de esa tarjeta:
-    arriba a la izquierda, 36% del ancho en móvil a 1.5% del borde (bajó de 48% y 4%: el cliente lo quiso más chico y más esquinado). Las otras 7 siguen con la etiqueta
-    hasta que lleguen sus stickers. El PNG del cliente ya trae alfa fuera de la chapa.
+* **LAS DOCE BURGAS CON SU VIDEO (2026-08-27, material del cliente)**: llegó la
+  carpeta `burgashells/` con 12 videos y 12 fotos. Reemplazan a todo lo anterior de la
+  sección (las 4 fotos repetidas, los dos videos de Belcebú en prueba, los stickers).
+  Orden, nombres e ingredientes los dio el cliente y viven en `content/home.ts`.
+  * **EL VIDEO YA NO SE MUEVE CON EL SCROLL** (pedido del cliente): se reproduce solo,
+    UNA vez, al entrar en pantalla, y al terminar queda la **foto de producto** —no el
+    último frame—, que está mejor iluminada.
+  * **Eso es lo que permitió que pesaran poco.** El scrub obligaba a codificar el mp4
+    con todos los frames como keyframe (`-g 1`), que multiplicaba el peso por ~5. Al
+    reproducirse de corrido alcanza un GOP normal:
+    `scale=720:720,fps=24 -crf 26 -preset slow -movflags +faststart`
+    → **~200KB por video** contra los 765KB de la receta anterior y los 2.3MB del
+    original. Las doce con sus fotos y posters: **3.2MB** (los originales eran 31MB).
+    La receta quedó en `originales/procesar.sh`.
+  * Cada burga tiene tres archivos en `public/burgas/`: `<slug>.mp4`, `<slug>-poster.webp`
+    (primer frame, se ve mientras baja) y `<slug>.webp` (la foto que queda al final).
+  * **Carga en cascada, en dos tiempos**: un observer con `rootMargin: 200%` dispara la
+    DESCARGA bastante antes de que la tarjeta se vea, y otro con `threshold: 0.5` dispara
+    el `play()` cuando ya se ve. Con doce videos, precargarlos todos al abrir la página
+    los haría competir entre sí y con el JS — que era justo el tirón que había que sacar.
+  * **El nombre pasó a ir DEBAJO**, junto a los ingredientes, en vez de dentro de la
+    etiqueta blanca: con los doce nombres reales se lee mejor como ficha de producto, y
+    la etiqueta tapaba parte de la hamburguesa. `BurgaCard` sigue soportando la etiqueta
+    (`nombreEnEtiqueta`) y el `sticker` por si el cliente manda los doce sellos.
+  * `sticker-belcebu.webp` e `isotipo.png` quedaron **sin uso** y se archivaron en
+    `originales/`. Con ellos se fueron `etiquetasBurga.ts` del uso diario (el módulo
+    sigue, lo importa `BurgaCard`) y el marcador de "Foto pendiente", que ya no hace
+    falta porque las doce tienen material.
+  * Ojo con `ffmpeg` dentro de un `while read`: **se come el stdin del bucle** y corrompe
+    las variables (la primera pasada dejó archivos llamados `atanas.mp4`, `al.mp4`).
+    Va con `-nostdin`.
 * **LLAMAS NUEVAS en el hero (2026-08-27, dibujo aportado por el cliente)**:
   `llamasnegras.png` reemplaza a TODAS las llamas anteriores — picos negros con el
   contorno rojo, en `public/zocalo-llamas.webp` (2560x422, 52KB).
@@ -815,11 +796,11 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
 
 ## Estado actual del desarrollo
 
-**Última sesión**: 2026-08-26
-**Próximo paso**: **probar el video por scroll de la primera burga en un celular real**
-(sobre todo iOS) y decidir si la prueba queda o se vuelve a la secuencia de fotos.
-Después, definir las secciones que siguen — el nav ya las anticipa (BURGUERS, NOSOTROS,
-WORK) pero todavía apuntan a `#`.
+**Última sesión**: 2026-08-27
+**Próximo paso**: **probar las doce burgas en un celular real** — sobre todo que los
+videos arranquen en iOS y que la cascada de descarga alcance con doce. Después, definir
+las secciones que siguen: el nav ya las anticipa (BURGUERS, NOSOTROS, WORK) pero
+todavía apuntan a `#`.
 
 **Lo que está funcionando**:
 * Arquitectura completa del proyecto (App Router, `src/` por secciones, tokens de diseño)

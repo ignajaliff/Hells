@@ -5,122 +5,79 @@ import { BurgaVideo } from '@/components/ui/BurgaVideo'
 /**
  * BurgaCard — una hamburguesa de la carta.
  *
- * Es una tarjeta cuadrada con la foto adentro y una ETIQUETA BLANCA que es el
- * hueco reservado: el cliente pega ahí su sticker con el nombre de cada burga
- * (2026-08-24). Por eso se dibuja aunque `nombre` esté vacío — si desapareciera
- * al no haber texto, no se vería dónde va.
+ * Un bloque negro con el video de la burga adentro —se reproduce una vez y
+ * queda en la foto de producto, ver `BurgaVideo`— enmarcado por dos líneas
+ * rojas, y debajo su nombre y sus ingredientes.
  *
- * **Las ocho etiquetas son distintas** entre sí: forma, esquina y ángulo salen
- * de `etiquetasBurga.ts`, que documenta las variantes y la regla de que dos
- * tarjetas vecinas no compartan esquina. Los nombres de las burgas son propios
- * (Lucifer, Crepúsculo, Jesús...), así que el sello acompaña esa identidad en
- * vez de repetir el mismo recuadro.
+ * SIN RECUADRO (2026-08-26, pedido del cliente): la tarjeta no tiene esquinas
+ * redondeadas, rotación, sombra ni color de fondo propio; en móvil va de borde
+ * a borde de la pantalla. Antes tenía rotación alternada, sombra desplazada y
+ * tres tonos de fondo.
  *
- * SIN RECUADRO (2026-08-26, pedido del cliente): la tarjeta ya no tiene
- * esquinas redondeadas, rotación, sombra ni color de fondo propio. Es un
- * bloque negro plano con la foto (o el video) adentro y la etiqueta encima.
- * En móvil va de borde a borde de la pantalla. Se hizo primero con la burga
- * del video y el cliente pidió lo mismo para todas: las otras siete van a
- * recibir su propio video.
- * Antes tenía rotación alternada, sombra desplazada y tres tonos de fondo
- * (carbón, rojo oscuro y naranja); todo eso se sacó junto.
+ * EL NOMBRE VA DEBAJO, junto a los ingredientes (2026-08-27): cuando llegaron
+ * los doce nombres reales se leyó mejor como ficha de producto que dentro de
+ * la etiqueta blanca, que además tapaba parte de la hamburguesa.
+ * La etiqueta sigue soportada (`etiqueta` + `nombreEnEtiqueta`) y `sticker`
+ * también: era el hueco reservado para los sellos del cliente, del que hasta
+ * ahora llegó uno solo (Belcebú). Si llegan los doce, se vuelve a activar acá
+ * sin tocar el resto.
  */
-
 export function BurgaCard({
   nombre,
-  foto,
-  recorte = 'cover',
   video,
   ingredientes,
   sticker,
   etiqueta,
+  nombreEnEtiqueta = false,
 }: {
   nombre: string
-  foto: string | null
   /**
-   * Cómo entra la foto en la tarjeta.
-   * `cover` — foto de estudio con su fondo (plato, barril): llena el cuadrado.
-   * `contain` — PNG con el fondo ya recortado: la burger va suelta sobre el
-   * color del recuadro, así que se muestra entera y con aire. Con `cover` se
-   * la comería el recorte.
+   * El video de la burga: se reproduce una vez al entrar en pantalla y queda
+   * en su `foto` de producto.
    */
-  recorte?: 'cover' | 'contain'
-  /**
-   * Si viene, la tarjeta muestra un VIDEO movido por el scroll (`BurgaVideo`)
-   * en vez de la foto. Empezó con la primera burga (2026-08-26) y las demás
-   * van a seguir el mismo camino cuando lleguen sus videos.
-   */
-  video?: { src: string; poster: string; final: string; alt: string }
-  /**
-   * La lista de ingredientes, DEBAJO de la tarjeta y en rojo (2026-08-27,
-   * pedido del cliente). Solo la llevan las burgas que ya la tienen definida;
-   * la tarjeta se dibuja igual sin ella.
-   */
+  video: { src: string; poster: string; foto: string; alt: string }
+  /** La lista de ingredientes, debajo del nombre y en rojo. */
   ingredientes?: string
   /**
-   * El sticker REAL con el nombre, hecho por el cliente (2026-08-26). Si
-   * viene, REEMPLAZA a la etiqueta blanca: la etiqueta era el hueco reservado
-   * para esto. Va arriba a la izquierda, encima del video/foto.
+   * El sello del cliente, encima del video y arriba a la izquierda. Reemplaza
+   * a la etiqueta blanca. Solo llegó el de Belcebú (2026-08-26).
    */
   sticker?: { src: string; alt: string }
-  etiqueta: FormaEtiqueta
+  /** La forma de la etiqueta blanca. Solo se dibuja con `nombreEnEtiqueta`. */
+  etiqueta?: FormaEtiqueta
+  /** Si el nombre va DENTRO de la etiqueta encima del video, y no debajo. */
+  nombreEnEtiqueta?: boolean
 }) {
-  const forma = ETIQUETAS[etiqueta]
+  const forma = etiqueta ? ETIQUETAS[etiqueta] : null
 
   return (
     <article className="relative">
-      {/* Bloque negro plano. Es `#000` a propósito y no `--background`: el
-          video arranca en negro puro y así el primer frame se funde con el
-          bloque en vez de verse como un cuadrado apenas más oscuro. Mismo
-          negro que el fondo de la sección.
+      {/* Bloque negro. Es `#000` a propósito y no `--background`: los videos
+          arrancan en negro puro y así el primer frame se funde con el bloque
+          en vez de verse como un cuadrado apenas más oscuro. Mismo negro que
+          el fondo de la sección.
 
-          BORDES ROJOS arriba y abajo cuando hay video (2026-08-27, pedido del
-          cliente): enmarcan el video contra el fondo negro, que si no se funde
-          con él sin límite visible. Solo los horizontales — en móvil la tarjeta
-          va de borde a borde de la pantalla, así que unos verticales quedarían
-          pegados al canto. Es el mismo rojo del título de la sección. */}
-      <div
-        className={`relative overflow-hidden bg-black ${
-          video ? 'border-y-2 border-primary' : ''
-        }`}
-      >
-        {/* La foto. `aspect-square` fija la caja ANTES de que cargue la imagen,
-            así la grilla no salta cuando entran las 8 fotos. */}
+          BORDES ROJOS arriba y abajo (2026-08-27, pedido del cliente): sobre
+          el fondo negro el video se fundía sin límite visible. Solo los
+          horizontales — en móvil la tarjeta va de borde a borde de la
+          pantalla, así que unos verticales quedarían pegados al canto. */}
+      <div className="relative overflow-hidden border-y-2 border-primary bg-black">
+        {/* `aspect-square` fija la caja ANTES de que cargue nada, así la
+            grilla no salta cuando entran los doce videos. */}
         <div className="relative aspect-square">
-          {video ? (
-            <BurgaVideo
-              src={video.src}
-              poster={video.poster}
-              final={video.final}
-              alt={video.alt}
-            />
-          ) : foto ? (
-            <Image
-              src={foto}
-              alt=""
-              fill
-              sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
-              className={
-                recorte === 'contain'
-                  ? /* Baja un poco y se achica: sin eso la burger recortada
-                       llega hasta el borde de arriba y la etiqueta le cae
-                       encima del pan. Con el fondo transparente ese aire se ve
-                       como parte del diseño, no como un hueco. */
-                    'translate-y-[7%] scale-[0.94] object-contain drop-shadow-[0_14px_20px_rgba(0,0,0,.45)]'
-                  : 'object-cover'
-              }
-            />
-          ) : (
-            <MarcadorFoto />
-          )}
+          <BurgaVideo
+            src={video.src}
+            poster={video.poster}
+            foto={video.foto}
+            alt={video.alt}
+          />
         </div>
 
         {sticker ? (
-          /* EL STICKER del cliente, arriba a la izquierda sobre el video. El
-             PNG ya trae la chapa negra con las letras blancas, así que no
-             lleva fondo ni sombra propios. Ancho relativo a la tarjeta para que
-             escale con ella: 36% en móvil, casi pegado a la esquina (1.5%).
-             Venía en 48% y 4%; el cliente lo quiso más chico y más esquinado. */
+          /* EL STICKER del cliente. El PNG ya trae la chapa negra con las
+             letras blancas, así que no lleva fondo ni sombra propios. Ancho
+             relativo a la tarjeta para que escale con ella, casi pegado a la
+             esquina — el cliente lo quiso chico y esquinado. */
           <Image
             src={sticker.src}
             alt={sticker.alt}
@@ -128,74 +85,39 @@ export function BurgaCard({
             height={367}
             className="absolute left-[1.5%] top-[1.5%] z-[2] h-auto w-[36%] sm:w-[42%]"
           />
-        ) : (
-        /* LA ETIQUETA — el hueco del sticker con el nombre.
-            Forma, esquina y ángulo salen de `ETIQUETAS[etiqueta]`: las ocho son
-            distintas entre sí. Sobresale del borde de la tarjeta para que se
-            lea como algo pegado ENCIMA y no como parte del diseño.
-            Alto mínimo fijo: sin él, al estar vacía colapsaría a un hilo y no
-            se vería el espacio reservado. */
-        <div
-          className={`absolute z-[2] min-h-[40px] bg-foreground shadow-[4px_4px_0_rgba(26,26,26,.45)] sm:min-h-[38px] sm:shadow-[3px_3px_0_rgba(26,26,26,.45)] ${forma.caja} ${forma.pastilla} ${forma.ancho}`}
-        >
-          {nombre ? (
+        ) : nombreEnEtiqueta && forma ? (
+          /* LA ETIQUETA BLANCA, con el nombre adentro. Sobresale del borde
+             para que se lea como algo pegado ENCIMA de la tarjeta. */
+          <div
+            className={`absolute z-[2] min-h-[40px] bg-foreground shadow-[4px_4px_0_rgba(26,26,26,.45)] sm:min-h-[38px] sm:shadow-[3px_3px_0_rgba(26,26,26,.45)] ${forma.caja} ${forma.pastilla} ${forma.ancho}`}
+          >
             <span className="block font-display text-[clamp(17px,5vw,24px)] uppercase leading-tight tracking-[0.01em] text-background sm:text-[clamp(13px,2.2vw,22px)]">
               {nombre}
             </span>
-          ) : (
-            /* Sin nombre todavía: dos rayas grises marcan dónde va el texto.
-               Es deliberadamente evidente que falta el dato — un espacio en
-               blanco liso se confundiría con una decisión de diseño. */
-            <span
-              aria-hidden
-              className="flex h-[24px] w-full flex-col justify-center gap-[6px] sm:h-[22px] sm:gap-[5px]"
-            >
-              <span className="block h-[7px] w-[70%] rounded-full bg-background/25 sm:h-[6px]" />
-              <span className="block h-[7px] w-[45%] rounded-full bg-background/15 sm:h-[6px]" />
-            </span>
-          )}
-        </div>
-        )}
+          </div>
+        ) : null}
       </div>
 
-      {/* LOS INGREDIENTES, debajo de la tarjeta y en rojo.
+      {/* LA FICHA: el nombre y debajo los ingredientes.
           CONTRASTE: `--primary` sobre negro da 4.50:1, JUSTO el mínimo AA para
-          texto normal. Cumple, pero sin margen: si se achica por debajo de
-          estos tamaños o se aclara el fondo, deja de cumplir.
+          texto normal. El nombre va en display y grande, así que le sobra; los
+          ingredientes cumplen a estos tamaños pero sin margen — **no achicarlos
+          más ni aclarar el fondo**.
           El `px-4` de móvil compensa el `-mx-4` que la tarjeta lleva para ir de
-          borde a borde: sin él el texto quedaría pegado al canto de la
-          pantalla. De `sm` para arriba la tarjeta ya está dentro de la grilla. */}
-      {ingredientes ? (
-        <p className="px-4 py-4 text-center font-body text-[clamp(13px,3.4vw,15px)] font-semibold uppercase leading-snug tracking-[0.08em] text-primary sm:px-0 sm:py-3 sm:text-[clamp(11px,1.5vw,14px)]">
-          {ingredientes}
-        </p>
-      ) : null}
-    </article>
-  )
-}
+          borde a borde: sin él el texto quedaría pegado al canto. */}
+      <div className="px-4 pb-1 pt-4 text-center sm:px-0 sm:pt-3">
+        {!nombreEnEtiqueta && nombre ? (
+          <h3 className="font-display text-[clamp(26px,7vw,34px)] uppercase leading-none tracking-[0.01em] text-primary sm:text-[clamp(20px,2.4vw,30px)]">
+            {nombre}
+          </h3>
+        ) : null}
 
-/**
- * El marcador que ocupa el lugar de la foto mientras no exista.
- *
- * No es un gris plano ni un "no image": dibuja la silueta del isotipo de marca
- * sobre un degradé cálido, así la grilla ya se ve terminada y el hueco se lee
- * como intencional. Cuando lleguen las fotos, este componente deja de
- * renderizarse solo — no hay que tocar la tarjeta.
- */
-function MarcadorFoto() {
-  return (
-    <div className="absolute inset-0 grid place-items-center bg-[radial-gradient(circle_at_50%_38%,rgba(239,143,3,.22),rgba(26,26,26,0)_62%)]">
-      <Image
-        src="/isotipo.png"
-        alt=""
-        aria-hidden
-        width={512}
-        height={512}
-        className="w-[38%] opacity-[.14] grayscale"
-      />
-      <span className="absolute bottom-3 font-body text-[9px] uppercase tracking-[0.16em] text-foreground/25 sm:bottom-4 sm:text-[11px] sm:tracking-[0.18em]">
-        Foto pendiente
-      </span>
-    </div>
+        {ingredientes ? (
+          <p className="mt-2 font-body text-[clamp(13px,3.4vw,15px)] font-semibold uppercase leading-snug tracking-[0.08em] text-primary sm:mt-1.5 sm:text-[clamp(11px,1.5vw,14px)]">
+            {ingredientes}
+          </p>
+        ) : null}
+      </div>
+    </article>
   )
 }

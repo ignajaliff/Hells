@@ -1,7 +1,6 @@
 import { burgasContent } from '@/content/home'
 import { SECCIONES } from '@/lib/constants'
 import { BurgaCard } from '@/components/ui/BurgaCard'
-import { type FormaEtiqueta } from '@/components/ui/etiquetasBurga'
 
 /**
  * Las Burgas — Server Component. La carta: título y grilla de 8 hamburguesas.
@@ -19,7 +18,7 @@ import { type FormaEtiqueta } from '@/components/ui/etiquetasBurga'
  * `--background` no llega (3.79:1).
  *
  * GRILLA: **1 columna en móvil** (decisión del cliente, 2026-08-24), 3 desde
- * `sm` y 4 desde `lg`.
+ * `sm` y 4 desde `lg`. Desde 2026-08-27 son DOCE burgas, todas con video.
  *
  * Se había probado a 2 columnas cuando las tarjetas eran placeholders grises:
  * ahí una sola columna daba 3284px de scroll para ver ocho recuadros vacíos,
@@ -57,12 +56,8 @@ export function LasBurgas() {
           <li key={burga.id} className="-mx-4 sm:mx-0">
             <BurgaCard
               nombre={burga.nombre}
-              foto={burga.foto}
-              recorte={'recorte' in burga ? burga.recorte : undefined}
-              video={'video' in burga ? burga.video : undefined}
-              ingredientes={'ingredientes' in burga ? burga.ingredientes : undefined}
-              sticker={'sticker' in burga ? burga.sticker : undefined}
-              etiqueta={burga.etiqueta as FormaEtiqueta}
+              video={burga.video}
+              ingredientes={burga.ingredientes}
             />
           </li>
         ))}

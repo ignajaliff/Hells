@@ -74,103 +74,153 @@ export const diabloContent = {
 } as const
 
 /**
- * Sección "Las Burgas" — la carta.
+ * Sección "Las Burgas" — la carta. Las DOCE hamburguesas, cada una con su
+ * video y su foto (2026-08-27, material del cliente).
  *
- * ⚠ FALTAN LOS NOMBRES. `nombre` va vacío a propósito: la etiqueta blanca de
- * cada tarjeta es el HUECO donde el cliente va a pegar su sticker con el nombre
- * (Lucifer, Crepúsculo, Jesús, Antidemonio...). Si acá se escribe algo, se
- * dibuja como texto provisional dentro de esa etiqueta.
+ * Cada tarjeta reproduce su video UNA vez al entrar en pantalla y queda en la
+ * foto de producto (ver `BurgaVideo`). El orden y los ingredientes los dio el
+ * cliente; los nombres se escriben acá y la tarjeta los dibuja.
  *
- * FOTOS (2026-08-24, aportadas por el cliente): son **4 fotos para las tarjetas
- * que todavía no tienen video**, así que se repiten. El orden está elegido para
- * que dos tarjetas vecinas —la de al lado y la de abajo— nunca muestren la misma
- * foto. **Si se reordenan los items o cambia la cantidad de columnas, rehacer
- * ese chequeo.**
- * REHECHO EL 2026-08-27 al entrar la burga de prueba como primera: el orden
- * anterior (`2,3,4,2,1,4,3`) se había calculado para 2 columnas de móvil y 4 de
- * desktop, pero la grilla pasó a 1/3/4 y **en 3 columnas ya chocaba desde antes**
- * —dos pares quedaban uno encima del otro—. El orden nuevo (`2,3,1,4,1,4,3`,
- * dos fotos cambiadas) está verificado en las TRES grillas.
- * Cuando lleguen las otras fotos o sus videos, se reemplazan y esto desaparece.
- *
- * `ingredientes` (2026-08-27, pedido del cliente): la lista que va DEBAJO de la
- * tarjeta, en rojo. Por ahora solo la llevan las dos burgas con video, que son
- * las que están en prueba. Las demás la reciben cuando el cliente las mande.
- *
- * El `tono` YA NO SE USA (2026-08-26): las tarjetas perdieron el recuadro y
- * son bloques negros planos. Se deja el campo por si se vuelve atrás.
- *
- * La `etiqueta` es la forma del sticker. **Las ocho son distintas** (decisión
- * del cliente, 2026-08-24): cada burga tiene su nombre propio —Lucifer,
- * Crepúsculo, Jesús, Antidemonio— así que su sello no puede ser el mismo
- * recuadro repetido ocho veces. Cada variante combina forma, esquina y ángulo,
- * y **dos tarjetas vecinas nunca comparten esquina**, ni la de al lado ni la
- * de abajo (verificado sobre la grilla de 2 columnas de móvil).
+ * Los videos vienen de `burgashells/` (originales del cliente, 960x960 y ~2.3MB
+ * cada uno) recomprimidos a 720px/24fps/crf26: ~200KB por video, 3.2MB las doce
+ * con sus fotos. **Si entra un video nuevo, pasarlo por la misma receta** — está
+ * en `originales/procesar.sh` y documentada en `BurgaVideo`.
  */
 export const burgasContent = {
   titulo: 'Las Burgas',
-  bajada: 'Ocho maneras de pecar',
+  bajada: 'Doce maneras de pecar',
   items: [
     {
-      /**
-       * PRUEBA DE VIDEO (2026-08-27, pedido del cliente): un segundo video de
-       * Belcebú, para compararlo con el que ya estaba. Es la MISMA burga y
-       * lleva el MISMO sticker, así que las dos primeras tarjetas son la misma
-       * hamburguesa filmada distinto — es deliberado y temporal: cuando el
-       * cliente elija cuál queda, se borra la que pierda.
-       * Este video arranca con los ingredientes flotando separados y los va
-       * juntando; el otro arranca del pan de abajo.
-       */
-      id: 'burga-belcebu-nueva',
-      nombre: '',
-      foto: '/belsebu2-final.webp',
+      id: 'lucifer',
+      nombre: 'Lucifer',
       video: {
-        src: '/belsebu2.mp4',
-        poster: '/belsebu2-poster.webp',
-        final: '/belsebu2-final.webp',
-        alt: 'La hamburguesa Belcebú',
+        src: '/burgas/lucifer.mp4',
+        poster: '/burgas/lucifer-poster.webp',
+        foto: '/burgas/lucifer.webp',
+        alt: 'Hamburguesa Lucifer',
       },
-      sticker: { src: '/sticker-belcebu.webp', alt: 'Belcebú' },
-      ingredientes: 'Doble medallón, cheddar x4, cebolla crispy y barbacoa',
-      tono: 'carbon',
-      etiqueta: 'recta',
+      ingredientes: 'Triple medallón, cheddar x6 y salsa Hells',
     },
     {
-      id: 'burga-1',
-      nombre: '',
-      foto: '/burga-destacada.webp',
-      recorte: 'contain',
-      /**
-       * PRUEBA (2026-08-26, pedido del cliente): la primera burga muestra un
-       * VIDEO movido por el scroll en vez de la secuencia de fotos. Llega al
-       * frame final cuando el bloque queda centrado en la pantalla.
-       * `final` es el último frame como imagen: se usa con movimiento reducido.
-       * `belsebu.mp4` está re-codificado con todos los frames como keyframe
-       * (ver `BurgaVideo`); el original del cliente está en `originales/`.
-       */
+      id: 'satanas',
+      nombre: 'Satanás',
       video: {
-        src: '/belsebu.mp4',
-        /** Primer frame: se ve mientras el video baja, así no hay hueco. */
-        poster: '/belsebu-poster.webp',
-        final: '/belsebu-final.webp',
-        alt: 'La hamburguesa Belcebú',
+        src: '/burgas/satanas.mp4',
+        poster: '/burgas/satanas-poster.webp',
+        foto: '/burgas/satanas.webp',
+        alt: 'Hamburguesa Satanás',
       },
-      /**
-       * El sticker con el nombre, hecho por el cliente (2026-08-26). Reemplaza
-       * a la etiqueta blanca. Recortado al dibujo desde `belsevusticker.png`
-       * (raíz), que venía con 2481x1282 de lienzo y el sello ocupando la mitad.
-       */
-      sticker: { src: '/sticker-belcebu.webp', alt: 'Belcebú' },
-      ingredientes: 'Doble medallón, cheddar x4, cebolla crispy y barbacoa',
-      tono: 'carbon',
-      etiqueta: 'recta',
+      ingredientes: 'Doble medallón, cheddar x4, panceta y salsa Hells',
     },
-    { id: 'burga-2', nombre: '', foto: '/burga-2.webp', tono: 'naranja', etiqueta: 'pildora' },
-    { id: 'burga-3', nombre: '', foto: '/burga-3.webp', tono: 'carbon', etiqueta: 'banda' },
-    { id: 'burga-4', nombre: '', foto: '/burga-1.webp', tono: 'rojo', etiqueta: 'sello' },
-    { id: 'burga-5', nombre: '', foto: '/burga-4.webp', tono: 'naranja', etiqueta: 'cortada' },
-    { id: 'burga-6', nombre: '', foto: '/burga-1.webp', tono: 'carbon', etiqueta: 'vertical' },
-    { id: 'burga-7', nombre: '', foto: '/burga-4.webp', tono: 'rojo', etiqueta: 'chapa' },
-    { id: 'burga-8', nombre: '', foto: '/burga-3.webp', tono: 'carbon', etiqueta: 'diagonal' },
+    {
+      id: 'balak',
+      nombre: 'Balak',
+      video: {
+        src: '/burgas/balak.mp4',
+        poster: '/burgas/balak-poster.webp',
+        foto: '/burgas/balak.webp',
+        alt: 'Hamburguesa Balak',
+      },
+      ingredientes: 'Triple medallón, cheddar x6, panceta, cebolla crispy y salsa Hells',
+    },
+    {
+      id: 'belcebu',
+      nombre: 'Belcebú',
+      video: {
+        src: '/burgas/belcebu.mp4',
+        poster: '/burgas/belcebu-poster.webp',
+        foto: '/burgas/belcebu.webp',
+        alt: 'Hamburguesa Belcebú',
+      },
+      ingredientes: 'Doble medallón, cheddar x4, cebolla crispy y barbacoa',
+    },
+    {
+      id: 'azazel',
+      nombre: 'Azazel',
+      video: {
+        src: '/burgas/azazel.mp4',
+        poster: '/burgas/azazel-poster.webp',
+        foto: '/burgas/azazel.webp',
+        alt: 'Hamburguesa Azazel',
+      },
+      ingredientes: 'Doble medallón, doble salsa, queso azul, rúcula y cebolla caramelizada',
+    },
+    {
+      id: 'belfegor',
+      nombre: 'Belfegor',
+      video: {
+        src: '/burgas/belfegor.mp4',
+        poster: '/burgas/belfegor-poster.webp',
+        foto: '/burgas/belfegor.webp',
+        alt: 'Hamburguesa Belfegor',
+      },
+      ingredientes: 'Doble medallón, queso dambo x4, huevo, tomate y lechuga',
+    },
+    {
+      id: 'mammon',
+      nombre: 'Mammón',
+      video: {
+        src: '/burgas/mammon.mp4',
+        poster: '/burgas/mammon-poster.webp',
+        foto: '/burgas/mammon.webp',
+        alt: 'Hamburguesa Mammón',
+      },
+      ingredientes: 'Doble medallón, queso dambo x4, guacamole y mayonesa',
+    },
+    {
+      id: 'lilith',
+      nombre: 'Lilith',
+      video: {
+        src: '/burgas/lilith.mp4',
+        poster: '/burgas/lilith-poster.webp',
+        foto: '/burgas/lilith.webp',
+        alt: 'Hamburguesa Lilith',
+      },
+      ingredientes: 'Doble medallón, cebolla caramelizada, cheddar líquido y cheddar x2',
+    },
+    {
+      id: 'gualicho',
+      nombre: 'Gualicho',
+      video: {
+        src: '/burgas/gualicho.mp4',
+        poster: '/burgas/gualicho-poster.webp',
+        foto: '/burgas/gualicho.webp',
+        alt: 'Hamburguesa Gualicho',
+      },
+      ingredientes: 'Medallón, cheddar x2 y salsa Hells',
+    },
+    {
+      id: 'baal',
+      nombre: 'Baal',
+      video: {
+        src: '/burgas/baal.mp4',
+        poster: '/burgas/baal-poster.webp',
+        foto: '/burgas/baal.webp',
+        alt: 'Hamburguesa Baal',
+      },
+      ingredientes: 'Medallón XL, cheddar x2, cebolla y ketchup',
+    },
+    {
+      id: 'asmodeo',
+      nombre: 'Asmodeo',
+      video: {
+        src: '/burgas/asmodeo.mp4',
+        poster: '/burgas/asmodeo-poster.webp',
+        foto: '/burgas/asmodeo.webp',
+        alt: 'Hamburguesa Asmodeo',
+      },
+      ingredientes: 'Pechuga de pollo rebozada en tempura, cheddar x2, panceta, tomate, lechuga y mayoliva',
+    },
+    {
+      id: 'leviatan',
+      nombre: 'Leviatán',
+      video: {
+        src: '/burgas/leviatan.mp4',
+        poster: '/burgas/leviatan-poster.webp',
+        foto: '/burgas/leviatan.webp',
+        alt: 'Hamburguesa Leviatán',
+      },
+      ingredientes: 'Medallón veggie a elección, queso dambo, portobellos, tomate y mayonesa de perejil',
+    },
   ],
 } as const
