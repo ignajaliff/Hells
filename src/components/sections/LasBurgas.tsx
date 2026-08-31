@@ -1,6 +1,10 @@
+'use client'
+
 import { burgasContent } from '@/content/home'
 import { SECCIONES } from '@/lib/constants'
-import { BurgaCard } from '@/components/ui/BurgaCard'
+import { GrillaBurgas } from '@/components/ui/GrillaBurgas'
+import { CarruselBurgas } from '@/components/ui/CarruselBurgas'
+import { useEsMovil } from '@/lib/useEsMovil'
 
 /**
  * Las Burgas — Server Component. La carta: título y grilla de 8 hamburguesas.
@@ -17,18 +21,20 @@ import { BurgaCard } from '@/components/ui/BurgaCard'
  * superficie del sitio donde el rojo del logo sirve para texto chico; sobre
  * `--background` no llega (3.79:1).
  *
- * GRILLA: **1 columna en móvil** (decisión del cliente, 2026-08-24), 3 desde
- * `sm` y 4 desde `lg`. Desde 2026-08-27 son DOCE burgas, todas con video.
+ * MÓVIL: CARRUSEL horizontal (2026-08-31, pedido del cliente) — las burgas se
+ * pasan con el dedo, la activa centrada y las vecinas asomando oscurecidas;
+ * la ficha de nombre e ingredientes vive debajo y cambia con la activa. Ver
+ * `CarruselBurgas`. Reemplaza a la columna vertical de 12 tarjetas: el
+ * cliente eligió el recorrido por deslizamiento aun sabiendo que expone menos
+ * la carta completa.
  *
- * Se había probado a 2 columnas cuando las tarjetas eran placeholders grises:
- * ahí una sola columna daba 3284px de scroll para ver ocho recuadros vacíos,
- * que se leía como una lista larga. Con las fotos reales el caso cambia — cada
- * tarjeta tiene algo que mirar, la burger se ve al tamaño que merece y el
- * sticker del nombre entra a ancho completo. El scroll largo deja de ser un
- * costo y pasa a ser el recorrido de la carta.
+ * DE `sm` PARA ARRIBA sigue la GRILLA de siempre (3 columnas, 4 desde `lg`):
+ * la versión de escritorio del carrusel se decide después, para no trabajar
+ * dos veces (cliente, 2026-08-31). Son DOCE burgas, todas con video.
  */
 export function LasBurgas() {
   const { titulo, bajada, items } = burgasContent
+  const esMovil = useEsMovil()
 
   return (
     <section
@@ -46,22 +52,18 @@ export function LasBurgas() {
         </p>
       </header>
 
-      {/* La grilla. Las tarjetas son bloques negros sobre fondo negro, así que
-          el `gap` no se ve como separación: lo que separa una burga de otra
-          es el aire entre las fotos. */}
-      <ul className="relative z-[1] grid grid-cols-1 gap-y-8 sm:grid-cols-3 sm:gap-x-6 sm:gap-y-11 lg:grid-cols-4 lg:gap-x-7 lg:gap-y-12">
-        {items.map((burga) => (
-          /* En móvil cada tarjeta se sale del padding de la sección (`-mx-4`)
-             para ir de borde a borde. De `sm` para arriba vuelve a la grilla. */
-          <li key={burga.id} className="-mx-4 sm:mx-0">
-            <BurgaCard
-              nombre={burga.nombre}
-              video={burga.video}
-              ingredientes={burga.ingredientes}
-            />
-          </li>
-        ))}
-      </ul>
+      {/* Carrusel en móvil, grilla de `sm` para arriba.
+
+          SE ELIGE EN JS, no con `hidden`/`sm:block` (2026-08-31): con clases,
+          las DOCE tarjetas de la grilla se renderizan igual en móvil —solo
+          quedan invisibles— y sus doce `<video>` existen en el DOM y empiezan
+          a descargar. Medido: 13 videos en un celular en vez de 1. Montando
+          una sola rama, en móvil vive únicamente el video de la burga activa. */}
+      {esMovil ? (
+        <CarruselBurgas items={items} className="relative z-[1] -mx-4" />
+      ) : (
+        <GrillaBurgas items={items} className="relative z-[1]" />
+      )}
     </section>
   )
 }

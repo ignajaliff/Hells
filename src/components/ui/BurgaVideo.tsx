@@ -19,6 +19,12 @@ import { useReducedMotion } from 'motion/react'
  * corrido alcanza un GOP normal: los mismos videos pesan ~200KB. Con doce en
  * la carta, esa diferencia es la que hace que la página no se trabe.
  *
+ * VAN A DOBLE VELOCIDAD (2026-08-31, pedido del cliente): 2.02s en vez de los
+ * 4.04s del original. La aceleración está HORNEADA en el archivo
+ * (`setpts=0.5*PTS` al codificar), no puesta con `playbackRate` desde JS: así
+ * el video pesa la mitad de frames —131KB contra 214KB— y no depende de que
+ * el navegador del celular respete la velocidad pedida.
+ *
  * SE REPRODUCE UNA SOLA VEZ. En bucle, doce videos corriendo a la vez
  * pelearían por la atención y por la batería; además el observer se
  * desconecta al arrancar, así que volver a pasar por la tarjeta no lo
@@ -74,7 +80,10 @@ export function BurgaVideo({
         v.preload = 'auto'
         v.load()
       },
-      { rootMargin: '200% 0px' },
+      /* Un solo valor: aplica a los CUATRO lados. El margen horizontal hace
+         falta desde que en móvil las tarjetas viven en un carril que se
+         desliza a lo ancho (`CarruselBurgas`). */
+      { rootMargin: '200%' },
     )
     precarga.observe(v)
 

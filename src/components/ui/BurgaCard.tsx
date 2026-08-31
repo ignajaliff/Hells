@@ -1,6 +1,5 @@
 import Image from 'next/image'
 import { ETIQUETAS, type FormaEtiqueta } from '@/components/ui/etiquetasBurga'
-import { BurgaVideo } from '@/components/ui/BurgaVideo'
 
 /**
  * BurgaCard — una hamburguesa de la carta.
@@ -29,6 +28,7 @@ export function BurgaCard({
   sticker,
   etiqueta,
   nombreEnEtiqueta = false,
+  conFicha = true,
 }: {
   nombre: string
   /**
@@ -47,6 +47,12 @@ export function BurgaCard({
   etiqueta?: FormaEtiqueta
   /** Si el nombre va DENTRO de la etiqueta encima del video, y no debajo. */
   nombreEnEtiqueta?: boolean
+  /**
+   * Con `false` la tarjeta es SOLO el bloque del video, sin nombre ni
+   * ingredientes debajo: el carrusel de móvil los muestra en una ficha única
+   * compartida (ver `CarruselBurgas`) y acá sobrarían duplicados.
+   */
+  conFicha?: boolean
 }) {
   const forma = etiqueta ? ETIQUETAS[etiqueta] : null
 
@@ -65,11 +71,16 @@ export function BurgaCard({
         {/* `aspect-square` fija la caja ANTES de que cargue nada, así la
             grilla no salta cuando entran los doce videos. */}
         <div className="relative aspect-square">
-          <BurgaVideo
-            src={video.src}
-            poster={video.poster}
-            foto={video.foto}
+          {/* SIN VIDEO por ahora (2026-08-31, pedido del cliente): se muestra
+              la foto de producto. Para reponerlo, volver a `<BurgaVideo
+              src={video.src} poster={video.poster} foto={video.foto}
+              alt={video.alt} />` — el componente sigue en el proyecto. */}
+          <Image
+            src={video.foto}
             alt={video.alt}
+            fill
+            sizes="(min-width: 1024px) 25vw, 33vw"
+            className="object-cover"
           />
         </div>
 
@@ -105,6 +116,7 @@ export function BurgaCard({
           más ni aclarar el fondo**.
           El `px-4` de móvil compensa el `-mx-4` que la tarjeta lleva para ir de
           borde a borde: sin él el texto quedaría pegado al canto. */}
+      {conFicha ? (
       <div className="px-4 pb-1 pt-4 text-center sm:px-0 sm:pt-3">
         {!nombreEnEtiqueta && nombre ? (
           <h3 className="font-display text-[clamp(26px,7vw,34px)] uppercase leading-none tracking-[0.01em] text-primary sm:text-[clamp(20px,2.4vw,30px)]">
@@ -118,6 +130,7 @@ export function BurgaCard({
           </p>
         ) : null}
       </div>
+      ) : null}
     </article>
   )
 }

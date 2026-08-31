@@ -339,6 +339,12 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
   * **EL VIDEO YA NO SE MUEVE CON EL SCROLL** (pedido del cliente): se reproduce solo,
     UNA vez, al entrar en pantalla, y al terminar queda la **foto de producto** —no el
     último frame—, que está mejor iluminada.
+  * **VAN A DOBLE VELOCIDAD (2026-08-31, pedido del cliente)**: 2.02s en vez de 4.04s.
+    La aceleración se hornea al codificar (`setpts=0.5*PTS`), NO con `playbackRate`
+    desde JS: el archivo queda con la mitad de frames (**~130KB**, -39%) y no depende
+    de que el navegador del celular respete la velocidad. En la cadena de filtros
+    `setpts` va ANTES de `fps=24`; al revés, el remuestreo duplicaría frames para
+    rellenar y pesaría de más sin verse mejor.
   * **Eso es lo que permitió que pesaran poco.** El scrub obligaba a codificar el mp4
     con todos los frames como keyframe (`-g 1`), que multiplicaba el peso por ~5. Al
     reproducirse de corrido alcanza un GOP normal:
@@ -363,6 +369,64 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
   * Ojo con `ffmpeg` dentro de un `while read`: **se come el stdin del bucle** y corrompe
     las variables (la primera pasada dejó archivos llamados `atanas.mp4`, `al.mp4`).
     Va con `-nostdin`.
+* **EL CARRUSEL PASÓ A SER EN PROFUNDIDAD (2026-08-31, 2ª iteración, pedido del
+  cliente)**: las tarjetas ya no van en fila sino APILADAS en el mismo punto — la
+  activa al frente y las vecinas detrás, más chicas, corridas a los costados y
+  oscurecidas. Al deslizar o TOCAR una de atrás, se acerca hacia adelante.
+  * **El gesto lo mueve un CARRIL INVISIBLE**: como las tarjetas están superpuestas
+    (`absolute`), no pueden ser lo que se scrollea. Encima de todo va un carril
+    transparente con `scroll-snap` cuyos hijos son slots vacíos; su `scrollLeft` es
+    la única fuente de verdad y de ahí salen escala, corrimiento, velo y `z-index`
+    de cada tarjeta. Así la inercia y el imán al centro siguen siendo del sistema
+    operativo, en vez de una física reimplementada a mano.
+  * **El corrimiento lateral crece con la RAÍZ de la distancia**, no lineal: lineal,
+    las lejanas se iban tan afuera que dejaban un hueco alrededor de la activa.
+  * **SIN VIDEO POR AHORA (2026-08-31, pedido del cliente)**: todas las tarjetas
+    muestran la FOTO de producto, en el carrusel y en la grilla. El cliente los sacó
+    para ver primero cómo se lee el carrusel en producción. Verificado: **0 videos
+    en el DOM y 0 mp4 descargados** en móvil y escritorio.
+    Antes de esto el video iba **solo en la activa** (`VideoActivo`, local al
+    carrusel), justamente para no tener tres o cuatro decodificando en paralelo.
+    Para reponerlo hay que volver a montar ese componente —está en el historial de
+    `CarruselBurgas.tsx`— y en `BurgaCard` cambiar el `<Image>` por `<BurgaVideo>`,
+    que sigue en el proyecto sin uso.
+  * **Los mp4 de `public/burgas/` quedaron sin referencia** mientras dure la prueba.
+    NO borrarlos: son la sección entera si el cliente los repone. `BurgaVideo.tsx`
+    queda igual, sin uso.
+  * **La elección carrusel/grilla se hace en JS** (`lib/useEsMovil.ts`), no con
+    `hidden`/`sm:block`. Con clases, las doce tarjetas de la grilla se renderizaban
+    igual en móvil y sus doce `<video>` existían en el DOM descargando: **medido, 13
+    videos en un celular en vez de 1**. El hook arranca en `false` a propósito para
+    no romper la hidratación. La grilla se separó a `components/ui/GrillaBurgas.tsx`.
+  * Verificado en 390x844: escalas 1.00 / 0.72 / 0.44, `z-index` decreciente, velo
+    0 / 0.55 / 0.80, un solo video, y la ficha y el apilado correctos al tocar una
+    vecina. **Falta probar el gesto en un celular real.**
+* **Primera versión del carrusel (2026-08-31, reemplazada el mismo día)**: las doce
+  en fila con `scroll-snap`, la activa centrada al 78vw y las vecinas asomando 11%
+  a cada lado, oscurecidas por un velo proporcional. Vive en el historial de
+  `components/ui/CarruselBurgas.tsx`.
+  * **SOLO MÓVIL**: de `sm` para arriba sigue la grilla. El cliente pidió no trabajar
+    la versión de desktop todavía ("después vemos cómo la pasamos").
+  * **El gesto es `scroll-snap` NATIVO, sin librería**: la física del deslizamiento y
+    el imán al centro los pone el navegador. JS solo gradúa los velos por frame
+    (`requestAnimationFrame`, `style.opacity` directo sobre refs — un setState por
+    frame re-renderizaría el carril) y detecta la activa para la ficha.
+  * Tarjetas de **78vw** con **11vw** de padding a cada lado del carril
+    (78+11+11=100): la primera y la última también centran, y las vecinas asoman ese
+    11% que invita a deslizar. Velo máximo 0.62, proporcional a la distancia al
+    centro — por eso se desvanece DURANTE el arrastre.
+  * La ficha reserva `min-h` para el ingrediente más largo (Asmodeo, 3 líneas): sin
+    eso la página saltaría en cada pasada. El fundido usa `AnimatePresence`
+    (`mode="wait"`, 0.16s).
+  * `BurgaCard` ganó `conFicha={false}` y la precarga de `BurgaVideo` pasó a
+    `rootMargin: '200%'` (los cuatro lados). Las dos siguen sirviendo a la grilla de
+    escritorio; el carrusel en profundidad ya no usa ninguna de las dos.
+  * El cliente aceptó explícitamente que el carrusel expone menos la carta completa
+    que la columna vertical (hay que deslizar para descubrir; se le señaló por ser
+    una landing de conversión).
+  * Verificado en 390x844: velo 0 en la activa y 0.62 en el resto, ficha y video
+    correctos al deslizar. **Pendiente probarlo en un celular real** — el snap y la
+    inercia son del navegador, pero el gesto real no se puede simular con Playwright.
 * **LLAMAS NUEVAS en el hero (2026-08-27, dibujo aportado por el cliente)**:
   `llamasnegras.png` reemplaza a TODAS las llamas anteriores — picos negros con el
   contorno rojo, en `public/zocalo-llamas.webp` (2560x422, 52KB).
@@ -796,11 +860,11 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
 
 ## Estado actual del desarrollo
 
-**Última sesión**: 2026-08-27
-**Próximo paso**: **probar las doce burgas en un celular real** — sobre todo que los
-videos arranquen en iOS y que la cascada de descarga alcance con doce. Después, definir
-las secciones que siguen: el nav ya las anticipa (BURGUERS, NOSOTROS, WORK) pero
-todavía apuntan a `#`.
+**Última sesión**: 2026-08-31
+**Próximo paso**: **probar el carrusel en profundidad en un celular real** (el gesto
+de snap no se puede simular con Playwright) y decidir cómo se traslada a desktop, que
+sigue con la grilla — el cliente pidió no trabajarlo todavía. Después, definir las secciones que siguen: el nav ya las anticipa (BURGUERS,
+NOSOTROS, WORK) pero todavía apuntan a `#`.
 
 **Lo que está funcionando**:
 * Arquitectura completa del proyecto (App Router, `src/` por secciones, tokens de diseño)

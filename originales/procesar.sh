@@ -4,7 +4,14 @@
 # SIN all-intra (-g 1) a propósito: esa receta era para el scrub por scroll,
 # que necesitaba saltar a cualquier frame. Ahora el video se reproduce solo,
 # de corrido, así que un GOP normal sirve y comprime ~5x mejor.
+#
+# VELOCIDAD x2 (2026-08-31, pedido del cliente): `setpts=0.5*PTS` descarta la
+# mitad de los timestamps, así que los 4.04s del original quedan en 2.02s. Va
+# ANTES del `fps=24` en la cadena: al revés, el remuestreo de fps duplicaría
+# frames para rellenar y el archivo pesaría de más sin verse mejor.
+# De paso pesan ~39% menos (131KB contra 214KB) porque son la mitad de frames.
 cd "/d/new CODE/Hells -- LANDINGPAGE" || exit 1
+ORIG=originales/burgashells
 mkdir -p public/burgas
 
 # slug|archivo de video|archivo de imagen
@@ -25,20 +32,20 @@ leviatan|leviatan-video.mp4|leviatan-burga.jpeg
 
 echo "$LISTA" | while IFS='|' read -r slug vid img; do
   [ -z "$slug" ] && continue
-  [ -f "burgashells/$vid" ] || { echo "FALTA video: $vid"; continue; }
-  [ -f "burgashells/$img" ] || { echo "FALTA imagen: $img"; continue; }
+  [ -f "$ORIG/$vid" ] || { echo "FALTA video: $vid"; continue; }
+  [ -f "$ORIG/$img" ] || { echo "FALTA imagen: $img"; continue; }
 
-  ffmpeg -nostdin -v error -y -i "burgashells/$vid" \
-    -vf "scale=720:720,fps=24" -an -c:v libx264 -crf 26 -preset slow \
+  ffmpeg -nostdin -v error -y -i "$ORIG/$vid" \
+    -vf "setpts=0.5*PTS,scale=720:720,fps=24" -an -c:v libx264 -crf 26 -preset slow \
     -pix_fmt yuv420p -movflags +faststart "public/burgas/$slug.mp4"
 
   # poster = PRIMER frame del video: es lo que se ve mientras el archivo baja,
   # asi que con cualquier otro frame habria un salto al arrancar.
-  ffmpeg -nostdin -v error -y -i "burgashells/$vid" -vframes 1 \
+  ffmpeg -nostdin -v error -y -i "$ORIG/$vid" -vframes 1 \
     -vf scale=720:720 -c:v libwebp -q:v 80 "public/burgas/$slug-poster.webp"
 
   # la foto de producto: es la que queda fija cuando el video termina.
-  ffmpeg -nostdin -v error -y -i "burgashells/$img" \
+  ffmpeg -nostdin -v error -y -i "$ORIG/$img" \
     -c:v libwebp -q:v 82 "public/burgas/$slug.webp"
 
   v=$(( $(stat -c%s "public/burgas/$slug.mp4") / 1024 ))
