@@ -381,6 +381,24 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
     operativo, en vez de una física reimplementada a mano.
   * **El corrimiento lateral crece con la RAÍZ de la distancia**, no lineal: lineal,
     las lejanas se iban tan afuera que dejaban un hueco alrededor de la activa.
+  * **VA CON `snap-proximity`, NUNCA `mandatory` (2026-08-31)** — y esto es lo que
+    hacía que la animación no existiera. Con `mandatory` el navegador **prohíbe las
+    posiciones intermedias**: medido, `scrollLeft = 150` se corregía solo a 0 y solo
+    aceptaba múltiplos exactos del paso. Como toda la profundidad se calcula a partir
+    de esa posición, no había estados a medio camino que dibujar y las tarjetas
+    saltaban de una escala a la otra. Con `proximity` se recorre el trayecto y
+    engancha igual al soltar. Verificado: a mitad de camino las dos tarjetas quedan
+    en 0.71 y 0.72, cruzándose.
+  * **Las tarjetas NO llevan `transition` en el `transform`**: el arrastre ya las
+    actualiza por frame y una transición encima las haría ir por detrás del dedo. El
+    movimiento suave al TOCAR lo da el `behavior: 'smooth'` del scroll.
+  * **El `z-index` de las tarjetas se queda por debajo de 100 y el carril va en 200**:
+    con las tarjetas en 100 tapaban al carril y **el arrastre no movía nada**. Por lo
+    mismo, el "tocar para traer al frente" vive en los slots DEL CARRIL y no sobre
+    las tarjetas — un botón encima se comía el gesto.
+  * **La activa ocupa el 84% del ancho** (2026-08-31, pedido del cliente: antes iba
+    al 64% y la hamburguesa se veía chica). **No va al 100%**: probado, ahí la vecina
+    arranca justo en el borde y no se ve nada de ella.
   * **SIN VIDEO POR AHORA (2026-08-31, pedido del cliente)**: todas las tarjetas
     muestran la FOTO de producto, en el carrusel y en la grilla. El cliente los sacó
     para ver primero cómo se lee el carrusel en producción. Verificado: **0 videos

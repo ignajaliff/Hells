@@ -13,6 +13,15 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
  *
  * SOLO MÓVIL: de `sm` para arriba sigue la grilla (`LasBurgas`).
  *
+ * ── POR QUÉ `snap-proximity` Y NO `mandatory` ──
+ * Con `mandatory` el navegador PROHÍBE las posiciones intermedias: medido,
+ * `scrollLeft = 150` se corregía solo a 0 y solo aceptaba múltiplos exactos
+ * del paso. Como toda la profundidad se calcula a partir de esa posición, no
+ * existían estados a medio camino que dibujar y las tarjetas saltaban de una
+ * escala a la otra — nunca se veía crecer a la que entra.
+ * `proximity` deja recorrer el trayecto y engancha igual al soltar, que es lo
+ * que hace falta para que el crecimiento se vea DURANTE el gesto.
+ *
  * ── EL GESTO: UN CARRIL INVISIBLE ──
  * Las tarjetas están todas SUPERPUESTAS en el mismo punto (`absolute`), así
  * que no pueden ser lo que se scrollea. El dedo mueve un carril transparente
@@ -23,6 +32,9 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
  * estos carruseles se sienten mal.
  *
  * ── LA PROFUNDIDAD ──
+ * La ACTIVA va a tamaño completo y a todo el ancho de la pantalla; las
+ * vecinas, al 62% y corridas a los costados (2026-08-31, pedido del cliente:
+ * la hamburguesa del centro tiene que verse entera, no achicada).
  * Por frame de scroll (vía `requestAnimationFrame`) se calcula la distancia
  * de cada tarjeta a la activa y de ahí salen escala, desplazamiento lateral,
  * velo y `z-index`. Como la distancia es continua, el acercamiento ocurre
@@ -55,12 +67,21 @@ type Burga = {
 
 /** Cuántas vecinas se dibujan a cada lado. Más allá, `visibility: hidden`. */
 const VECINAS_VISIBLES = 2
-/** Cuánto se achica cada tarjeta por cada paso de distancia a la activa. */
-const ESCALA_POR_PASO = 0.28
-/** Cuánto se corre de lado cada vecina, en % del ancho de la tarjeta. */
-const CORRIMIENTO = 46
-/** Opacidad del velo negro a un paso de distancia. */
-const VELO_POR_PASO = 0.55
+/**
+ * Escala de la vecina inmediata. La ACTIVA va siempre en 1 —a su tamaño
+ * completo, sin achicar (2026-08-31, pedido del cliente)— y de acá sale
+ * cuánto se encoge la de al lado; el resto se interpola de forma continua, que
+ * es lo que hace que crezca mientras arrastrás en vez de saltar al soltar.
+ */
+const ESCALA_VECINA = 0.62
+/**
+ * Cuánto se corre de lado la vecina inmediata, en % del ancho de la tarjeta.
+ * Calibrado junto con el 84% del escenario: más corrimiento y la vecina se va
+ * fuera de la pantalla, menos y se mete debajo de la activa.
+ */
+const CORRIMIENTO = 56
+/** Opacidad del velo negro sobre la vecina inmediata. */
+const VELO_VECINA = 0.62
 
 export function CarruselBurgas({
   items,
@@ -100,16 +121,26 @@ export function CarruselBurgas({
         }
         li.style.visibility = 'visible'
 
-        const escala = Math.max(0.35, 1 - dist * ESCALA_POR_PASO)
+        /* `cerca` va de 1 (clavada en el centro) a 0 (a un paso o más). Al
+           ser continuo, el crecimiento de la que entra y el encogimiento de la
+           que sale ocurren DURANTE el arrastre — que es la animación pedida.
+           Se eleva al cuadrado para que la activa conserve su tamaño completo
+           hasta bien entrado el gesto y el cambio se sienta al final, en vez
+           de empezar a achicarse apenas tocás. */
+        const cerca = Math.max(0, 1 - dist) ** 2
+        const escala = ESCALA_VECINA + (1 - ESCALA_VECINA) * cerca
         // El corrimiento crece con la raíz de la distancia: si fuera lineal,
         // las lejanas se irían tan afuera que dejarían un hueco en el medio.
         const x = Math.sign(d) * Math.sqrt(dist) * CORRIMIENTO
         li.style.transform = `translateX(${x}%) scale(${escala})`
-        // Las de adelante tapan a las de atrás; la activa siempre arriba.
-        li.style.zIndex = String(100 - Math.round(dist * 10))
+        /* Las de adelante tapan a las de atrás. Se queda por DEBAJO de 100:
+           el carril invisible vive en 200 y tiene que recibir el dedo — con
+           `z-index` mayores acá, las tarjetas se lo comían y el arrastre no
+           movía nada. */
+        li.style.zIndex = String(99 - Math.round(dist * 10))
 
         const velo = li.querySelector<HTMLElement>('[data-velo]')
-        if (velo) velo.style.opacity = String(Math.min(dist * VELO_POR_PASO, 0.8))
+        if (velo) velo.style.opacity = String(Math.min((1 - cerca) * VELO_VECINA, 0.72))
       })
 
       const cerca = Math.round(posicion)
@@ -145,10 +176,14 @@ export function CarruselBurgas({
 
   return (
     <div className={className}>
-      {/* El escenario. `aspect-square` reserva el alto antes de que cargue
-          nada; el ancho extra a los costados deja lugar para las vecinas
-          corridas sin que la sección tenga scroll horizontal. */}
-      <div className="relative mx-auto aspect-square w-[64%]">
+      {/* El escenario. La activa ocupa el 84% del ancho (2026-08-31, pedido
+          del cliente: antes iba al 64% y la hamburguesa se veía chica).
+          **No va al 100%**: probado, con la activa a ancho completo la vecina
+          arranca justo en el borde de la pantalla y no se ve nada de ella —y
+          el punto del carrusel es que se asome la siguiente—. Con 84% asoma
+          una franja de la de al lado a cada lado.
+          `aspect-square` reserva el alto antes de que carguen las fotos. */}
+      <div className="relative mx-auto aspect-square w-[84%]">
         <ul className="absolute inset-0">
           {items.map((b, i) => (
             <li
@@ -156,21 +191,19 @@ export function CarruselBurgas({
               ref={(el) => {
                 tarjetas.current[i] = el
               }}
-              className={`absolute inset-0 origin-center ${
-                sinMovimiento ? '' : 'transition-transform duration-200 ease-out'
-              }`}
+              /* SIN `transition` en el transform: el arrastre ya lo actualiza
+                 por frame, y una transición encima lo haría ir por detrás del
+                 dedo. El movimiento suave al TOCAR una tarjeta lo da el
+                 `behavior: 'smooth'` del scroll, que repinta frame a frame
+                 igual que el gesto. */
+              className="absolute inset-0 origin-center will-change-transform" 
             >
-              <button
-                type="button"
-                onClick={() => irA(i)}
-                aria-label={`Ver ${b.nombre}`}
-                aria-current={i === activa}
-                /* Solo las de atrás son tocables: sobre la activa, un botón a
-                   pantalla completa se comería el gesto de deslizar. */
-                className={`relative block h-full w-full overflow-hidden border-y-2 border-primary bg-black ${
-                  i === activa ? 'pointer-events-none' : ''
-                }`}
-              >
+              {/* No es interactivo: el dedo lo recibe SIEMPRE el carril
+                  invisible de arriba, que es quien mueve el carrusel. El
+                  "tocar para traer al frente" se resuelve allá (ver los
+                  botones dentro del carril), no acá — un botón sobre la
+                  tarjeta se comía el arrastre. */}
+              <div className="relative block h-full w-full overflow-hidden border-y-2 border-primary bg-black">
                 <Image
                   src={b.video.foto}
                   alt={b.video.alt}
@@ -190,21 +223,32 @@ export function CarruselBurgas({
                     sinMovimiento ? '' : 'transition-opacity duration-200'
                   }`}
                 />
-              </button>
+              </div>
             </li>
           ))}
         </ul>
 
         {/* EL CARRIL INVISIBLE que capta el dedo. Va por ENCIMA de todo
-            (`z-[10]`), es transparente y cada hijo es un slot vacío con
+            (`z-[200]`, por encima del `z-index` de cualquier tarjeta), es
+            transparente y cada hijo es un slot vacío con
             `snap-center`. `overscroll-x-contain` evita que el gesto en los
             extremos dispare el "volver atrás" del navegador. */}
         <div
           ref={carril}
-          className="absolute inset-0 z-[10] flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="absolute inset-0 z-[200] flex snap-x snap-proximity overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
-          {items.map((b) => (
-            <div key={b.id} aria-hidden className="w-full shrink-0 snap-center" />
+          {items.map((b, i) => (
+            /* Cada slot es un botón: tocarlo trae esa burga al frente. Van
+               acá y no sobre las tarjetas porque este carril es el que recibe
+               el dedo; el navegador distingue solo el toque del arrastre. */
+            <button
+              key={b.id}
+              type="button"
+              onClick={() => irA(i)}
+              aria-label={`Ver ${b.nombre}`}
+              aria-current={i === activa}
+              className="w-full shrink-0 snap-center"
+            />
           ))}
         </div>
       </div>
