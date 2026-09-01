@@ -85,6 +85,28 @@ export const diabloContent = {
  * cada uno) recomprimidos a 720px/24fps/crf26: ~200KB por video, 3.2MB las doce
  * con sus fotos. **Si entra un video nuevo, pasarlo por la misma receta** — está
  * en `originales/procesar.sh` y documentada en `BurgaVideo`.
+ *
+ * ── `miniatura`: LAS FOTOS SIN FONDO (2026-09-01, material del cliente) ──
+ * Es la foto recortada que se ve mientras la burga ESPERA SU TURNO, asomada
+ * chiquita al costado en el carrusel en prueba (`CarruselBurgasV2`). Al pasar
+ * al frente cada una vuelve a su `foto` normal sobre el rojo.
+ *
+ * Salen de los PNG `-SFONDO` (1080x1080 con alpha real): recortados al sujeto
+ * por su canal alpha, cuadrados con relleno TRANSPARENTE —no recortados, que
+ * comería parte de la burger— y a WebP 900x900. **12.7MB → 993KB.**
+ *
+ * OJO CON LOS NOMBRES DE ARCHIVO, vienen corridos:
+ *   * `AMODEO-SFONDO` (sin S) es el ASMODEO real — pollo rebozado, lechuga,
+ *     tomate y panceta, que es justo lo que dicen sus ingredientes.
+ *   * `ASMODEO-SFONDO` es en realidad LEVIATÁN (medallón veggie, tomate y
+ *     mayonesa) y es **byte a byte idéntico** a `LEVIATAN-SFONDO` (md5
+ *     verificado). Se usa el segundo, que además está bien nombrado.
+ * Se resolvió mirando las fotos contra los ingredientes, no por el nombre.
+ *
+ * FALTA UNA: la de Satanás. Belfegor llegó después, en su propio archivo
+ * (`belfegor- sfondo.png`, verificado contra sus ingredientes: es la del
+ * huevo). Satanás usa mientras tanto la `sativa` que sirvió de ejemplo del
+ * formato; **cuando llegue la suya, reemplazarla**.
  */
 export const burgasContent = {
   titulo: 'Las Burgas',
@@ -100,6 +122,7 @@ export const burgasContent = {
         alt: 'Hamburguesa Lucifer',
       },
       ingredientes: 'Triple medallón, cheddar x6 y salsa Hells',
+      miniatura: '/burgas/lucifer-recorte.webp',
     },
     {
       id: 'satanas',
@@ -111,6 +134,13 @@ export const burgasContent = {
         alt: 'Hamburguesa Satanás',
       },
       ingredientes: 'Doble medallón, cheddar x4, panceta y salsa Hells',
+      /**
+       * ÚNICA SIN RECORTE PROPIO: entre los archivos que mandó el cliente
+       * (2026-09-01) no vino el de Satanás, así que sigue usando la `sativa`
+       * que había servido de ejemplo del formato. **Cuando llegue el suyo,
+       * reemplazar por `/burgas/satanas-recorte.webp`.**
+       */
+      miniatura: '/burgas/sativa.webp',
     },
     {
       id: 'balak',
@@ -122,6 +152,7 @@ export const burgasContent = {
         alt: 'Hamburguesa Balak',
       },
       ingredientes: 'Triple medallón, cheddar x6, panceta, cebolla crispy y salsa Hells',
+      miniatura: '/burgas/balak-recorte.webp',
     },
     {
       id: 'belcebu',
@@ -133,6 +164,7 @@ export const burgasContent = {
         alt: 'Hamburguesa Belcebú',
       },
       ingredientes: 'Doble medallón, cheddar x4, cebolla crispy y barbacoa',
+      miniatura: '/burgas/belcebu-recorte.webp',
     },
     {
       id: 'azazel',
@@ -144,6 +176,7 @@ export const burgasContent = {
         alt: 'Hamburguesa Azazel',
       },
       ingredientes: 'Doble medallón, doble salsa, queso azul, rúcula y cebolla caramelizada',
+      miniatura: '/burgas/azazel-recorte.webp',
     },
     {
       id: 'belfegor',
@@ -155,6 +188,7 @@ export const burgasContent = {
         alt: 'Hamburguesa Belfegor',
       },
       ingredientes: 'Doble medallón, queso dambo x4, huevo, tomate y lechuga',
+      miniatura: '/burgas/belfegor-recorte.webp',
     },
     {
       id: 'mammon',
@@ -166,6 +200,7 @@ export const burgasContent = {
         alt: 'Hamburguesa Mammón',
       },
       ingredientes: 'Doble medallón, queso dambo x4, guacamole y mayonesa',
+      miniatura: '/burgas/mammon-recorte.webp',
     },
     {
       id: 'lilith',
@@ -177,6 +212,7 @@ export const burgasContent = {
         alt: 'Hamburguesa Lilith',
       },
       ingredientes: 'Doble medallón, cebolla caramelizada, cheddar líquido y cheddar x2',
+      miniatura: '/burgas/lilith-recorte.webp',
     },
     {
       id: 'gualicho',
@@ -188,6 +224,7 @@ export const burgasContent = {
         alt: 'Hamburguesa Gualicho',
       },
       ingredientes: 'Medallón, cheddar x2 y salsa Hells',
+      miniatura: '/burgas/gualicho-recorte.webp',
     },
     {
       id: 'baal',
@@ -199,6 +236,7 @@ export const burgasContent = {
         alt: 'Hamburguesa Baal',
       },
       ingredientes: 'Medallón XL, cheddar x2, cebolla y ketchup',
+      miniatura: '/burgas/baal-recorte.webp',
     },
     {
       id: 'asmodeo',
@@ -210,6 +248,7 @@ export const burgasContent = {
         alt: 'Hamburguesa Asmodeo',
       },
       ingredientes: 'Pechuga de pollo rebozada en tempura, cheddar x2, panceta, tomate, lechuga y mayoliva',
+      miniatura: '/burgas/asmodeo-recorte.webp',
     },
     {
       id: 'leviatan',
@@ -221,6 +260,7 @@ export const burgasContent = {
         alt: 'Hamburguesa Leviatán',
       },
       ingredientes: 'Medallón veggie a elección, queso dambo, portobellos, tomate y mayonesa de perejil',
+      miniatura: '/burgas/leviatan-recorte.webp',
     },
   ],
 } as const
