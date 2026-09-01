@@ -2,109 +2,91 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { useReducedMotion } from 'motion/react'
 
 /**
- * CarruselBurgasV2 — la VARIANTE en prueba de la carta en móvil (2026-08-31,
- * pedido del cliente). Convive con `CarruselBurgas` en la misma página, en la
- * sección clonada de abajo, para poder comparar las dos y elegir.
- * **Cuando el cliente decida, una de las dos se borra.**
+ * CarruselBurgasV2 — el "tocadiscos" (2026-09-01, pedido del cliente).
  *
- * ── LA BANDEJA GIRATORIA (2026-09-01, pedido del cliente) ──
- * Las burgas ya no se apilan ni desfilan de costado: están repartidas
- * alrededor de una ELIPSE, como platos en una bandeja giratoria, y la bandeja
- * entera gira con el dedo. La que queda al frente se ve grande, a todo el
- * ancho y a color sobre el rojo; las que van hacia el fondo se achican, suben,
- * **se despintan a gris y se apagan** — quedan en segundo plano.
+ * La foto de la burga activa se ve ENTERA y a todo el ancho, tal cual la
+ * original. Sobre esa misma foto, a los costados, asoman las hamburguesas
+ * vecinas sin fondo: más chicas, oscurecidas, como esperando su turno. Al
+ * deslizar, la de al lado gira hacia el centro creciendo, y cuando llega
+ * queda a tamaño real, sobre su propia foto. Sin cortes, sin fondo rojo
+ * apareciendo, sin que se note ningún cambio de imagen.
  *
- * Cada posición sale de un ángulo, así que todo (lugar, tamaño, gris, rojo)
- * es continuo: el giro se ve DURANTE el arrastre y no salta al soltar.
+ * ── POR QUÉ NO SE NOTA EL CAMBIO ──
+ * Cada foto está partida en DOS CAPAS (`escena` en content/home.ts):
+ *   * `fondo`: la foto sin la hamburguesa (el hueco relleno con su degradé).
+ *   * `silueta`: la hamburguesa sola, y una `caja` que dice dónde y a qué
+ *     tamaño va sobre el fondo para que las dos juntas reconstruyan
+ *     EXACTAMENTE la foto original.
+ * Así la activa no es "una foto": es su fondo + su silueta clavada en su
+ * caja. Cuando el visitante desliza, la silueta se va girando hacia el
+ * costado y el fondo se funde con el de la siguiente (son degradés casi
+ * iguales, el fundido es invisible). Nunca hay que cambiar una imagen por
+ * otra: la burger que ves llegar al centro es la misma que después queda
+ * quieta. Por eso no hay salto ni flash.
  *
- * ── QUÉ CAMBIA CONTRA LA v1 ──
- * 1. La del frente va DE BORDE A BORDE de la pantalla, no al 84%.
- * 2. Se muestra sobre FONDO ROJO; las del fondo van sobre el negro de la
- *    sección, sin cuadro de color ni marco propio.
- * 3. El movimiento es circular, no lateral.
+ * ── EL GIRO ──
+ * Cada silueta se mueve sobre un arco: `x` sigue el seno del ángulo (sale
+ * rápido del centro y frena en el costado, como en una bandeja que gira) y
+ * sube un poco al alejarse (lo que está atrás se ve más alto). La escala y
+ * el oscurecido bajan con la distancia. Todo se calcula por frame de scroll
+ * (`requestAnimationFrame`) a partir de la posición continua del carril,
+ * pintado por `style` directo sobre refs — un setState por frame
+ * re-renderizaría las doce.
  *
- * El resto —el carril invisible que capta el dedo, `snap-proximity`, el
- * pintado por frame sobre refs— es idéntico a la v1 y por las mismas razones;
- * están documentadas allá y no se repiten acá.
+ * ── EL GESTO ──
+ * El carril invisible con `scroll-snap` (`proximity`, no `mandatory`: el
+ * mandatory prohíbe las posiciones intermedias y no habría nada que animar)
+ * es el mismo mecanismo de la v1: el dedo mueve un scroll real del sistema,
+ * con su inercia y su imán al centro, y de su `scrollLeft` sale todo.
  *
- * ── LAS DOS FOTOS DE CADA BURGA ──
- * Cada tarjeta monta DOS capas que se cruzan por opacidad según la
- * profundidad:
- *   * AL FRENTE la foto CON FONDO (`video.foto`), que se ve mejor y llena la
- *     tarjeta con `cover`.
- *   * GIRANDO ATRÁS el recorte SIN FONDO (`miniatura`), chiquito y con
- *     `contain`: la hamburguesa sola sobre el rojo.
- * El cruce ocurre solo en el último tramo del recorrido — la foto con fondo
- * arrastra un bloque negro y no puede verse a medias mientras gira.
- * Satanás no tiene recorte propio (no vino en la entrega del cliente) y usa la
- * `sativa` de ejemplo; si a alguna le faltara, se queda con su foto normal.
+ * ── EL VIGÍA: NUNCA QUEDARSE A MITAD DE GIRO (2026-09-01) ──
+ * La contracara de `proximity` es que su imán solo actúa CERCA de un punto
+ * de enganche: si el dedo suelta lejos de todos, el carril queda quieto en
+ * una posición intermedia y el giro se ve congelado — dos burgas a medio
+ * camino (pasaba en el celular real). Un vigía lo hace imposible: cada vez
+ * que el scroll se aquieta (160ms sin eventos) y no hay un dedo apoyado, si
+ * la posición no es la de una burga se la lleva a la más cercana con un
+ * `scrollTo` suave — que dispara los mismos eventos de scroll, así que el
+ * giro termina de completarse con la misma animación del gesto.
+ * Mientras el dedo está apoyado no interviene (sería pelearle el control).
+ *
+ * SOLO MÓVIL. `prefers-reduced-motion`: sin fundido en la ficha; el giro
+ * sigue al dedo, que es scroll, no animación.
  */
 
 type Burga = {
   id: string
   nombre: string
-  video: { src: string; poster: string; foto: string; alt: string }
   ingredientes?: string
-  /**
-   * La foto SIN FONDO que se ve MIENTRAS LA BURGA ESPERA SU TURNO, asomada
-   * chiquita al costado. Al pasar al frente vuelve a su `foto` normal.
-   * Si falta, la miniatura muestra la foto normal.
-   */
-  miniatura?: string
+  video: { alt: string }
+  escena: {
+    fondo: string
+    silueta: string
+    caja: { x: number; y: number; w: number; h: number }
+    /** El sello con el nombre. Sin él, el nombre va en texto. */
+    sticker?: string
+  }
 }
 
-/**
- * Cuántas burgas se dibujan a cada lado del frente. Más allá van con
- * `visibility: hidden`: están en la vuelta pero detrás de todo, y componerlas
- * sería trabajo del navegador para algo que no se ve.
- */
-const VECINAS_VISIBLES = 2
-/**
- * Sobre cuántas posiciones se reparte la vuelta completa de la bandeja.
- *
- * NO son las doce: con doce, cada burga estaría a 30° de la siguiente y el
- * giro entre una y otra casi no se notaría. Con 7 el recorrido de la que entra
- * es visible —sube desde el fondo, cruza el costado y llega al frente— que es
- * el movimiento de ruleta que se pidió.
- */
-const VUELTA = 7
-/**
- * Cuánto se abre la elipse a los costados, en % del ancho de la tarjeta.
- *
- * **Es el movimiento principal**: la vuelta va de DERECHA A IZQUIERDA, así que
- * lo que se recorre es el eje horizontal. Tiene que ser grande para que la que
- * entra haga un viaje visible desde el borde derecho hasta el centro.
- */
-const RADIO_X = 58
-/**
- * Cuánto se corren en VERTICAL las del fondo, en % de su alto.
- *
- * Deliberadamente MUY chico: la vuelta es horizontal, no de arriba hacia
- * abajo. Esto solo desplaza un poquito a las del fondo para que no queden
- * exactamente detrás de la del frente y se lea la profundidad.
- * Antes era grande (bajaban 66%) pero eso era un rodeo para esquivar el panel
- * rojo, de cuando cada tarjeta traía su propio bloque negro opaco; ahora las
- * tarjetas no tienen fondo y pueden pasar POR DETRÁS de la del frente.
- */
-const ALTURA_FONDO = 7
-/**
- * Escala de la burga que está justo en el fondo de la vuelta. No tan chica
- * como cuando giraban por debajo: acá pasan por detrás y tienen que seguir
- * leyéndose como hamburguesas, no como puntitos.
- */
-const ESCALA_FONDO = 0.34
-/**
- * Cuánto se DESPINTAN las del fondo (2026-09-01, pedido del cliente: "que se
- * vea un poco medio gris, o en segundo plano"). 1 = blanco y negro.
- * Va como `grayscale` sobre la tarjeta y no como un velo de color encima:
- * tiene que sacarle el color a la foto, no taparla con un tono.
- */
-const GRIS_FONDO = 0.85
-/** Cuánto se OSCURECEN las del fondo, sumado al gris. */
-const OSCURO_FONDO = 0.45
+/** Ángulo de giro por cada paso de distancia a la activa, en radianes. */
+const ANGULO_PASO = Math.PI / 3 // 60°
+/** Radio del arco, en fracción del ancho del escenario. */
+const RADIO = 0.44
+/** Cuánto sube la silueta al alejarse un paso, en fracción del alto. */
+const SUBIDA = 0.07
+/** Escala de la vecina inmediata (la activa va en 1). */
+const ESCALA_VECINA = 0.5
+/** Escala mínima, para las que están dos pasos atrás. */
+const ESCALA_MINIMA = 0.3
+/** Brillo de la vecina inmediata (1 = tal cual, 0 = negro). */
+const BRILLO_VECINA = 0.42
+/** Más allá de esta distancia la silueta ni se compone. */
+const VISIBLES = 2.3
+
+const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v))
 
 export function CarruselBurgasV2({
   items,
@@ -114,7 +96,8 @@ export function CarruselBurgasV2({
   className?: string
 }) {
   const carril = useRef<HTMLDivElement>(null)
-  const tarjetas = useRef<(HTMLLIElement | null)[]>([])
+  const siluetas = useRef<(HTMLDivElement | null)[]>([])
+  const fondos = useRef<(HTMLDivElement | null)[]>([])
   const activaRef = useRef(0)
   const [activa, setActiva] = useState(0)
   const sinMovimiento = useReducedMotion()
@@ -122,7 +105,6 @@ export function CarruselBurgasV2({
   useEffect(() => {
     const rail = carril.current
     if (!rail) return
-
     let raf = 0
 
     const pintar = () => {
@@ -130,90 +112,46 @@ export function CarruselBurgasV2({
       const paso = rail.scrollWidth / items.length
       const posicion = rail.scrollLeft / paso
 
-      tarjetas.current.forEach((li, i) => {
-        if (!li) return
+      items.forEach((b, i) => {
         const d = i - posicion
         const dist = Math.abs(d)
 
-        if (dist > VECINAS_VISIBLES + 0.5) {
-          li.style.visibility = 'hidden'
+        // El fondo: solo el de la activa y el de la que viene, fundidos.
+        const fondo = fondos.current[i]
+        if (fondo) {
+          const op = clamp(1 - dist, 0, 1)
+          fondo.style.opacity = String(op)
+          fondo.style.visibility = op > 0 ? 'visible' : 'hidden'
+        }
+
+        const el = siluetas.current[i]
+        if (!el) return
+        if (dist > VISIBLES) {
+          el.style.visibility = 'hidden'
           return
         }
-        li.style.visibility = 'visible'
+        el.style.visibility = 'visible'
 
-        /* ── LA BANDEJA GIRATORIA ──
-           Cada burga ocupa un lugar fijo alrededor de una elipse y la elipse
-           entera gira con el dedo. El ÁNGULO sale de la distancia a la activa:
-           0 = al frente (lo más cerca del espectador), y crece hacia los lados
-           hasta mandar la burga al fondo.
-           Se reparte sobre `VUELTA` y no sobre las doce: con doce posiciones
-           el paso sería de 30° y el giro casi no se notaría entre una y la
-           siguiente. Con `VUELTA` la que entra hace un recorrido visible. */
-        const ang = (d / VUELTA) * Math.PI * 2
-
-        /* La posición sobre la elipse. `sin` da el lado y `cos` la
-           profundidad: +1 al frente, −1 al fondo.
-
-           EL GIRO ES DE DERECHA A IZQUIERDA (2026-09-01, pedido del cliente):
-           la que entra aparece por la DERECHA, cruza hacia el centro y sale
-           por la izquierda hacia el fondo. Por eso el movimiento fuerte es el
-           horizontal y la `y` casi no se usa.
-
-           El `ALTURA_FONDO` que queda es MUY chico y solo levanta un poco a
-           las del fondo, lo justo para que no queden exactamente detrás de la
-           del frente y se lea la profundidad del plato. Antes era grande y
-           positivo (bajaban), pero eso era un rodeo para esquivar el panel
-           rojo cuando cada tarjeta traía su propio bloque negro opaco; ahora
-           las tarjetas no tienen fondo y pueden pasar POR DETRÁS. */
-        const x = Math.sin(ang) * RADIO_X
-        const prof = Math.cos(ang)
-        const y = (1 - prof) * ALTURA_FONDO
-
-        /* La escala sale de la PROFUNDIDAD, no de la distancia: así la de
-           adelante está grande y las del fondo chicas, y una que va bajando
-           por el costado se achica sola durante el giro. */
-        const p = (prof + 1) / 2 // 0 en el fondo, 1 al frente
-        const escala = ESCALA_FONDO + (1 - ESCALA_FONDO) * p ** 1.6
-        li.style.transform = `translate(${x}%, ${y}%) scale(${escala})`
-        /* Las de adelante tapan a las del fondo. Se queda por debajo de 100:
-           el carril invisible vive en 200 y tiene que recibir el dedo. */
-        li.style.zIndex = String(10 + Math.round(p * 80))
-
-        /* `cerca` mide "qué tan al frente está" y de ahí salen el rojo, el
-           el gris y la escala. Al ser continuo, todo el cambio ocurre DURANTE el
-           giro y no salta al soltar. */
-        const cerca = Math.max(0, prof) ** 2
-
-        /* AL FONDO VAN EN GRIS (2026-09-01, pedido del cliente): pierden el
-           color y se apagan, así queda claro cuál es la que está al frente.
-           Es `filter` sobre el `<li>` y no un velo de color encima porque
-           tiene que despintar la foto, no taparla con un tono. */
-        li.style.filter = `grayscale(${(1 - cerca) * GRIS_FONDO}) brightness(${
-          1 - (1 - cerca) * OSCURO_FONDO
-        })`
-
-        /* EL CRUCE ENTRE LAS DOS FOTOS (2026-09-01, pedido del cliente).
-           La de fondo entra solo cuando la burga está prácticamente al frente
-           y el recorte se apaga en ese mismo tramo. La curva es agresiva
-           (`** 6`) a propósito: la foto con fondo trae su rectángulo negro
-           horneado, así que solo puede verse cuando la tarjeta ya llena la
-           pantalla; un poquito antes, ese rectángulo se recortaría contra el
-           panel rojo. Con `cerca` a secas el cruce empezaba demasiado pronto.
-           Las burgas sin recorte propio no tienen capa `[data-recorte]`: se
-           quedan con la de fondo, que es su único material. */
-        const conFondo = li.querySelector<HTMLElement>('[data-confondo]')
-        const recorte = li.querySelector<HTMLElement>('[data-recorte]')
-        /* El cruce ocurre solo en el ÚLTIMO tramo, cuando la burga ya está
-           casi clavada al frente (de `cerca` 0.86 a 1). Fuera de esa ventana
-           la de fondo está en 0 y solo se ve el recorte.
-           Con una curva más suave (se probó `cerca ** 6`) DOS tarjetas tenían
-           su bloque negro a media opacidad al mismo tiempo, y a mitad de giro
-           se veían dos rectángulos translúcidos cruzándose sobre el rojo. */
-        const t = Math.max(0, (cerca - 0.86) / 0.14)
-        const mezcla = recorte ? t : 1
-        if (conFondo) conFondo.style.opacity = String(mezcla)
-        if (recorte) recorte.style.opacity = String(1 - mezcla)
-
+        const { x, y, w, h } = b.escena.caja
+        const cx = x + w / 2
+        const cy = y + h / 2
+        const ang = clamp(d, -2, 2) * ANGULO_PASO
+        // Escala: 1 en el centro, ESCALA_VECINA a un paso, ESCALA_MINIMA a dos.
+        const esc =
+          dist <= 1
+            ? 1 - (1 - ESCALA_VECINA) * dist
+            : ESCALA_VECINA - (ESCALA_VECINA - ESCALA_MINIMA) * clamp(dist - 1, 0, 1)
+        const ncx = cx + Math.sin(ang) * RADIO
+        const ncy = cy - SUBIDA * clamp(dist, 0, 1.6)
+        const nw = w * esc
+        const nh = h * esc
+        el.style.left = `${(ncx - nw / 2) * 100}%`
+        el.style.top = `${(ncy - nh / 2) * 100}%`
+        el.style.width = `${nw * 100}%`
+        el.style.height = `${nh * 100}%`
+        el.style.zIndex = String(99 - Math.round(dist * 10))
+        const brillo = dist <= 1 ? 1 - (1 - BRILLO_VECINA) * dist : BRILLO_VECINA * (1 - 0.35 * clamp(dist - 1, 0, 1))
+        el.style.filter = `brightness(${brillo.toFixed(3)})`
       })
 
       const cerca = Math.round(posicion)
@@ -227,158 +165,129 @@ export function CarruselBurgasV2({
       if (!raf) raf = requestAnimationFrame(pintar)
     }
 
+    /* EL VIGÍA (ver doc de arriba): si el carril se aquieta entre dos burgas
+       y no hay un dedo apoyado, lo asienta en la más cercana. */
+    let timer: ReturnType<typeof setTimeout> | undefined
+    let tocando = false
+    const asentar = () => {
+      const paso = rail.scrollWidth / items.length
+      const pos = rail.scrollLeft / paso
+      const destino = clamp(Math.round(pos), 0, items.length - 1)
+      // El umbral evita re-disparar mientras el propio asentado suave corre.
+      if (Math.abs(pos - destino) > 0.02) {
+        rail.scrollTo({ left: destino * paso, behavior: sinMovimiento ? 'auto' : 'smooth' })
+      }
+    }
+    const programarAsentado = () => {
+      clearTimeout(timer)
+      timer = setTimeout(() => {
+        if (!tocando) asentar()
+      }, 160)
+    }
+    const alScroll = () => {
+      pedirFrame()
+      programarAsentado()
+    }
+    const alTocar = () => {
+      tocando = true
+      clearTimeout(timer)
+    }
+    const alSoltar = () => {
+      tocando = false
+      programarAsentado()
+    }
+
     pintar()
-    rail.addEventListener('scroll', pedirFrame, { passive: true })
+    rail.addEventListener('scroll', alScroll, { passive: true })
+    rail.addEventListener('touchstart', alTocar, { passive: true })
+    rail.addEventListener('touchend', alSoltar, { passive: true })
+    rail.addEventListener('touchcancel', alSoltar, { passive: true })
     window.addEventListener('resize', pedirFrame)
     return () => {
-      rail.removeEventListener('scroll', pedirFrame)
+      rail.removeEventListener('scroll', alScroll)
+      rail.removeEventListener('touchstart', alTocar)
+      rail.removeEventListener('touchend', alSoltar)
+      rail.removeEventListener('touchcancel', alSoltar)
       window.removeEventListener('resize', pedirFrame)
+      clearTimeout(timer)
       if (raf) cancelAnimationFrame(raf)
     }
-  }, [items.length])
+  }, [items, sinMovimiento])
 
-  /** Tocar una tarjeta de atrás la trae al frente. */
+  /** Tocar una burga del costado la trae girando al frente. */
   const irA = (i: number) => {
     const rail = carril.current
     if (!rail) return
-    const paso = rail.scrollWidth / items.length
-    rail.scrollTo({ left: i * paso, behavior: sinMovimiento ? 'auto' : 'smooth' })
+    rail.scrollTo({
+      left: i * (rail.scrollWidth / items.length),
+      behavior: sinMovimiento ? 'auto' : 'smooth',
+    })
   }
 
-  const burga = items[activa]
 
   return (
     <div className={className}>
-      {/* EL RECORTE va acá afuera, a ancho completo de la pantalla, y NO sobre
-          el escenario: la vecina se corre HACIA AFUERA del escenario para
-          asomar, así que un `clip` puesto ahí la borra justo cuando empieza a
-          verse (pasó). Acá recorta recién en el borde de la pantalla, que es
-          lo único que hace falta para no generar scroll horizontal.
-          `overflow-y-visible` es válido junto a `clip` —no lo sería con
-          `hidden`— y deja que la vecina sobresalga un poco por abajo. */}
-      {/* El `pb` reserva la BANDA donde gira la bandeja: las que no están al
-          frente bajan (`ALTURA_FONDO`) y giran ahí, por debajo del bloque
-          rojo. Sin esta reserva se montan sobre el nombre y los ingredientes.
-          Rehacerlo si se toca `ALTURA_FONDO` o `ESCALA_FONDO`. */}
-      <div className="relative w-full overflow-x-clip overflow-y-visible pb-[10%]">
-      {/* El escenario, a ANCHO COMPLETO de la pantalla (2026-08-31, pedido del
-          cliente: "la principal que ocupe todo el ancho de la página").
-          La sección lo saca de su padding con el `-mx-4` que le pasa `LasBurgasV2`.
+      {/* EL ESCENARIO: cuadrado a todo el ancho. Es la foto activa entera —
+          su fondo abajo, su silueta encima— y sobre ella las vecinas girando.
+          `overflow-hidden` recorta las siluetas que salen por los costados sin
+          generar scroll horizontal. */}
+      <div className="relative aspect-square w-full overflow-hidden bg-black">
+        {/* LOS FONDOS: uno por burga, apilados. Solo se ven el de la activa y
+            el de la que viene, fundiéndose según el scroll. */}
+        {items.map((b, i) => (
+          <div
+            key={b.id}
+            ref={(el) => {
+              fondos.current[i] = el
+            }}
+            aria-hidden
+            className="absolute inset-0"
+            style={{ opacity: i === 0 ? 1 : 0, visibility: i === 0 ? 'visible' : 'hidden' }}
+          >
+            <Image
+              src={b.escena.fondo}
+              alt=""
+              fill
+              sizes="100vw"
+              priority={i < 2}
+              className="object-cover"
+            />
+          </div>
+        ))}
 
-          Las burgas giran alrededor de una elipse dentro de esta caja (ver el
-          bloque "LA BANDEJA GIRATORIA"): la del frente ocupa todo el ancho y
-          las demás se van hacia el fondo, más chicas, más arriba y en gris. */}
-      <div className="relative aspect-square w-full">
-        {/* EL PANEL ROJO es del ESCENARIO, no de la tarjeta.
-            Antes vivía dentro de cada `<li>` (`absolute inset-0`), así que se
-            movía y escalaba CON la tarjeta: al girar la bandeja su borde
-            aparecía como un rectángulo rojo cortado en mitad de la pantalla.
-            Acá está quieto, ocupa el ancho completo y es el telón sobre el que
-            gira todo: la del frente queda sobre el rojo y las que bajan a la
-            bandeja salen de él, contra el negro de la sección. */}
-        {/* El panel mide LO MISMO que la tarjeta del frente (74%), no el ancho
-            completo: si es más ancho, sus costados asoman como dos FRANJAS
-            ROJAS al lado de la foto, que llena su caja con `cover`. */}
-        <div
-          aria-hidden
-          className="absolute inset-y-0 left-1/2 w-[74%] -translate-x-1/2 border-y-2 border-primary bg-primary"
-        />
-        {/* LAS TARJETAS viven en una caja MÁS ANGOSTA que el panel rojo, no en
-            todo el escenario. El panel sigue de borde a borde —es el telón—,
-            pero la del frente ocupa el 74% del ancho: ése es el margen por el
-            que asoman las que giran detrás.
-            **Sin esto no se ve ninguna**: la foto del frente va con `cover` y
-            llena su caja entera, así que si la caja es todo el escenario, las
-            de atrás quedan siempre tapadas — pasó, y ampliar el radio no lo
-            arregla porque nunca salen del bloque. */}
-        <ul className="absolute inset-y-0 left-1/2 w-[74%] -translate-x-1/2">
-          {items.map((b, i) => (
-            <li
-              key={b.id}
-              ref={(el) => {
-                tarjetas.current[i] = el
-              }}
-              className="absolute inset-0 origin-center will-change-transform"
-            >
-              {/* NINGUNA TARJETA LLEVA FONDO PROPIO: son la hamburguesa
-                  recortada y nada más. El color lo pone el panel rojo del
-                  escenario, que está quieto detrás de todas.
-                  Con un bloque opaco por tarjeta, la del frente —que ocupa el
-                  ancho completo— tapaba a las que giraban detrás: medido, las
-                  cuatro daban `rgb(0,0,0)` y solo asomaba un pedazo de pan
-                  cortado por su borde. */}
-              {/* Las dos capas de foto son decorativas (`alt=""`) porque entre
-                  las dos muestran LA MISMA burga y anunciarla dos veces sería
-                  ruido; el nombre accesible lo pone este `role="img"`, y el
-                  nombre visible lo dice la ficha de abajo. */}
-              <div
-                role="img"
-                aria-label={b.video.alt}
-                className="relative block h-full w-full"
-              >
+        {/* LAS SILUETAS: cada hamburguesa sola, posicionada por su `caja`.
+            En reposo la activa cae exactamente donde está en su foto; el
+            resto gira a los costados. `left/top/width/height` los escribe
+            `pintar` por frame. Sin `transition`: el arrastre ya actualiza por
+            frame y una transición encima iría por detrás del dedo. */}
+        {items.map((b, i) => (
+          <div
+            key={b.id}
+            ref={(el) => {
+              siluetas.current[i] = el
+            }}
+            className="absolute will-change-[transform,filter]"
+            style={{
+              left: `${b.escena.caja.x * 100}%`,
+              top: `${b.escena.caja.y * 100}%`,
+              width: `${b.escena.caja.w * 100}%`,
+              height: `${b.escena.caja.h * 100}%`,
+              visibility: i <= VISIBLES ? 'visible' : 'hidden',
+            }}
+          >
+            <Image
+              src={b.escena.silueta}
+              alt={i === activa ? b.video.alt : ''}
+              fill
+              sizes="60vw"
+              priority={i < 2}
+              className="object-contain"
+            />
+          </div>
+        ))}
 
-                {/* DOS CAPAS QUE SE CRUZAN (2026-09-01, pedido del cliente):
-                    - AL FRENTE: la foto CON FONDO, que se ve mejor — llena la
-                      tarjeta con `cover`.
-                    - EN SEGUNDO PLANO: el recorte SIN FONDO, chiquito, para
-                      que gire limpio sobre el rojo sin arrastrar su
-                      rectángulo negro.
-                    La transición entre las dos ocurre durante el giro: las
-                    opacidades las escribe `pintar()` por frame a partir de la
-                    profundidad (`data-confondo` / `data-recorte`).
-
-                    Van MONTADAS LAS DOS a la vez y se cruzan por opacidad. Si
-                    en vez de eso se cambiara el `src`, el navegador tendría
-                    que bajar la otra foto en pleno gesto y se vería un hueco.
-
-                    OJO: la de fondo NO puede quedar visible mientras la burga
-                    gira — su fondo negro horneado dibuja un rectángulo de
-                    bordes duros sobre el panel rojo (pasó). Por eso su
-                    opacidad cae a 0 apenas se aleja del frente. */}
-                {/* La foto con fondo va envuelta en un bloque NEGRO propio que
-                    se desvanece con ella. La foto trae su fondo negro horneado
-                    pero solo dentro de su recorte: sin este bloque, entre su
-                    borde y el de la tarjeta se veían dos FRANJAS ROJAS del
-                    panel asomando a los costados. */}
-                <span
-                  data-confondo
-                  aria-hidden
-                  className="absolute inset-0 bg-black opacity-0"
-                >
-                  <Image
-                    src={b.video.foto}
-                    alt=""
-                    fill
-                    sizes="100vw"
-                    priority={i < 2}
-                    className="object-cover"
-                  />
-                </span>
-
-                {b.miniatura ? (
-                  <Image
-                    data-recorte
-                    src={b.miniatura}
-                    alt=""
-                    aria-hidden
-                    fill
-                    sizes="100vw"
-                    /* El `p` grande es lo que la hace CHIQUITA: la burger
-                       ocupa el centro de su caja y no le come espacio a la
-                       principal (2026-09-01, pedido del cliente). */
-                    className="object-contain p-[24%]"
-                  />
-                ) : null}
-
-              </div>
-            </li>
-          ))}
-        </ul>
-
-        {/* EL CARRIL INVISIBLE que capta el dedo. Ver `CarruselBurgas` para el
-            porqué de cada decisión: va en `z-[200]` por encima de las
-            tarjetas, y los botones de "tocar para traer al frente" viven acá
-            y no sobre ellas porque un botón encima se come el arrastre. */}
+        {/* EL CARRIL INVISIBLE que capta el dedo, por encima de todo. Cada
+            slot es un botón: tocarlo trae esa burga al frente. */}
         <div
           ref={carril}
           className="absolute inset-0 z-[200] flex snap-x snap-proximity overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
@@ -395,29 +304,66 @@ export function CarruselBurgasV2({
           ))}
         </div>
       </div>
-      </div>
 
-      {/* LA FICHA de la activa. `min-h` reservada para el ingrediente más
-          largo (Asmodeo, 3 líneas): sin eso la página saltaría en cada pasada. */}
-      <div className="relative min-h-[122px] px-6 pt-6 text-center">
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={burga.id}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: sinMovimiento ? 0 : 0.16 }}
+      {/* LA FICHA de la activa: el STICKER con el nombre (2026-09-01, pedido
+          del cliente) montado sobre el borde inferior de la foto —mitad sobre
+          la imagen, mitad afuera— y debajo los ingredientes.
+
+          LAS DOCE FICHAS VAN MONTADAS Y APILADAS en una grilla (todas en la
+          celda 1/1) y solo la activa se ve (2026-09-01, pedido del cliente):
+          así el contenedor mide SIEMPRE la ficha más alta y la sección no
+          cambia de alto al pasar de burga. Antes se montaba solo la activa
+          con un `min-h` calculado a mano, y no alcanzaba: un sticker más
+          petiso o un ingrediente de una línea encogían la página entera en
+          cada pasada. Con el apilado la altura es un hecho del layout, vale
+          en cualquier ancho y no hay número que mantener. El costo es montar
+          los 12 stickers (~250KB) — coherente con el escenario, que ya monta
+          los 12 fondos y siluetas. El fundido pasó de AnimatePresence a un
+          crossfade de opacidad: mismo efecto, sin desmontar nada.
+
+          El sticker va en una caja de ALTO fijo (`h-[15vw]`) y no de ancho:
+          los sellos tienen proporciones muy distintas entre sí (de 1.7:1 a
+          3.8:1) y con el ancho fijo Lucifer saldría el doble de alto que
+          Asmodeo. Con el alto fijo todos pesan igual a la vista.
+          `-mt-[7.5vw]` es la mitad de ese alto: lo que se monta sobre la foto.
+          `pointer-events-none` en TODA la ficha, no solo en el sticker: el
+          margen negativo se propaga (margin collapse) y la caja de la ficha
+          entera sube sobre el escenario — medido, el toque en la franja de
+          abajo caía en la ficha y no en el carril, y ahí no se podía
+          arrastrar. La ficha es solo imagen y texto, no pierde nada.
+          `z-[300]`: el carril del escenario vive en 200 y si no lo tapa.
+
+          Sin sticker (hoy solo Balak, que no vino) queda el nombre en texto.
+          CONTRASTE del texto: rojo sobre negro da 4.50:1, justo AA — no achicar. */}
+      <div className="pointer-events-none relative z-[300] grid px-6 text-center">
+        {items.map((b, i) => (
+          <div
+            key={b.id}
+            aria-hidden={i !== activa}
+            className={`col-start-1 row-start-1 ${i === activa ? 'opacity-100' : 'opacity-0'} ${sinMovimiento ? '' : 'transition-opacity duration-150'}`}
           >
-            <h3 className="font-display text-[clamp(26px,7vw,34px)] uppercase leading-none tracking-[0.01em] text-primary">
-              {burga.nombre}
-            </h3>
-            {burga.ingredientes ? (
+            {b.escena.sticker ? (
+              <div className="pointer-events-none relative mx-auto -mt-[7.5vw] h-[15vw] w-[64vw]">
+                <Image
+                  src={b.escena.sticker}
+                  alt={b.nombre}
+                  fill
+                  sizes="64vw"
+                  className="object-contain drop-shadow-[0_6px_14px_rgba(0,0,0,.6)]"
+                />
+              </div>
+            ) : (
+              <h3 className="pt-6 font-display text-[clamp(26px,7vw,34px)] uppercase leading-none tracking-[0.01em] text-primary">
+                {b.nombre}
+              </h3>
+            )}
+            {b.ingredientes ? (
               <p className="mt-2 font-body text-[clamp(13px,3.4vw,15px)] font-semibold uppercase leading-snug tracking-[0.08em] text-primary">
-                {burga.ingredientes}
+                {b.ingredientes}
               </p>
             ) : null}
-          </motion.div>
-        </AnimatePresence>
+          </div>
+        ))}
       </div>
     </div>
   )

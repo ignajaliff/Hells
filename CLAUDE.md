@@ -54,8 +54,14 @@ Este proyecto respeta estrictamente los siguientes documentos. Leerlos antes de 
 **Concepto**: oscuro premium con rojo infierno — la noche, el fuego y la carne. Fondo carbón,
 un solo color dominante (el rojo del logo) que aparece poco pero manda, tipografía display
 condensada y gigante en caja alta.
-**Tipografía display**: Anton (títulos, siempre en mayúsculas)
-**Tipografía de texto**: Archivo (cuerpo, 400/500/600)
+**Tipografías (2026-09-01, mensajes de la comunidad de la marca — reemplazan a Anton/Archivo)**:
+* Display: **Ardillah Kafi** — títulos, siempre en mayúsculas ("la que veníamos usando")
+* Graffiti: **Splatink** — detalles, aclaraciones y a veces títulos. **SIN acentos ni eñes**: solo palabras que no los lleven
+* Texto: **Sveningsson** — cuerpo. Un solo peso; los medium/semibold los sintetiza el navegador
+
+Ninguna está en Google Fonts: van con `next/font/local` desde `src/app/fonts/` (woff2,
+11–21KB). ⚠ Ardillah Kafi y Splatink son "free for personal use": **confirmar la licencia
+comercial con el cliente** (dice tener las fuentes en su Drive) antes de publicar.
 **Paleta** — tomada del logo de marca:
 
 | Token | HSL | Aprox. | Rol |
@@ -100,7 +106,7 @@ npm run lint         → linter
 
 | Página | Ruta | Estado | Notas |
 |--------|------|--------|-------|
-| Home | `/` | En desarrollo | Hero (handoff v3) y Las Burgas maquetadas; faltan fotos y nombres |
+| Home | `/` | En desarrollo | Hero, carta (tocadiscos) y «Nuestra historia» maquetadas; faltan las fotos de nosotros |
 | 404 | — | Maquetada | `app/not-found.tsx` |
 | Error global | — | Maquetada | `app/error.tsx` |
 
@@ -201,6 +207,57 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
 
 ## Decisiones técnicas tomadas
 
+* **LA BURGER DEL HERO ES LA SATANÁS + TAMAÑO FIJO EN MÓVIL (2026-09-01, pedido
+  del cliente)**: `burger-satanas.webp` (1600x1108, 195KB) reemplaza a
+  `burger-hero.png` (archivado en `originales/`). Es el `SATANAS-SFONDO.png` del
+  cliente RECORTADO al dibujo —traía 16% de aire arriba y abajo— para que las
+  medidas del layout refieran a la burger visible (misma regla que el sticker del
+  nav). El ratio quedó en 1.44 contra 1.55 del anterior, así que el desktop casi
+  no se movió: verificado en 1440x900 y 1280x720 (h1 793 < burger 835; burger
+  termina 99px/43px antes del fuego).
+  * **EN MÓVIL LA BURGER YA NO MIDE "EL ALTO QUE SOBRA"**: era `flex-1` +
+    `object-contain`, y eso dependía del navegador — Chrome de Android deja mucho
+    alto libre y se veía grande; el Safari del iPhone (más UI, menos viewport) le
+    dejaba ~92px y la MISMA página la mostraba diminuta (el reporte del cliente).
+    Ahora es `w-[82%]` con su propio ratio (`h-auto`): el ancho de pantalla es
+    igual en todos los navegadores → la burger mide SIEMPRE lo mismo (medido:
+    320x222 idéntica en 390x844 y 390x660).
+  * **El 82% no es a ojo**: es el tamaño de Chrome en 390x844 (donde el cliente
+    la veía bien) y el que hace cerrar el hero en 844px exactos. Con 112%
+    desbordaba 81px hasta ahí.
+  * **El hero móvil pasó de `h-[100svh]` a `min-h-[100svh]`**: si la pantalla es
+    corta (Safari ~660px útiles) el hero crece ~140px y se scrollea, en vez de
+    achicar la burger. Tamaño constante > pantalla exacta: ese es el trato. En
+    `lg` sigue `h-` exacto.
+  * **La mascota se re-midió** para la imagen nueva: el filo superior izquierdo
+    del pan pasa por (18%, 14%) — antes (16%, 12%). Si cambia la imagen, re-medir.
+* **TIPOGRAFÍAS DE LA MARCA (2026-09-01, mensajes de la comunidad)**: Ardillah Kafi
+  (títulos), Splatink (graffiti para detalles) y Sveningsson (cuerpo) reemplazan a
+  Anton/Archivo. Ninguna está en Google Fonts: van con `next/font/local` desde
+  `src/app/fonts/` — los woff2 se convirtieron de los TTF con fontTools (1/3 del peso).
+  Verificado con Playwright: el h1 del hero con Ardillah termina en el 55% del ancho en
+  1440 (el límite es 58.6%, donde arranca la burger) y no hay desborde en 390.
+  * **Splatink NO TRAE acentos ni eñes** (104 glifos): solo se usa en palabras sin
+    tilde — una tilde caería al fallback y se notaría el cambio a mitad de palabra.
+    Por eso el rótulo de nosotros dice "Sobre nosotros". El token es `font-grafiti`.
+  * **Ninguna de las tres trae la flecha "→"** de los CTAs: la dibuja el fallback del
+    sistema. Verificado en captura que se ve bien.
+  * **Sveningsson tiene UN solo peso**: `font-medium`/`semibold`/`extrabold` los
+    sintetiza el navegador. Si algún peso se ve sucio, esa es la causa. (Archivo
+    cargaba el 800 solo para la flecha; ya no hace falta.)
+  * ⚠ **LICENCIA**: Ardillah Kafi (StringLabs) y Splatink (Darrell Flood) son "free
+    for personal use" — el uso comercial se compra (Splatink: USD 10 mín. a
+    dadiomouse@gmail.com). La marca ya las usa como propias y las tiene en su Drive:
+    confirmar con el cliente, y si el Drive trae otras versiones, reemplazar los woff2.
+* **SECCIÓN "NUESTRA HISTORIA" (2026-09-01, pedido del cliente)**: `Nosotros.tsx`,
+  ancla `#nosotros` (el link del nav ya apunta ahí; quedan `#` BURGUERS y WORK).
+  Composición pedida: título, imagen izquierda + texto derecha, texto izquierda +
+  imagen derecha, y una imagen a TODO el ancho al pie. En móvil se apila en orden de
+  lectura sin clases de `order`. **Las tres fotos no existen**: cada hueco es un marco
+  de borde punteado rojo con leyenda numerada (pedido explícito del cliente:
+  "marcámelo con bordes y luego yo te digo qué colocar"). El copy es PROVISORIO, sin
+  aprobar — mismo estado que el del hero. Fondo NEGRO PURO como la carta (2026-09-01,
+  pedido del cliente; primero fue carbón para separar tonalmente las secciones).
 * **Next.js 15.5 y no 16**: el kit fija "15+" y 15.5 es la versión estable probada con
   Tailwind v4 y Motion 13. Revisar el salto a 16 recién cuando haya que tocar el stack.
 * **Grilla de "Las Burgas" (2026-08-24)**: 8 tarjetas cuadradas con la foto adentro y una
@@ -369,6 +426,81 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
   * Ojo con `ffmpeg` dentro de un `while read`: **se come el stdin del bucle** y corrompe
     las variables (la primera pasada dejó archivos llamados `atanas.mp4`, `al.mp4`).
     Va con `-nostdin`.
+* **EL "TOCADISCOS" ES LA CARTA OFICIAL (2026-09-01, elección del cliente)**: la foto
+  de la burga activa se ve ENTERA y a todo el ancho, tal cual la original; sobre esa
+  misma foto asoman a los costados las vecinas SIN FONDO, más chicas y oscurecidas; al
+  deslizar, la de al lado gira hacia el centro creciendo y llega a tamaño real sobre
+  su propia foto. Vive en `components/ui/CarruselBurgasV2.tsx`, montado en
+  `LasBurgasV2` — **los archivos conservan el "V2" en el nombre** de cuando convivía
+  en prueba con la versión anterior; ésa (`LasBurgas.tsx` + `CarruselBurgas.tsx`, el
+  carrusel en profundidad) **se borró el 2026-09-01** al elegir el cliente. Quedan en
+  el historial. `LasBurgasV2` heredó el ancla `#carta` (el CTA del hero apunta ahí),
+  el título/bajada de `content/home.ts`, y la bajada pasó a BLANCO (pedido del
+  cliente; 15.96:1, holgado). El rótulo "Versión 2 · en prueba" se fue con la prueba.
+  * **La clave es que cada foto está partida en DOS CAPAS** (`escena` en
+    `content/home.ts`): `fondo` (la foto sin la hamburguesa) y `silueta` (la
+    hamburguesa sola) más una `caja` que la coloca donde estaba. **Fondo + silueta
+    reconstruyen exactamente la original** (diferencia medida: 2–10 sobre 255).
+    Así la activa no es "una foto" sino su fondo con su silueta clavada encima; al
+    deslizar, la silueta gira sola y el fondo se funde con el de la siguiente (son
+    degradés casi iguales). **Nunca se cambia una imagen por otra**: la burger que
+    llega al centro es la misma que después queda quieta. Por eso no hay salto ni
+    "fondo rojo apareciendo", que era lo que fallaba en la versión anterior.
+  * **Los PNG sin fondo del cliente son la MISMA TOMA que la foto, pero con zoom**
+    (la burger llena el cuadrado). `originales/tocadiscos.py` alinea cada uno contra
+    su foto —primero por cajas, después afinando escala y posición hasta minimizar
+    la diferencia de color— y de ahí sale la `caja`. **No editar las cajas a mano.**
+  * **El fondo sin burger no existía**: se genera rellenando el hueco. Primero se
+    interpola cada columna entre el píxel de arriba y el de abajo del hueco (el
+    degradé es vertical/radial y así lo sigue) y después se difumina en pasadas
+    fijando lo conocido. Arrancar con un color medio dejaba una **banda más clara**
+    donde había estado la burger — verificado a ojo, corregido.
+  * **Satanás ya usa su PNG real**: `SATANAS-SFONDO.png` llegó el 2026-09-01 (la
+    primera pasada la recortó por croma y se comía la base del pan). Alineó con
+    diff 6.6 — invisible — y la caja nueva quedó en `content/home.ts`.
+    * **Sus archivos van con `-2` en el nombre** (`satanas-silueta-2.webp`,
+      `satanas-fondo-2.webp`): el regenerado pisó la MISMA URL y el navegador del
+      cliente siguió mostrando el recorte viejo cacheado — reportó "sigue cortada"
+      cuando el servidor ya servía el bueno (verificado: alpha opaco hasta la
+      base, luminancia foto 76 vs render 74, diff 4.7–6.6). URL nueva = caché
+      imposible. **Regla: si se regenera un asset con otro contenido, cambiarle
+      el nombre.** Ojo: `tocadiscos.py` escribe SIN el `-2`; si se re-corre,
+      renombrar o actualizar `content/home.ts`.
+  * El giro: `x` sigue el seno del ángulo (60° por paso, radio 0.44 del ancho), sube
+    un 7% por paso, escala 1 → 0.5 → 0.3 y brillo 1 → 0.42. El escenario lleva
+    `overflow-hidden`, así que las siluetas salen por los costados sin scroll.
+  * **EL NOMBRE ES EL STICKER (2026-09-01, material del cliente)**: en el tocadiscos
+    el sello con el nombre reemplaza al texto, montado sobre el borde inferior de la
+    foto (mitad sobre la imagen, mitad afuera) y aparece/desaparece con la burga.
+    Va en `escena.sticker`; los 11 PNG de la raíz se recortaron a `public/burgas/
+    <slug>-sticker.webp` y los originales están en `originales/stickers/`.
+    * **Caja de ALTO fijo (`15vw`), no de ancho**: los sellos van de 1.7:1 a 3.8:1 de
+      proporción; con ancho fijo Lucifer saldría el doble de alto que Asmodeo.
+    * **`pointer-events-none` en TODA la ficha**: el margen negativo del sticker se
+      propaga (margin collapse) y la ficha entera sube sobre el escenario — medido,
+      el toque en la franja de abajo caía en la ficha y ahí no se podía arrastrar.
+    * **Falta el sticker de Balak**: esa burga muestra el nombre en texto hasta que
+      llegue. Al llegar: guardarlo en la raíz, agregarlo al mapa y reprocesar.
+  * **LA FICHA MIDE SIEMPRE LO MISMO (2026-09-01, pedido del cliente)**: las doce
+    fichas (sticker + ingredientes) van MONTADAS Y APILADAS en una grilla —todas en
+    la celda 1/1— y solo la activa se ve. El contenedor toma la altura de la más
+    alta, así que la sección ya no cambia de alto al pasar de burga (antes un
+    sticker más petiso o un ingrediente de una línea encogían la página en cada
+    pasada; el `min-h` a mano no alcanzaba). Verificado: #carta mide 800px en las
+    12 posiciones en 390x844. El fundido pasó de `AnimatePresence` a un crossfade
+    de opacidad — mismo efecto, sin desmontar nada. Los 12 stickers montados suman
+    ~250KB, coherente con el escenario que ya monta los 12 fondos y siluetas.
+  * **EL VIGÍA (2026-09-01)**: `snap-proximity` solo engancha CERCA de un punto — si
+    el dedo suelta lejos de todos, el carril quedaba quieto a mitad de giro, con dos
+    burgas congeladas a medio camino (pasaba en el celular real). Ahora, 160ms
+    después de que el scroll se aquieta sin un dedo apoyado (touchstart/touchend lo
+    rastrean), un `scrollTo` suave lo asienta en la burga más cercana; como dispara
+    los mismos eventos de scroll, el giro se completa con la misma animación. El
+    umbral de 0.02 evita que se re-dispare mientras su propio asentado corre.
+  * Verificado en 390x844: reposo = foto original; a mitad de giro las dos al 0.71
+    de escala y fondos 50/50; en la segunda, Satanás toma su caja exacta.
+    **Pendiente probarlo en un celular real.** Pesa: fondo 4KB + silueta ~45KB por
+    burga. Los `-recorte.webp` y `sativa.webp` de la versión anterior quedaron sin uso.
 * **EL CARRUSEL PASÓ A SER EN PROFUNDIDAD (2026-08-31, 2ª iteración, pedido del
   cliente)**: las tarjetas ya no van en fila sino APILADAS en el mismo punto — la
   activa al frente y las vecinas detrás, más chicas, corridas a los costados y
@@ -878,10 +1010,12 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
 
 ## Estado actual del desarrollo
 
-**Última sesión**: 2026-08-31
-**Próximo paso**: **probar el carrusel en profundidad en un celular real** (el gesto
-de snap no se puede simular con Playwright) y decidir cómo se traslada a desktop, que
-sigue con la grilla — el cliente pidió no trabajarlo todavía. Después, definir las secciones que siguen: el nav ya las anticipa (BURGUERS,
+**Última sesión**: 2026-09-01
+**Próximo paso**: las tres fotos de «Nuestra historia» (el cliente dice qué va en
+cada marco punteado) y aprobar su copy; el sticker de Balak, que no vino (su nombre
+va en texto mientras tanto). La silueta de Satanás ya usa su PNG real (2026-09-01). Desktop sigue con la grilla; el cliente pidió no
+trabajarlo todavía. Después, las secciones que el nav anticipa (BURGUERS, NOSOTROS,
+WORK). Después, definir las secciones que siguen: el nav ya las anticipa (BURGUERS,
 NOSOTROS, WORK) pero todavía apuntan a `#`.
 
 **Lo que está funcionando**:
@@ -901,13 +1035,17 @@ NOSOTROS, WORK) pero todavía apuntan a `#`.
   el logo —los 28 trazos crecen en paralelo y cierran todos juntos— y al cerrar se
   solidifica (3.0s). Los trazos, ordenados y con su largo precalculado, están en
   `components/ui/logoPath.ts`
+* Tipografías reales de la marca servidas con `next/font/local` (Ardillah Kafi /
+  Splatink / Sveningsson)
+* Sección «Nuestra historia» (`Nosotros.tsx`) con los tres huecos de foto marcados
 
 **Lo que está pendiente**:
 * Datos reales del negocio (dirección, teléfono, WhatsApp, horarios, dominio) — marcados con ⚠
 * `public/og.jpg` (1200x630)
 * Logo **vectorial** (.svg): los PNG actuales se derivaron del JPG, sirven bien pero
   un SVG escalaría mejor y pesaría menos
-* Foto de producto del hero
+* **Las 3 fotos de «Nuestra historia»** (hoy marcos punteados) y la aprobación del copy
+* **Confirmar las licencias comerciales** de Ardillah Kafi y Splatink (hoy "personal use")
 * **Las 8 fotos de las burgas** (`content/home.ts` → `burgasContent.items[].foto`, todas
   en `null`). Cuadradas, sobre fondo carbón para que peguen con la estética
 * **Los 8 nombres** (`items[].nombre`, todos vacíos): el cliente los va a pegar como

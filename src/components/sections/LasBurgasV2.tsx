@@ -1,47 +1,50 @@
 'use client'
 
 import { burgasContent } from '@/content/home'
+import { SECCIONES } from '@/lib/constants'
 import { GrillaBurgas } from '@/components/ui/GrillaBurgas'
 import { CarruselBurgasV2 } from '@/components/ui/CarruselBurgasV2'
 import { useEsMovil } from '@/lib/useEsMovil'
 
 /**
- * LasBurgasV2 — la MISMA carta, con la variante nueva del carrusel de móvil
- * (2026-08-31, pedido del cliente: "cloná las hamburguesas y hacelo en la de
- * abajo, para poder notar la diferencia").
+ * Las Burgas — la carta oficial (2026-09-01: el cliente eligió esta versión,
+ * el "tocadiscos", y la anterior se borró junto con su carrusel).
  *
- * Es un clon deliberado de `LasBurgas` y vive debajo de ella en la home, con
- * un rótulo que la identifica. Sirve para comparar los dos carruseles en la
- * misma pantalla y elegir; **no es una sección definitiva de la landing**.
+ * MÓVIL: el tocadiscos (`CarruselBurgasV2`) — la foto de la burga activa
+ * entera y a todo el ancho, las vecinas sin fondo girando a los costados, el
+ * sticker con el nombre montado al pie de la foto y los ingredientes debajo.
  *
- * CUANDO EL CLIENTE ELIJA: se borra este archivo junto con
- * `CarruselBurgasV2`, o se reemplaza el contenido de `LasBurgas` por el de
- * acá. Las dos no pueden quedar publicadas: la carta duplicada en la misma
- * página confunde al visitante y le duplica el peso a la sección.
+ * DE `sm` PARA ARRIBA: la grilla de siempre (`GrillaBurgas`) — el cliente
+ * pidió no trabajar la versión de escritorio todavía.
  *
- * NO LLEVA `id` de sección: el ancla `#carta` ya la tiene `LasBurgas` y dos
- * elementos con el mismo id romperían la navegación del nav.
+ * La elección carrusel/grilla se hace EN JS (`useEsMovil`), no con clases:
+ * montadas las dos, la rama oculta igual existiría en el DOM y descargaría
+ * sus assets (medido con los videos: 13 en un celular en vez de 1).
  *
- * De `sm` para arriba muestra la MISMA grilla que la v1, sin cambios: la
- * prueba es solo del móvil.
+ * FONDO NEGRO PURO (#000, no `--background`): los fondos de las fotos
+ * arrancan en negro puro y se funden con la sección sin borde visible.
+ *
+ * CONTRASTE: el título en `--primary` sobre negro da 4.50:1 — para el texto
+ * display grande sobra. La bajada va en BLANCO (pedido del cliente,
+ * 2026-09-01; además 15.96:1, holgado para texto chico).
  */
 export function LasBurgasV2() {
-  const { items } = burgasContent
+  const { titulo, bajada, items } = burgasContent
   const esMovil = useEsMovil()
 
   return (
-    <section className="relative overflow-hidden bg-black px-4 py-20 sm:px-8 sm:py-28 lg:px-14">
-      {/* RÓTULO DE PRUEBA, no copy de la landing: está para saber cuál de las
-          dos versiones se está mirando. Se va con la sección. */}
+    <section
+      id={SECCIONES.carta}
+      className="relative overflow-hidden bg-black px-4 py-20 sm:px-8 sm:py-28 lg:px-14"
+    >
+      {/* Encabezado. El título se sale un poco por la izquierda (`-ml-[2%]`)
+          para que la sección no se lea como una caja centrada y prolija. */}
       <header className="relative z-[1] mb-12 sm:mb-16">
-        <p className="mb-3 inline-block border border-primary px-3 py-1 font-body text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
-          Versión 2 · en prueba
-        </p>
         <h2 className="-ml-[2%] font-display text-[clamp(56px,16vw,190px)] uppercase leading-[0.85] tracking-[-0.02em] text-primary sm:text-[12vw] lg:text-[9vw]">
-          Las Burgas
+          {titulo}
         </h2>
-        <p className="mt-3 max-w-[36ch] font-body text-[clamp(15px,4vw,19px)] font-medium text-primary">
-          La activa a ancho completo y sobre rojo
+        <p className="mt-3 max-w-[36ch] font-body text-[clamp(15px,4vw,19px)] font-medium text-foreground">
+          {bajada}
         </p>
       </header>
 

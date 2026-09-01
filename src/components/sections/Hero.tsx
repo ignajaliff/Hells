@@ -16,6 +16,10 @@ import { DiabloHero } from '@/components/ui/DiabloHero'
  * barra de direcciones, así que un hero de `100vh` queda cortado por abajo
  * justo donde van los CTAs. `svh` mide el viewport chico —el que queda con la
  * barra visible— y entra siempre.
+ * En móvil es `min-h` y no `h` (2026-09-01): la burger ahora tiene tamaño
+ * FIJO (ver su comentario), así que si una pantalla es muy corta el hero
+ * crece unos píxeles y se scrollea, en vez de achicar la burger. En `lg`
+ * sigue siendo una pantalla exacta.
  *
  * MÓVIL: el diseño original está definido solo para desktop (1440x900) y ahí
  * no entra —la columna de texto ocupa 62% y la burger 54%, se pisarían—. Se
@@ -33,7 +37,7 @@ export function Hero() {
   return (
     <section
       id={SECCIONES.hero}
-      className="relative isolate flex h-[100svh] flex-col overflow-hidden bg-background"
+      className="relative isolate flex min-h-[100svh] flex-col overflow-hidden bg-background lg:h-[100svh]"
     >
       {/* Fondo ilustrado: trae las palabras de marca y el zócalo de fuego al
           pie. Reemplaza a la capa `MarcaAgua`, que dibujaba esas mismas
@@ -141,21 +145,26 @@ export function Hero() {
             De `lg` para arriba vuelve a ser absoluta y sangra por la derecha,
             como el diseño.
 
-            MÓVIL — GRANDE Y HUNDIDA EN EL FUEGO (2026-08-21, pedido del
-            cliente): pasó de `w-[92%] max-w-[420px]` a `w-[118%]` con
-            `-mx-[9%]`, o sea sangra un 9% por cada lado igual que en desktop
-            sangra por la derecha. En un iPhone 14 va de 359px a 460px de ancho.
-            Su caja (`flex-1`) llega hasta el PIE del hero —la zona ya no
-            reserva el alto del fuego— y con `object-bottom` la imagen se apoya
-            ahí; el zócalo de llamas, en `z-[5]` sobre esta imagen en `z-[4]`,
-            le tapa la parte de abajo (~93px de banda sobre 296px de burger en
-            un iPhone 14, un cuarto aprox).
-            **Sigue siendo `flex-1` + `min-h-0`, NO `flex-none`**: un primer
-            intento con `flex-none mt-auto` fijaba el alto de la burger y la
-            columna desbordaba — empujaba el logo debajo del nav y la burger
-            quedaba por encima de las llamas sin hundirse. Con `flex-1` la
-            burger absorbe solo el alto que sobra: en pantallas bajas se achica
-            (y sangra menos) en vez de romper el resto.
+            MÓVIL — TAMAÑO FIJO POR ANCHO (2026-09-01, pedido del cliente):
+            era `flex-1` + `object-contain`, o sea que la burger medía "el
+            alto que sobraba" — y eso DEPENDÍA DEL NAVEGADOR: el Chrome de
+            Android deja mucho alto libre y se veía grande, pero el Safari
+            del iPhone (más barra de UI, menos viewport) le dejaba menos y la
+            misma página la mostraba mucho más chica. Ahora es `w-[82%]` con
+            la altura de su propio ratio (`h-auto`): el ancho de pantalla es
+            igual en todos los navegadores, así que la burger mide SIEMPRE lo
+            mismo. `mt-auto` la manda al pie, hundida en las llamas como
+            estaba (el zócalo en `z-[5]` le tapa la base).
+            **El 82% no es a ojo**: es el tamaño al que Chrome —donde el
+            cliente la veía bien— la mostraba en 390x844, y el que hace que
+            el hero cierre en 844px EXACTOS (con 112% desbordaba 81px hasta
+            ahí; medido). En Safari, cuya UI deja ~660px, el hero crece
+            ~130px y se scrollea, en vez de achicar la burger a los 92px de
+            alto que le quedaban antes: ese es el trato que pidió el cliente,
+            tamaño constante > pantalla exacta.
+            (El intento de 2026-08-21 con `flex-none mt-auto` "rompía" porque
+            la sección era `h-` fijo y la columna desbordaba por encima del
+            nav; con `min-h` el desborde se vuelve unos px de scroll.)
 
             NO TAPAR EL FUEGO (2026-08-21): el zócalo de llamas ahora es parte
             del fondo y ocupa el 9.7% de abajo, así que la burger tiene que
@@ -185,11 +194,11 @@ export function Hero() {
           <Image
             src={imagen.src}
             alt=""
-            width={1195}
-            height={769}
+            width={1600}
+            height={1108}
             priority
-            sizes="(min-width: 1024px) 50vw, 92vw"
-            className="pointer-events-none relative z-[4] order-2 -mx-[9%] min-h-0 w-[118%] max-w-none flex-1 self-center object-contain object-bottom drop-shadow-[-16px_16px_30px_rgba(0,0,0,.55)] lg:z-auto lg:order-none lg:mx-0 lg:w-full lg:min-w-0 lg:flex-none lg:self-auto lg:object-cover lg:drop-shadow-[-24px_24px_44px_rgba(0,0,0,.55)]"
+            sizes="(min-width: 1024px) 50vw, 82vw"
+            className="pointer-events-none relative z-[4] order-2 mt-auto h-auto w-[82%] max-w-none shrink-0 self-center drop-shadow-[-16px_16px_30px_rgba(0,0,0,.55)] lg:z-auto lg:order-none lg:mx-0 lg:mt-0 lg:w-full lg:drop-shadow-[-24px_24px_44px_rgba(0,0,0,.55)]"
           />
 
         {/* La mascota, apoyada sobre la burger.
@@ -213,13 +222,14 @@ export function Hero() {
             se mueve con ella y ya no hay que recalcular nada si cambia de
             tamaño. Eso resuelve la deuda que este comentario venía arrastrando.
 
-            El `16%/14%` NO es la esquina de la caja: la esquina de la imagen
-            está 85% vacía —la burger es redondeada— y ahí la mascota quedaría
-            flotando en el aire. Medida la silueta, el borde superior izquierdo
-            del pan pasa por (15%, 14%) y (18%, 10%). Centrando el sticker en
-            ese punto con `-translate-1/2` queda montado sobre el filo del pan:
-            mitad encima de la burger, mitad afuera. */}
-          <DiabloHero className="pointer-events-none hidden lg:absolute lg:left-[16%] lg:top-[12%] lg:z-[3] lg:block lg:w-[clamp(88px,8.5vw,132px)] lg:-translate-x-1/2 lg:-translate-y-1/2 lg:-rotate-4 lg:drop-shadow-[0_12px_22px_rgba(0,0,0,.5)]" />
+            El `18%/14%` NO es la esquina de la caja: la esquina de la imagen
+            está vacía —la burger es redondeada— y ahí la mascota quedaría
+            flotando en el aire. Medido sobre la Satanás recortada
+            (2026-09-01): el filo superior izquierdo del pan pasa por
+            (16%, 17%) y (18%, 14%). Centrando el sticker ahí con
+            `-translate-1/2` queda montado sobre el filo del pan: mitad
+            encima, mitad afuera. **Si cambia la imagen, re-medir.** */}
+          <DiabloHero className="pointer-events-none hidden lg:absolute lg:left-[18%] lg:top-[14%] lg:z-[3] lg:block lg:w-[clamp(88px,8.5vw,132px)] lg:-translate-x-1/2 lg:-translate-y-1/2 lg:-rotate-4 lg:drop-shadow-[0_12px_22px_rgba(0,0,0,.5)]" />
         </div>
 
         {/* MÓVIL: `order-1` + `shrink-0` — el texto va ARRIBA de la burger y no

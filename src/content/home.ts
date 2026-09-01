@@ -17,13 +17,17 @@ export const heroContent = {
     destacado: 'Infierno',
   },
   /**
-   * Foto de producto del hero. Es decorativa (`alt=""` en el componente): el
-   * contenido indexable es el h1, no la imagen.
-   * El PNG mide 1195x769: a 54vw se dibuja por DEBAJO de su tamaño nativo
-   * (0.87x en 1920), así que se ve nítida sin escalar.
+   * Foto de producto del hero (2026-09-01, pedido del cliente): la Satanás
+   * sin fondo, la misma toma que mandó para la carta. Es decorativa
+   * (`alt=""` en el componente): el contenido indexable es el h1.
+   * `burger-satanas.webp` (1600x1108, 195KB) es el PNG original RECORTADO al
+   * dibujo real —el archivo traía un 16% de aire arriba y abajo— para que
+   * las medidas del layout refieran a la burger visible y no al aire (misma
+   * regla que el sticker del nav). Reemplazó a `burger-hero.png`, archivado
+   * en originales/.
    */
   imagen: {
-    src: '/burger-hero.png',
+    src: '/burger-satanas.webp',
     alt: 'Hamburguesa de Hell’s Burger',
   },
   cta: {
@@ -35,14 +39,15 @@ export const heroContent = {
 /**
  * Links del navegador.
  *
- * `BURGUERS`, `NOSOTROS` y `WORK` todavía no tienen sección a la que apuntar:
- * quedan en `#` a propósito hasta que existan. `activo` marca cuál lleva el
+ * `BURGUERS` y `WORK` todavía no tienen sección a la que apuntar: quedan en
+ * `#` a propósito hasta que existan (`NOSOTROS` ya apunta a la suya,
+ * 2026-09-01). `activo` marca cuál lleva el
  * óvalo rojo dibujado a mano.
  */
 export const navLinks = [
   { label: 'Inicio', href: '#inicio', activo: true },
   { label: 'Burguers', href: '#', activo: false },
-  { label: 'Nosotros', href: '#', activo: false },
+  { label: 'Nosotros', href: '#nosotros', activo: false },
   { label: 'Work', href: '#', activo: false },
 ] as const
 
@@ -86,14 +91,25 @@ export const diabloContent = {
  * con sus fotos. **Si entra un video nuevo, pasarlo por la misma receta** — está
  * en `originales/procesar.sh` y documentada en `BurgaVideo`.
  *
- * ── `miniatura`: LAS FOTOS SIN FONDO (2026-09-01, material del cliente) ──
- * Es la foto recortada que se ve mientras la burga ESPERA SU TURNO, asomada
- * chiquita al costado en el carrusel en prueba (`CarruselBurgasV2`). Al pasar
- * al frente cada una vuelve a su `foto` normal sobre el rojo.
+ * ── `escena`: LA FOTO EN DOS CAPAS (2026-09-01) ──
+ * Para el carrusel "tocadiscos" (`CarruselBurgasV2`) cada foto se separa en
+ * `fondo` (la foto SIN la hamburguesa, con el hueco rellenado con su propio
+ * degradé) y `silueta` (la hamburguesa sin fondo, del PNG del cliente).
+ * `caja` dice dónde y a qué tamaño va la silueta sobre el fondo, en fracción
+ * del lado, para que **fondo + silueta reconstruya exactamente la foto
+ * original**: en reposo se ve la foto tal cual, y al girar la burger se va
+ * sola y el fondo queda limpio. Lo genera `originales/tocadiscos.py`, que
+ * también alinea cada PNG (son la misma toma que la foto pero con zoom).
+ * No editar las cajas a mano: salen del script.
  *
- * Salen de los PNG `-SFONDO` (1080x1080 con alpha real): recortados al sujeto
- * por su canal alpha, cuadrados con relleno TRANSPARENTE —no recortados, que
- * comería parte de la burger— y a WebP 900x900. **12.7MB → 993KB.**
+ * `sticker` (2026-09-01, material del cliente): el sello con el nombre, que en
+ * el tocadiscos REEMPLAZA al nombre en texto — va montado sobre el borde
+ * inferior de la foto. Recortados a su dibujo desde los PNG de la raíz (ahora
+ * en `originales/stickers/`). **Falta el de Balak**: mientras no llegue, esa
+ * burga muestra el nombre en texto, como antes.
+ *
+ * Los PNG `-SFONDO` (1080x1080 con alpha real) son el origen. Los
+ * `-recorte.webp` de la versión anterior del carrusel quedaron sin uso.
  *
  * OJO CON LOS NOMBRES DE ARCHIVO, vienen corridos:
  *   * `AMODEO-SFONDO` (sin S) es el ASMODEO real — pollo rebozado, lechuga,
@@ -122,7 +138,12 @@ export const burgasContent = {
         alt: 'Hamburguesa Lucifer',
       },
       ingredientes: 'Triple medallón, cheddar x6 y salsa Hells',
-      miniatura: '/burgas/lucifer-recorte.webp',
+      escena: {
+        sticker: '/burgas/lucifer-sticker.webp',
+        fondo: '/burgas/lucifer-fondo.webp',
+        silueta: '/burgas/lucifer-silueta.webp',
+        caja: { x: 0.2407, y: 0.3528, w: 0.5435, h: 0.4479 },
+      },
     },
     {
       id: 'satanas',
@@ -134,13 +155,17 @@ export const burgasContent = {
         alt: 'Hamburguesa Satanás',
       },
       ingredientes: 'Doble medallón, cheddar x4, panceta y salsa Hells',
-      /**
-       * ÚNICA SIN RECORTE PROPIO: entre los archivos que mandó el cliente
-       * (2026-09-01) no vino el de Satanás, así que sigue usando la `sativa`
-       * que había servido de ejemplo del formato. **Cuando llegue el suyo,
-       * reemplazar por `/burgas/satanas-recorte.webp`.**
-       */
-      miniatura: '/burgas/sativa.webp',
+      // Su silueta fue un recorte automático por croma hasta que el cliente
+      // mandó SATANAS-SFONDO.png (2026-09-01): ya usa el PNG real, como todas.
+      // Los archivos van con "-2" EN EL NOMBRE a propósito: los regenerados
+      // pisaron la misma URL y el navegador del cliente siguió mostrando el
+      // recorte viejo cacheado ("sigue cortada"). URL nueva = caché imposible.
+      escena: {
+        sticker: '/burgas/satanas-sticker.webp',
+        fondo: '/burgas/satanas-fondo-2.webp',
+        silueta: '/burgas/satanas-silueta-2.webp',
+        caja: { x: 0.2065, y: 0.4037, w: 0.5787, h: 0.3954 },
+      },
     },
     {
       id: 'balak',
@@ -152,7 +177,11 @@ export const burgasContent = {
         alt: 'Hamburguesa Balak',
       },
       ingredientes: 'Triple medallón, cheddar x6, panceta, cebolla crispy y salsa Hells',
-      miniatura: '/burgas/balak-recorte.webp',
+      escena: {
+        fondo: '/burgas/balak-fondo.webp',
+        silueta: '/burgas/balak-silueta.webp',
+        caja: { x: 0.275, y: 0.3926, w: 0.4593, h: 0.4115 },
+      },
     },
     {
       id: 'belcebu',
@@ -164,7 +193,12 @@ export const burgasContent = {
         alt: 'Hamburguesa Belcebú',
       },
       ingredientes: 'Doble medallón, cheddar x4, cebolla crispy y barbacoa',
-      miniatura: '/burgas/belcebu-recorte.webp',
+      escena: {
+        sticker: '/burgas/belcebu-sticker.webp',
+        fondo: '/burgas/belcebu-fondo.webp',
+        silueta: '/burgas/belcebu-silueta.webp',
+        caja: { x: 0.2491, y: 0.413, w: 0.5046, h: 0.3979 },
+      },
     },
     {
       id: 'azazel',
@@ -176,7 +210,12 @@ export const burgasContent = {
         alt: 'Hamburguesa Azazel',
       },
       ingredientes: 'Doble medallón, doble salsa, queso azul, rúcula y cebolla caramelizada',
-      miniatura: '/burgas/azazel-recorte.webp',
+      escena: {
+        sticker: '/burgas/azazel-sticker.webp',
+        fondo: '/burgas/azazel-fondo.webp',
+        silueta: '/burgas/azazel-silueta.webp',
+        caja: { x: 0.2491, y: 0.3778, w: 0.4935, h: 0.4201 },
+      },
     },
     {
       id: 'belfegor',
@@ -188,7 +227,12 @@ export const burgasContent = {
         alt: 'Hamburguesa Belfegor',
       },
       ingredientes: 'Doble medallón, queso dambo x4, huevo, tomate y lechuga',
-      miniatura: '/burgas/belfegor-recorte.webp',
+      escena: {
+        sticker: '/burgas/belfegor-sticker.webp',
+        fondo: '/burgas/belfegor-fondo.webp',
+        silueta: '/burgas/belfegor-silueta.webp',
+        caja: { x: 0.2519, y: 0.3352, w: 0.5157, h: 0.4646 },
+      },
     },
     {
       id: 'mammon',
@@ -200,7 +244,12 @@ export const burgasContent = {
         alt: 'Hamburguesa Mammón',
       },
       ingredientes: 'Doble medallón, queso dambo x4, guacamole y mayonesa',
-      miniatura: '/burgas/mammon-recorte.webp',
+      escena: {
+        sticker: '/burgas/mammon-sticker.webp',
+        fondo: '/burgas/mammon-fondo.webp',
+        silueta: '/burgas/mammon-silueta.webp',
+        caja: { x: 0.2454, y: 0.3833, w: 0.5102, h: 0.4179 },
+      },
     },
     {
       id: 'lilith',
@@ -212,7 +261,12 @@ export const burgasContent = {
         alt: 'Hamburguesa Lilith',
       },
       ingredientes: 'Doble medallón, cebolla caramelizada, cheddar líquido y cheddar x2',
-      miniatura: '/burgas/lilith-recorte.webp',
+      escena: {
+        sticker: '/burgas/lilith-sticker.webp',
+        fondo: '/burgas/lilith-fondo.webp',
+        silueta: '/burgas/lilith-silueta.webp',
+        caja: { x: 0.275, y: 0.4185, w: 0.463, h: 0.3886 },
+      },
     },
     {
       id: 'gualicho',
@@ -224,7 +278,12 @@ export const burgasContent = {
         alt: 'Hamburguesa Gualicho',
       },
       ingredientes: 'Medallón, cheddar x2 y salsa Hells',
-      miniatura: '/burgas/gualicho-recorte.webp',
+      escena: {
+        sticker: '/burgas/gualicho-sticker.webp',
+        fondo: '/burgas/gualicho-fondo.webp',
+        silueta: '/burgas/gualicho-silueta.webp',
+        caja: { x: 0.2657, y: 0.4444, w: 0.475, h: 0.364 },
+      },
     },
     {
       id: 'baal',
@@ -236,7 +295,12 @@ export const burgasContent = {
         alt: 'Hamburguesa Baal',
       },
       ingredientes: 'Medallón XL, cheddar x2, cebolla y ketchup',
-      miniatura: '/burgas/baal-recorte.webp',
+      escena: {
+        sticker: '/burgas/baal-sticker.webp',
+        fondo: '/burgas/baal-fondo.webp',
+        silueta: '/burgas/baal-silueta.webp',
+        caja: { x: 0.2713, y: 0.4731, w: 0.4528, h: 0.3307 },
+      },
     },
     {
       id: 'asmodeo',
@@ -248,7 +312,12 @@ export const burgasContent = {
         alt: 'Hamburguesa Asmodeo',
       },
       ingredientes: 'Pechuga de pollo rebozada en tempura, cheddar x2, panceta, tomate, lechuga y mayoliva',
-      miniatura: '/burgas/asmodeo-recorte.webp',
+      escena: {
+        sticker: '/burgas/asmodeo-sticker.webp',
+        fondo: '/burgas/asmodeo-fondo.webp',
+        silueta: '/burgas/asmodeo-silueta.webp',
+        caja: { x: 0.2454, y: 0.3491, w: 0.5074, h: 0.4463 },
+      },
     },
     {
       id: 'leviatan',
@@ -260,7 +329,28 @@ export const burgasContent = {
         alt: 'Hamburguesa Leviatán',
       },
       ingredientes: 'Medallón veggie a elección, queso dambo, portobellos, tomate y mayonesa de perejil',
-      miniatura: '/burgas/leviatan-recorte.webp',
+      escena: {
+        sticker: '/burgas/leviatan-sticker.webp',
+        fondo: '/burgas/leviatan-fondo.webp',
+        silueta: '/burgas/leviatan-silueta.webp',
+        caja: { x: 0.2648, y: 0.4046, w: 0.4611, h: 0.3955 },
+      },
     },
   ],
+} as const
+
+/**
+ * Sobre nosotros — "Nuestra historia" (2026-09-01, pedido del cliente).
+ * COPY PROVISORIO sin aprobar — mismo estado que el del hero. Las fotos
+ * tampoco están: los huecos se dibujan con borde punteado en la sección y el
+ * cliente va a decir qué va en cada uno.
+ */
+export const nosotrosContent = {
+  // En Splatink (font-grafiti): sin acentos a propósito, la fuente no trae.
+  rotulo: 'Sobre nosotros',
+  titulo: 'Nuestra historia',
+  parrafo1:
+    'Hell’s nació de noche, entre amigos, fuego y una idea fija: hacer la burger que nosotros queríamos comer. Lo que empezó en una parrilla prestada terminó siendo un culto con doce demonios en la carta.',
+  parrafo2:
+    'Cocinamos a la brasa, sin apuro y sin vueltas: pan de papa, carne smasheada y lo que cada demonio pide. La Demons Crew somos nosotros — y vos, cada vez que caés en la tentación.',
 } as const

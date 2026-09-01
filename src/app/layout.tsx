@@ -1,5 +1,5 @@
 import { type Metadata, type Viewport } from 'next'
-import { body, display } from './fonts'
+import { body, display, grafiti } from './fonts'
 import { SITE_URL } from '@/lib/constants'
 import { getRestaurantSchema } from '@/lib/schema'
 import { PantallaCarga } from '@/components/ui/PantallaCarga'
@@ -40,7 +40,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es-AR" className={`${display.variable} ${body.variable}`}>
+    <html lang="es-AR" className={`${display.variable} ${body.variable} ${grafiti.variable}`}>
       <body className="min-h-screen antialiased">
         <script
           type="application/ld+json"

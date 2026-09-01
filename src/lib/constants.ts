@@ -30,5 +30,6 @@ export const LINK_PEDIDOS = 'https://menu.fu.do/hellsburger'
 export const SECCIONES = {
   hero: 'inicio',
   carta: 'carta',
+  nosotros: 'nosotros',
   pedidos: 'pedidos',
 } as const

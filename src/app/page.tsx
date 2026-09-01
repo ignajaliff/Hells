@@ -1,6 +1,6 @@
 import { Hero } from '@/components/sections/Hero'
-import { LasBurgas } from '@/components/sections/LasBurgas'
 import { LasBurgasV2 } from '@/components/sections/LasBurgasV2'
+import { Nosotros } from '@/components/sections/Nosotros'
 
 /**
  * Home — una landing es una composición de secciones.
@@ -10,11 +10,12 @@ export default function HomePage() {
   return (
     <>
       <Hero />
-      <LasBurgas />
-      {/* CLON EN PRUEBA (2026-08-31): la misma carta con la otra versión del
-          carrusel de móvil, para comparar las dos en la misma pantalla.
-          **Sacar esta línea cuando el cliente elija** — ver `LasBurgasV2`. */}
+      {/* La carta. El nombre del archivo conserva el "V2" de cuando convivían
+          las dos versiones en prueba (2026-09-01, el cliente eligió ésta). */}
       <LasBurgasV2 />
+      {/* Sobre nosotros — "Nuestra historia" (2026-09-01): los huecos de las
+          fotos van con borde punteado hasta que el cliente mande el material. */}
+      <Nosotros />
     </>
   )
 }

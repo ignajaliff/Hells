@@ -69,6 +69,8 @@
 
   --font-display: var(--font-display), 'Impact', sans-serif;
   --font-body: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  /* Splatink (graffiti). Sin acentos ni enies: solo palabras que no los lleven. */
+  --font-grafiti: var(--font-grafiti), 'Impact', sans-serif;
 
   --radius-marca: var(--radius);
 }
