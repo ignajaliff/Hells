@@ -106,7 +106,7 @@ npm run lint         → linter
 
 | Página | Ruta | Estado | Notas |
 |--------|------|--------|-------|
-| Home | `/` | En desarrollo | Hero, carta (tocadiscos) y «Nuestra historia» maquetadas; faltan las fotos de nosotros |
+| Home | `/` | En desarrollo | Hero, carta (tocadiscos), «Nuestra historia» y Work maquetadas; faltan las fotos de nosotros |
 | 404 | — | Maquetada | `app/not-found.tsx` |
 | Error global | — | Maquetada | `app/error.tsx` |
 
@@ -249,15 +249,52 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
     for personal use" — el uso comercial se compra (Splatink: USD 10 mín. a
     dadiomouse@gmail.com). La marca ya las usa como propias y las tiene en su Drive:
     confirmar con el cliente, y si el Drive trae otras versiones, reemplazar los woff2.
+* **SECCIÓN "WORK" (2026-09-02, pedido del cliente)**: `Work.tsx`, ancla `#work`
+  — el aviso de búsqueda de personal. El link del nav ya apunta ahí, así que el
+  único que sigue en `#` es BURGUERS. Un rótulo, el título "Sumate!", un párrafo
+  y un solo botón rojo al **formulario de Google** (`LINK_TRABAJO` en
+  `constants.ts`, con `target="_blank"` + `rel="noopener noreferrer"` por ser
+  dominio ajeno).
+  * **Va CENTRADA y en columna angosta** (`max-w-[46ch]`), al revés que la carta
+    y nosotros, que van pegadas a la izquierda: acá hay UNA sola acción y el
+    centrado la señala sin competencia.
+  * **FONDO ROJO HELL'S (`--primary`) — 2026-09-02, pedido del cliente**: era
+    carbón. Entre dos secciones negras (nosotros arriba, el footer abajo) el
+    bloque rojo corta la página y separa el aviso de la carta.
+    * **El texto va con `--primary-foreground`, NO con `--foreground`**: el color
+      de texto normal de la web es #f5f5f5 ("hueso") y sobre este rojo da
+      **4.21:1 — no llega** al 4.5:1 de AA para texto normal (medido; el párrafo
+      son 15.6px en móvil). `--primary-foreground` es blanco PURO y existe justo
+      para esto: 4.59:1 medido. En el resto de la web los dos se ven igual, sobre
+      el rojo no. Misma familia de regla que la sección roja anterior ("Las
+      Burgas"): sobre el rojo, el carbón da 3.40:1 y solo sirve para texto grande.
+    * **El botón se invirtió**: era rojo, o sea invisible sobre este fondo. Ahora
+      es un bloque CARBÓN con texto blanco (15.96:1 adentro) y el hover va al
+      negro — al naranja `--highlight` se ensuciaba sobre el rojo.
+  * **El copy ES del cliente** —a diferencia del hero y de nosotros, que siguen
+    sin aprobar—. Solo se le agregaron los acentos que faltaban (increíbles,
+    tenés, energía, dinámico, querés, dejá): la fuente de cuerpo los trae y sin
+    ellos se leían como erratas. El título "Sumate!" quedó tal cual lo escribió.
+  * **El botón NO usa el componente `Boton`**: ése va con `next/link` y
+    tipografía de cuerpo. Acá se repite el CTA primario del hero (rojo,
+    `font-display`, hover al naranja `--highlight`) porque es el mismo gesto de
+    marca. Blanco sobre `--primary` da 4.59:1, AA.
 * **SECCIÓN "NUESTRA HISTORIA" (2026-09-01, pedido del cliente)**: `Nosotros.tsx`,
   ancla `#nosotros` (el link del nav ya apunta ahí; quedan `#` BURGUERS y WORK).
   Composición pedida: título, imagen izquierda + texto derecha, texto izquierda +
   imagen derecha, y una imagen a TODO el ancho al pie. En móvil se apila en orden de
   lectura sin clases de `order`. **Las tres fotos no existen**: cada hueco es un marco
   de borde punteado rojo con leyenda numerada (pedido explícito del cliente:
-  "marcámelo con bordes y luego yo te digo qué colocar"). El copy es PROVISORIO, sin
-  aprobar — mismo estado que el del hero. Fondo NEGRO PURO como la carta (2026-09-01,
+  "marcámelo con bordes y luego yo te digo qué colocar"). **El copy lo dio el
+  cliente el 2026-09-02** y reemplazó al provisorio (el del hero sigue sin aprobar). Fondo NEGRO PURO como la carta (2026-09-01,
   pedido del cliente; primero fue carbón para separar tonalmente las secciones).
+  * **Sin rótulo y con el título en BLANCO (2026-09-02, pedido del cliente)**:
+    llevaba un "Sobre nosotros" en Splatink encima del título, y el título iba en
+    rojo como el de la carta. Los dos se fueron el mismo día: la sección arranca
+    directo con "NUESTRA HISTORIA" en blanco. El `rotulo` se sacó también de
+    `content/home.ts` para no dejar dato muerto (queda en el historial).
+    Splatink SIGUE EN USO: el rótulo "Buscamos crew" de Work es su único lugar
+    en la web, así que su licencia comercial sigue haciendo falta confirmarla.
 * **Next.js 15.5 y no 16**: el kit fija "15+" y 15.5 es la versión estable probada con
   Tailwind v4 y Motion 13. Revisar el salto a 16 recién cuando haya que tocar el stack.
 * **Grilla de "Las Burgas" (2026-08-24)**: 8 tarjetas cuadradas con la foto adentro y una
@@ -623,7 +660,37 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
 * **Hero sin foto en la versión inicial**: la atmósfera se resuelve con gradientes de brasa y
   grano (`brasa-glow` y `textura-grano` en `globals.css`) para no dejar un placeholder roto.
   Cuando llegue la foto de producto va con `next/image` + `priority` (es el LCP).
-* **Sin header ni footer todavía**: se agregan cuando existan más secciones que anclar.
+* **FOOTER (2026-09-02, pedido del cliente)**: `Footer.tsx` — "Contacto", los dos
+  cuadraditos de Instagram y WhatsApp, el mapa, la dirección, el logo y el crédito
+  de Nuvvora. Cierra la página; no es una sección con ancla, así que no entra en
+  `SECCIONES`. (Header propio sigue sin existir: el nav vive dentro del hero.)
+  * **TODO EL TEXTO EN BLANCO** (pedido del cliente). El rojo queda solo en los
+    bordes de los cuadraditos y del mapa: sobre negro `--primary` da 4.50:1
+    —justo AA— y acá el texto es chico; en blanco son 15.96:1.
+  * **EL MAPA ES REAL, no un marco marcado**: la dirección ya la dio el cliente,
+    así que va Google Maps embebido (`output=embed`, **sin API key ni dependencia
+    nueva**) con `loading="lazy"` — está al pie y no tiene por qué competir con
+    nada al abrir. **Se ve BLANCO y brillante contra el negro de la página**: se
+    dejó así a propósito para no distorsionar los colores reales del mapa, pero
+    si el cliente lo quiere oscuro se le aplica un `filter` de inversión.
+  * **La URL del mapa se ARMA con la dirección de `NEGOCIO`** (`MAPA_EMBED` y
+    `MAPA_LINK` en `constants.ts`), no escrita a mano: si cambia la dirección, el
+    mapa la sigue solo. Por lo mismo el texto de la dirección sale de ahí.
+  * **Los dos íconos son de TRAZO, dibujados a mano en el componente**: el logo
+    oficial de WhatsApp es sólido, y al lado del de Instagram (que es de línea) se
+    veía como una mancha. El `<svg>` con sus atributos de trazo se declara una
+    sola vez en `IconoCuadrado` y los dos salen con el mismo grosor.
+    El de Instagram va con primitivas (`rect` + `circle`) en vez de un path: más
+    nítido en tamaño chico y pesa una fracción.
+  * Los cuadrados miden 56px de lado — por encima de los 44px de un blanco de
+    toque cómodo en móvil.
+  * ⚠ **Instagram y WhatsApp apuntan a los placeholders** de `constants.ts` /
+    `defaults.ts` (`instagram.com/hellsburger`, `+5493411234567`): el cliente
+    todavía no dio los reales. Cambiarlos ahí y el footer los toma solo.
+* **LA DIRECCIÓN REAL LLEGÓ (2026-09-02)**: `Olascoaga 715, Mendoza`. Reemplaza a
+  los ⚠ de `NEGOCIO` (decía "Calle Falsa 123, Rosario, Santa Fe"), así que **el
+  JSON-LD de `Restaurant` ya no publica datos falsos**. El código postal quedó en
+  `5500` —el de Mendoza capital— pero **sin confirmar con el cliente**, sigue ⚠.
 * **Hero según el handoff de diseño "Hero HELLS v3" (2026-08-20)**: reemplazó al hero
   tipográfico plano del 2026-08-18 (que era solo logo + h1, sin CTAs). Ahora ocupa una
   pantalla exacta con seis capas: fondo ilustrado, nav con sticker, barra promo tipo
@@ -1010,13 +1077,15 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
 
 ## Estado actual del desarrollo
 
-**Última sesión**: 2026-09-01
+**Última sesión**: 2026-09-02
 **Próximo paso**: las tres fotos de «Nuestra historia» (el cliente dice qué va en
 cada marco punteado) y aprobar su copy; el sticker de Balak, que no vino (su nombre
-va en texto mientras tanto). La silueta de Satanás ya usa su PNG real (2026-09-01). Desktop sigue con la grilla; el cliente pidió no
-trabajarlo todavía. Después, las secciones que el nav anticipa (BURGUERS, NOSOTROS,
-WORK). Después, definir las secciones que siguen: el nav ya las anticipa (BURGUERS,
-NOSOTROS, WORK) pero todavía apuntan a `#`.
+va en texto mientras tanto). Desktop sigue con la grilla; el cliente pidió no
+trabajarlo todavía. Queda una sola sección que el nav anticipa y no existe:
+BURGUERS. Pendiente de decisión: **reponer los videos** — el cliente los quiere
+usar y la idea sobre la mesa es que la burga se arme sola al llegar al centro del
+tocadiscos, con la foto como botón para repetirlo (los 12 mp4 siguen en
+`public/burgas/`, sin referencia desde el código).
 
 **Lo que está funcionando**:
 * Arquitectura completa del proyecto (App Router, `src/` por secciones, tokens de diseño)
@@ -1038,9 +1107,12 @@ NOSOTROS, WORK) pero todavía apuntan a `#`.
 * Tipografías reales de la marca servidas con `next/font/local` (Ardillah Kafi /
   Splatink / Sveningsson)
 * Sección «Nuestra historia» (`Nosotros.tsx`) con los tres huecos de foto marcados
+* Sección «Work» (`Work.tsx`): el aviso de búsqueda con el link al formulario
+* Footer (`Footer.tsx`): contacto, mapa real de Olascoaga 715, logo y crédito
 
 **Lo que está pendiente**:
-* Datos reales del negocio (dirección, teléfono, WhatsApp, horarios, dominio) — marcados con ⚠
+* Datos reales del negocio (teléfono, WhatsApp, Instagram, horarios, dominio, CP) —
+  marcados con ⚠. **La dirección ya es real** (2026-09-02)
 * `public/og.jpg` (1200x630)
 * Logo **vectorial** (.svg): los PNG actuales se derivaron del JPG, sirven bien pero
   un SVG escalaría mejor y pesaría menos

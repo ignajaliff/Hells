@@ -39,16 +39,15 @@ export const heroContent = {
 /**
  * Links del navegador.
  *
- * `BURGUERS` y `WORK` todavía no tienen sección a la que apuntar: quedan en
- * `#` a propósito hasta que existan (`NOSOTROS` ya apunta a la suya,
- * 2026-09-01). `activo` marca cuál lleva el
- * óvalo rojo dibujado a mano.
+ * `BURGUERS` es el único que todavía no tiene sección a la que apuntar:
+ * queda en `#` a propósito hasta que exista (`NOSOTROS` y `WORK` ya apuntan
+ * a las suyas). `activo` marca cuál lleva el óvalo rojo dibujado a mano.
  */
 export const navLinks = [
   { label: 'Inicio', href: '#inicio', activo: true },
   { label: 'Burguers', href: '#', activo: false },
   { label: 'Nosotros', href: '#nosotros', activo: false },
-  { label: 'Work', href: '#', activo: false },
+  { label: 'Work', href: '#work', activo: false },
 ] as const
 
 /**
@@ -340,17 +339,50 @@ export const burgasContent = {
 } as const
 
 /**
- * Sobre nosotros — "Nuestra historia" (2026-09-01, pedido del cliente).
- * COPY PROVISORIO sin aprobar — mismo estado que el del hero. Las fotos
- * tampoco están: los huecos se dibujan con borde punteado en la sección y el
- * cliente va a decir qué va en cada uno.
+ * Sobre nosotros — "Nuestra historia".
+ * EL COPY ES DEL CLIENTE (2026-09-02) y reemplaza al provisorio que había
+ * escrito yo: ya no es placeholder. Solo se le corrigieron los acentos y un
+ * dedazo ("de3" -> "de"), y se escribió "Hell's" con apóstrofo, como el logo.
+ * Los dos párrafos son UN texto partido en el corte natural —el origen, y
+ * después el objetivo— porque la sección los alterna con las fotos.
+ * Las fotos siguen sin estar: los huecos van con borde punteado.
  */
 export const nosotrosContent = {
-  // En Splatink (font-grafiti): sin acentos a propósito, la fuente no trae.
-  rotulo: 'Sobre nosotros',
+  // Tenía un rótulo "Sobre nosotros" en Splatink encima del título; el
+  // cliente lo sacó el 2026-09-02 (queda en el historial).
   titulo: 'Nuestra historia',
   parrafo1:
-    'Hell’s nació de noche, entre amigos, fuego y una idea fija: hacer la burger que nosotros queríamos comer. Lo que empezó en una parrilla prestada terminó siendo un culto con doce demonios en la carta.',
+    'Hell’s Burger nació de las ganas de dos amigos, Gastón y Gonzalo, de apostar por una idea real.',
   parrafo2:
-    'Cocinamos a la brasa, sin apuro y sin vueltas: pan de papa, carne smasheada y lo que cada demonio pide. La Demons Crew somos nosotros — y vos, cada vez que caés en la tentación.',
+    'Más que hacer buenas hamburguesas, nuestro objetivo siempre fue crear el lugar ideal para encontrarse. Un espacio donde las charlas se alargan y los momentos se comparten.',
+} as const
+
+/**
+ * Work — "Sumate!" (2026-09-02, texto y link aportados por el cliente).
+ * A diferencia del copy del hero y de nosotros, ESTE SÍ ESTÁ APROBADO: lo
+ * escribió el cliente. Solo se le pusieron los acentos que faltaban
+ * (increíbles, tenés, energía, dinámico, querés, dejá) — la fuente de cuerpo
+ * los trae y sin ellos se leen como erratas.
+ */
+export const workContent = {
+  // En Splatink (font-grafiti): sin acentos a propósito, la fuente no trae.
+  rotulo: 'Buscamos crew',
+  titulo: 'Sumate!',
+  texto:
+    'Hacemos hamburguesas increíbles y necesitamos un equipo a la altura. Si tenés buena energía, te gusta el ritmo dinámico y querés romperla, dejá tu CV y sumate a HELLS.',
+  cta: 'Unite al equipo',
+} as const
+
+/**
+ * Footer (2026-09-02, pedido del cliente).
+ * La dirección NO se escribe acá: sale de `NEGOCIO` en `constants.ts`, que es
+ * la única fuente de verdad de los datos del negocio (el mapa la usa también).
+ */
+export const footerContent = {
+  titulo: 'Contacto',
+  // Los rótulos de los dos cuadraditos: solo los lee un lector de pantalla.
+  instagram: 'Seguinos en Instagram',
+  whatsapp: 'Escribinos por WhatsApp',
+  mapa: 'Mapa con la ubicación del local',
+  creditos: 'Made By Nuvvora',
 } as const

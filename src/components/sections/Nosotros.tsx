@@ -15,31 +15,27 @@ import { SECCIONES } from '@/lib/constants'
  * se vea exactamente dónde cae cada una — cuando lleguen, cada `MarcoFoto` se
  * reemplaza por un `next/image` con el mismo aspect ratio.
  *
- * El rótulo va en Splatink (`font-grafiti`) — el rol que la comunidad le dio:
- * "detalles, aclaraciones y a veces títulos". "Sobre nosotros" no lleva
- * tildes, que es la condición para usarla (la fuente no trae acentos).
+ * EL TÍTULO VA EN BLANCO (2026-09-02, pedido del cliente): antes era rojo,
+ * como el de la carta. Llevaba encima un rótulo "Sobre nosotros" en Splatink
+ * (`font-grafiti`) que el cliente pidió sacar el mismo día — la sección
+ * arranca directo con el título.
  *
  * Fondo NEGRO PURO (#000), igual que la carta (2026-09-01, pedido del
  * cliente — primero fue carbón para separar tonalmente las secciones).
  */
 export function Nosotros() {
-  const { rotulo, titulo, parrafo1, parrafo2 } = nosotrosContent
+  const { titulo, parrafo1, parrafo2 } = nosotrosContent
 
   return (
     <section
       id={SECCIONES.nosotros}
       className="relative overflow-hidden bg-black px-4 py-20 sm:px-8 sm:py-28 lg:px-14"
     >
-      <header className="mb-12 sm:mb-16">
-        <p className="font-grafiti text-[clamp(18px,5vw,30px)] tracking-wide text-accent">
-          {rotulo}
-        </p>
-        {/* Mismo gesto que el título de la carta: se sale un poco por la
-            izquierda para que la sección no se lea como una caja prolija. */}
-        <h2 className="-ml-[2%] mt-1 font-display text-[clamp(44px,13vw,150px)] uppercase leading-[0.9] tracking-[-0.02em] text-primary">
-          {titulo}
-        </h2>
-      </header>
+      {/* Mismo gesto que el título de la carta: se sale un poco por la
+          izquierda para que la sección no se lea como una caja prolija. */}
+      <h2 className="-ml-[2%] mb-12 font-display text-[clamp(44px,13vw,150px)] uppercase leading-[0.9] tracking-[-0.02em] text-foreground sm:mb-16">
+        {titulo}
+      </h2>
 
       {/* Fila 1: imagen a la izquierda, texto a la derecha. */}
       <div className="grid gap-6 sm:gap-8 lg:grid-cols-2 lg:items-center lg:gap-12">

@@ -1,6 +1,8 @@
 import { Hero } from '@/components/sections/Hero'
 import { LasBurgasV2 } from '@/components/sections/LasBurgasV2'
 import { Nosotros } from '@/components/sections/Nosotros'
+import { Work } from '@/components/sections/Work'
+import { Footer } from '@/components/sections/Footer'
 
 /**
  * Home — una landing es una composición de secciones.
@@ -16,6 +18,10 @@ export default function HomePage() {
       {/* Sobre nosotros — "Nuestra historia" (2026-09-01): los huecos de las
           fotos van con borde punteado hasta que el cliente mande el material. */}
       <Nosotros />
+      {/* Work — la búsqueda de personal, con el link al formulario. */}
+      <Work />
+      {/* El pie: contacto, mapa, logo y el crédito de Nuvvora. */}
+      <Footer />
     </>
   )
 }
