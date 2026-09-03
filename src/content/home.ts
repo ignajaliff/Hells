@@ -65,16 +65,16 @@ export const marqueeFrases = [
 ] as const
 
 /**
- * La mascota. `diablo.png` viene del handoff de diseño (2026-08-20) y
- * `diablo-guino.png` del sticker fotografiado que ya estaba en el proyecto.
- * Son cortes de origen distinto, así que se RE-ENCUADRARON a una caja común
- * de 620x699 alineando por el ancho del dibujo: sin eso la cabeza saltaba al
- * cruzarlas para el guiño. Verificado: 95.7% de silueta compartida.
- * Decorativas siempre: van con alt="".
+ * El esqueleto que se apoya sobre la burger del hero (2026-09-02, dibujo del
+ * cliente). Reemplaza a la mascota del diablito, que se borró ese mismo día.
+ * El PNG venía en 4752x3358 con el dibujo ocupando 2191x2407 en el medio: se
+ * recortó a su contorno y se pasó a WebP (500KB -> 105KB).
+ * Decorativo: va con alt="".
  */
-export const diabloContent = {
-  abierto: '/diablo.png',
-  guino: '/diablo-guino.png',
+export const esqueletoContent = {
+  src: '/esqueleto.webp',
+  ancho: 1000,
+  alto: 1099,
 } as const
 
 /**
@@ -355,6 +355,28 @@ export const nosotrosContent = {
     'Hell’s Burger nació de las ganas de dos amigos, Gastón y Gonzalo, de apostar por una idea real.',
   parrafo2:
     'Más que hacer buenas hamburguesas, nuestro objetivo siempre fue crear el lugar ideal para encontrarse. Un espacio donde las charlas se alargan y los momentos se comparten.',
+  /**
+   * Las fotos las mandó el cliente el 2026-09-02 y reemplazan a los tres
+   * marcos punteados. Las tres venían VERTICALES (2:3, ~1.7MB cada una):
+   * `local` se recortó a 16:9 centrada en el cartel de neón (más ancho no
+   * entra: el cartel se come el 29% del alto) y las otras dos a 4:5, que es
+   * la proporción con la que van a media columna. Los originales están en
+   * `originales/nosotros/`.
+   */
+  fotos: {
+    local: {
+      src: '/nosotros-1.webp',
+      alt: 'El cartel de neón de Hell’s Burger encendido en la puerta del local, de noche',
+    },
+    izquierda: {
+      src: '/nosotros-2.webp',
+      alt: 'Dos manos sosteniendo una hamburguesa de pollo crocante sobre una bandeja de papas',
+    },
+    derecha: {
+      src: '/nosotros-3.webp',
+      alt: 'Dos manos sosteniendo una hamburguesa con cheddar frente a las luces de la calle',
+    },
+  },
 } as const
 
 /**

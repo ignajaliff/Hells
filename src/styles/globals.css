@@ -67,10 +67,18 @@
   --color-hundida: hsl(var(--hundida));
   --color-hundida-mas: hsl(var(--hundida-mas));
 
-  --font-display: var(--font-display), 'Impact', sans-serif;
-  --font-body: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display), 'Impact', sans-serif, var(--font-emoji);
+  /* Las tres fuentes de marca NO traen emoji, y el texto de la web sí los
+     usa (las reseñas de Google, el "🥱" del remate, el "👇"). Sin una fuente
+     de emoji en la cadena, el navegador dibuja un cuadradito vacío: se vio
+     en la reseña de vittorio, con 🫨 y 🤤 como cajas. Van al FINAL de cada
+     cadena, así solo entran donde la fuente de marca no tiene glifo. */
+  --font-emoji: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji',
+    'Segoe UI Symbol';
+  --font-body: var(--font-body), ui-sans-serif, system-ui, sans-serif,
+    var(--font-emoji);
   /* Splatink (graffiti). Sin acentos ni enies: solo palabras que no los lleven. */
-  --font-grafiti: var(--font-grafiti), 'Impact', sans-serif;
+  --font-grafiti: var(--font-grafiti), 'Impact', sans-serif, var(--font-emoji);
 
   --radius-marca: var(--radius);
 }
@@ -83,6 +91,22 @@
    `body` (sobrevivía solo `font-family`) y la página quedaba en blanco.
    Al no estar en un layer, estas reglas ganan siempre — que es lo que
    corresponde para el fondo de la marca. */
+/* ALTURA DEL NAV. Está acá y no suelta en el componente porque el hero la
+   RESTA para que la primera pantalla siga midiendo 100svh exactos: el nav
+   dejó de estar adentro del hero (2026-09-02, al hacerlo sticky) y sin esta
+   compensación la página arrancaría más alta que la pantalla.
+   Es un valor FIJO, no automático: `calc()` no puede leer el alto real de un
+   elemento. Si cambia el contenido del nav, medir y actualizar acá. */
+:root {
+  --nav: 66px;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --nav: 92px;
+  }
+}
+
 html {
   background-color: hsl(var(--background));
 }

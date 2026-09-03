@@ -22,13 +22,62 @@ import { MAPA_EMBED, MAPA_LINK, NEGOCIO } from '@/lib/constants'
  *
  * La dirección y los links salen de `constants.ts`/`defaults.ts`, no escritos
  * acá: son datos del negocio y viven en un solo lugar.
+ *
+ * LAS LLAMAS DEL TECHO (2026-09-02, pedido del cliente): una banda dentada
+ * colgando del borde superior, con los picos hacia abajo. Así el hero y el pie
+ * se cierran con el mismo gesto, uno arriba y otro invertido.
+ * DIBUJO PROPIO (`llamasrojas.png`, aportado por el cliente el mismo día): son
+ * picos MACIZOS rojos CON CONTORNO NARANJA, no los del hero —que son negros con
+ * contorno rojo y sobre este fondo negro casi desaparecían—.
  */
 export function Footer() {
   const { titulo, instagram, whatsapp, mapa, creditos } = footerContent
 
   return (
-    <footer className="relative overflow-hidden bg-black px-4 pb-12 pt-20 sm:px-8 sm:pb-14 sm:pt-28 lg:px-14">
-      <div className="mx-auto flex max-w-[520px] flex-col items-center text-center">
+    <footer className="relative overflow-hidden bg-black px-4 pb-12 pt-[calc(var(--llamas)_+_56px)] [--llamas:min(max(52px,11svh),96px)] sm:px-8 sm:pb-14 sm:pt-[calc(var(--llamas)_+_80px)] lg:px-14 lg:[--llamas:min(10svh,110px)]">
+      {/* LAS LLAMAS, colgando del techo y apuntando hacia abajo.
+
+          Mismo mecanismo que la banda del hero —mosaico (`repeat-x` +
+          `background-size: auto 100%`) y altura—, pero con OTRO DIBUJO: picos
+          macizos rojos en vez de los negros con contorno. Los del hero, sobre
+          este fondo negro, quedaban casi invisibles.
+
+          El PNG del cliente venía con fondo blanco y 3358px de alto para un
+          dibujo de 624. Se recortó al dibujo y se le sacó el blanco por el
+          CANAL MÁS BAJO, no por "rojez": el dibujo tiene DOS colores y el
+          naranja tiene su mínimo en 30, así que normalizando por 225 los dos
+          quedan opacos y solo el antialias es semitransparente. Quién es
+          quién se decide por `G - B` (el naranja lo tiene en 117, el rojo y
+          el blanco en 0). Quedó en `zocalo-llamas-rojas-2.webp` (2560x352,
+          47KB); el original está en `originales/`.
+
+          EL ROJO SE REPINTÓ AL DE MARCA, EL NARANJA NO: el relleno venía en
+          #ff0000 puro y `--primary` es #e3211f — importa porque la sección de
+          arriba (Work) es de ese rojo y la banda arranca pegada a ella, así
+          que dos rojos distintos tocándose se verían como una línea. El
+          contorno naranja (255,147,30) se deja tal cual: es ilustración, no
+          UI, el mismo criterio que las llamas del hero y la mascota. Además
+          la BASE del dibujo no tiene contorno (medido, 0 de 112 muestras), o
+          sea que dado vuelta el borde que toca a Work es rojo limpio.
+
+          EMPALMA consigo mismo: los dos bordes caen en el valle con 2px de
+          diferencia sobre 625 (medido), así que el mosaico no tiene costura.
+
+          `-scale-y-100` y no `rotate-180`: el giro de 180° espejaría también
+          en horizontal, y acá solo hay que dar vuelta el dibujo de arriba a
+          abajo. Como el mosaico se arma ANTES de la transformación, el patrón
+          sigue empalmando consigo mismo igual que en el hero.
+
+          La ALTURA vive en `--llamas`, declarada en el footer: el padding de
+          arriba la reutiliza (`calc(var(--llamas) + 56px)`) para que el
+          contenido arranque siempre debajo de las llamas. Si se cambia el
+          alto, se cambia en un solo lugar y el aire acompaña solo. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-[var(--llamas)] -scale-y-100 select-none bg-[url('/zocalo-llamas-rojas-2.webp')] bg-[length:auto_100%] bg-repeat-x"
+      />
+
+      <div className="relative mx-auto flex max-w-[520px] flex-col items-center text-center">
         <h2 className="font-display text-[clamp(38px,11vw,72px)] uppercase leading-none tracking-[0.01em] text-foreground">
           {titulo}
         </h2>

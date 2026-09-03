@@ -13,8 +13,8 @@ export const NEGOCIO = {
   provincia: 'Mendoza', // dato real del cliente (2026-09-02)
   pais: 'AR',
   direccion: 'Olascoaga 715', // dato real del cliente (2026-09-02)
-  codigoPostal: '5500', // ⚠ el CP de Mendoza capital, SIN confirmar con el cliente
-  telefono: '+5493411234567', // ⚠
+  codigoPostal: '5502', // de la ficha de Google Maps del local (M5502), 2026-09-02
+  telefono: '+542615990627', // de la ficha de Google Maps (0261 599-0627), 2026-09-02. ⚠ NO se sabe si es WhatsApp
   email: 'hola@hellsburger.com.ar', // ⚠
   instagram: 'https://instagram.com/hellsburger', // ⚠
 } as const
@@ -43,6 +43,12 @@ const DIRECCION_COMPLETA = encodeURIComponent(
 export const MAPA_EMBED = `https://www.google.com/maps?q=${DIRECCION_COMPLETA}&output=embed`
 export const MAPA_LINK = `https://www.google.com/maps/search/?api=1&query=${DIRECCION_COMPLETA}`
 
+/**
+ * La ficha del local en Google Maps (por su CID), donde estan todas las
+ * resenas. Es el "ver todas" de la seccion de resenas.
+ */
+export const LINK_RESENAS = 'https://maps.google.com/?cid=3607505650167350392'
+
 export const LINK_TRABAJO =
   'https://docs.google.com/forms/d/e/1FAIpQLScFG92hKd4tsXul7qO1qgAfl5ZdphslI3c0Im4YncVF2tFtiw/viewform'
 
@@ -52,5 +58,6 @@ export const SECCIONES = {
   carta: 'carta',
   nosotros: 'nosotros',
   work: 'work',
+  resenas: 'resenas',
   pedidos: 'pedidos',
 } as const

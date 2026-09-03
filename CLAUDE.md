@@ -184,6 +184,24 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
 
 ## Trampas del entorno de desarrollo
 
+* **Las tres fuentes de marca NO traen emoji** y el contenido sí los usa (las
+  reseñas de Google, el 🥱 del remate, el 👇). El token de cada fuente en
+  `globals.css` lleva ahora una cadena de emoji AL FINAL (`--font-emoji`), así
+  solo entra donde la fuente de marca no tiene glifo.
+  **Eso no alcanza si el emoji es demasiado nuevo**: 🫨 (U+1FAE8, Unicode 15 de
+  2022) se dibujaba igual como cuadradito porque la fuente del sistema no lo
+  tiene. Se quitó de la reseña que lo usaba.
+  **Cómo detectarlo sin ojo**: medir el carácter en un `<canvas>` y compararlo
+  con el ancho del "tofu" (`￿`); si coinciden, no hay glifo. Los otros
+  nueve emojis del contenido pasaron la prueba.
+
+* **Tailwind v4 pone las escalas en la propiedad `scale`, NO en `transform`**:
+  `getComputedStyle(el).transform` devuelve `none` aunque `-scale-y-100` esté
+  aplicada y funcionando. Pasó al verificar las llamas del footer: la medición
+  decía que no se había dado vuelta y la captura mostraba que sí.
+  **Al verificar transformaciones, mirar `scale`/`rotate`/`translate` —o la
+  captura— antes de dar por roto algo que anda.**
+
 * **NUNCA correr `npm run build` con el dev server levantado**: los dos escriben en el
   mismo `.next/`. El build borra y reescribe `.next/static/`, y el dev server queda
   apuntando a archivos que ya no existen → **el CSS y el JS dan 404 y la página se sirve
@@ -206,6 +224,46 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
 ---
 
 ## Decisiones técnicas tomadas
+
+* **NAV STICKY, LOGO EN EL NAV Y ESQUELETO SOBRE LA BURGER (2026-09-02, pedido
+  del cliente)** — cuatro cambios que van juntos:
+  * **EL NAV SALIÓ DEL HERO Y ES STICKY**: ahora se monta en `page.tsx`, como
+    hermano del hero. **No podía quedarse adentro**: el hero tiene
+    `overflow-hidden` —lo necesita, la burger sangra por los costados— y un
+    ancestro con overflow convierte al sticky en sticky RESPECTO DE ESE
+    ANCESTRO, o sea que el nav se despegaría al terminar el hero.
+  * **LA PÁGINA NO CAMBIÓ DE TAMAÑO**, que era el requisito: el nav tiene altura
+    FIJA en el token `--nav` (66px móvil / 92px desktop, medidos) y el hero la
+    resta de su `100svh`. Verificado: nav + hero = 844 en 390x844 y 900 en
+    1440x900, o sea exactamente el viewport, igual que antes.
+    `calc()` no puede leer el alto real de un elemento, así que el token es un
+    número a mano: **si cambia el contenido del nav, re-medir y actualizarlo.**
+  * **EL STICKER "DEMONS CREW" SE FUE Y EN SU LUGAR VA EL LOGO** de marca
+    (`logo.png`, el mismo lockup). Por eso mismo **el logo se sacó del hero**:
+    tenerlo en los dos lados lo duplicaba. Eso liberó ~134px en móvil y es lo
+    que hace subir al h1 y a los CTAs.
+    * El desplegable de móvil pasó a `absolute top-full`: con el nav de altura
+      fija, si el menú fuera parte del flujo lo estiraría y rompería la cuenta.
+    * En móvil el h1 quedaba arrancando EXACTAMENTE donde termina la barra promo
+      (medido: 107px los dos). Se le puso `pt-5`, que es el aire que antes daba
+      el logo. **No agranda el hero**: se lo come el hueco libre que queda sobre
+      la burger, que va con `mt-auto`.
+  * **EL ESQUELETO SE APOYA SOBRE LA BURGER** (`esqueleto.webp`, dibujo del
+    cliente). Reemplaza a la mascota del diablito, **que se borró** junto con
+    `diablo.png`, `diablo-guino.png` y `DiabloHero.tsx`.
+    * **Se posiciona contra la CAJA DE LA BURGER, no contra el viewport**: el
+      wrapper de la burger dejó de ser `display: contents` en móvil y pasó a ser
+      una caja real, con las clases que antes tenía la imagen (el layout no
+      cambió). El esqueleto va `absolute` adentro, con `bottom` y `w` en %: si
+      la burger cambia de tamaño, la sigue sola. Esa era justo la deuda que
+      arrastraba el diablito, que estaba anclado al viewport.
+    * **Es más chico en desktop en proporción** (36% del ancho de la burger
+      contra 52% en móvil): ahí la burger mide 720px y a la escala de móvil el
+      esqueleto se saldría del hero por arriba.
+    * `z-[6]`: por encima de la burger y también del zócalo de llamas (`z-[5]`),
+      que si no le comería los pies en pantallas bajas.
+    * El PNG venía en 4752x3358 con el dibujo ocupando 2191x2407 en el medio:
+      se recortó a su contorno y se pasó a WebP. **500KB → 105KB.**
 
 * **LA BURGER DEL HERO ES LA SATANÁS + TAMAÑO FIJO EN MÓVIL (2026-09-01, pedido
   del cliente)**: `burger-satanas.webp` (1600x1108, 195KB) reemplaza a
@@ -249,6 +307,63 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
     for personal use" — el uso comercial se compra (Splatink: USD 10 mín. a
     dadiomouse@gmail.com). La marca ya las usa como propias y las tiene en su Drive:
     confirmar con el cliente, y si el Drive trae otras versiones, reemplazar los woff2.
+* **SECCIÓN "RESEÑAS" (2026-09-02, pedido del cliente)**: `Resenas.tsx`, ancla
+  `#resenas`, entre la carta y «Nuestra historia». La intro es el TEXTO DEL
+  CLIENTE tal cual (el cliché "somos dos amigos…" en itálica atenuada y entre
+  comillas, cortado por un "Ufff, qué aburrido 🥱" en display que hace de título)
+  y debajo diez reseñas de Google en una fila que se desplaza sola.
+  * **LAS RESEÑAS SON REALES**, sacadas de la ficha de Google Maps del local
+    (4,9 con 28 reseñas con texto al 2026-09-02). El cliente dijo "si no podés
+    conseguirlas, inventalas" — no hizo falta, y mejor: reseñas inventadas en la
+    web de un negocio es justo lo que no conviene publicar.
+    * **Cómo se consiguieron**: la búsqueda de Google (`#lrd=…`) y su endpoint
+      `/async/reviewDialog` devuelven CAPTCHA / 404 a un navegador automatizado.
+      Lo que funciona es Google Maps con el bloque `data=` completo del lugar más
+      `!9m1!1b1` al final, que abre el panel de reseñas sin login (URL en
+      `content/resenas.ts`). El ID del lugar es `0x967e093f49e06e95:
+      0x32106f4683708478` (CID `3607505650167350392`). Ojo: cada reseña rinde
+      varios nodos `[data-review-id]` — para saber cuántas hay, contar IDs únicos
+      (contando nodos, el scroll de carga se cortaba en 5).
+    * **Criterio de selección**: 5 estrellas, completas (Google corta algunas con
+      "…"), 60–480 caracteres para que entren en la tarjeta, variadas (turistas,
+      delivery, burgas por nombre, el dip, la atención) y **sin la que critica a
+      un competidor con nombre**. Quedaron afuera una de 1 estrella y tres de 4.
+    * **Texto y nombre VERBATIM**: como los escribió cada persona, con sus
+      mayúsculas y emojis; solo se unieron los saltos de línea. SIN fecha a
+      propósito: Google las muestra relativas ("hace 2 meses") y quedarían viejas.
+  * **El carrusel es el MISMO mecanismo que la barra promo**: tarjetas duplicadas
+    y la pista se desplaza -50% con el `@keyframes marquee` que ya existía. La
+    segunda copia va `aria-hidden`. Se pausa con el mouse encima; con
+    `prefers-reduced-motion` queda quieta, scrolleable a mano, y la copia
+    duplicada se oculta. Duración = 7s × cantidad de reseñas, así la velocidad
+    no cambia si se agregan o sacan. Las tarjetas tienen ANCHO FIJO (no `min-w`):
+    el `-50%` solo cierra si las dos copias miden exactamente lo mismo.
+  * **LAS TARJETAS SON CLONES DE LAS DE GOOGLE MAPS, en oscuro** (2ª iteración
+    del mismo día, pedido del cliente: "exactamente como Google en formato
+    oscuro"). Viven en `ui/TarjetaResena.tsx`. La anatomía NO se hizo de memoria:
+    se sacó inspeccionando una tarjeta real con `getComputedStyle` —avatar 32px,
+    nombre 16px/20, meta 13px gris, estrellas 16px + fecha en la MISMA fila,
+    texto 14px/21 y el "Más" en azul-link—.
+    * **El ámbar de las estrellas es el `#ffbb29` EXACTO de Google**, no el
+      `--highlight` de marca: es el sello de "esto es de Google" y cambiarlo lo
+      disfraza. Da 10.27:1 sobre el carbón de la tarjeta (medido).
+    * **El avatar es la INICIAL sobre un disco de color**, que es lo que Google
+      dibuja cuando no hay foto. Las fotos reales son URLs de
+      `googleusercontent` que caducan, y además implicarían servir la cara de
+      esas personas desde acá. El color sale de la suma de caracteres del
+      nombre, así cada persona tiene siempre el mismo.
+    * Quedaron afuera el menú de tres puntos, el "¿Te resultó útil?" y las
+      fotos: son controles de Google, no información.
+    * El fondo de la sección pasó a NEGRO PURO y las tarjetas a carbón
+      (`--background`): antes era al revés y sobre el negro se les perdía el
+      cuerpo. Ahora la sección es el fondo y la tarjeta la superficie elevada,
+      igual que en Google.
+  * Viven en `content/resenas.ts`, archivo propio: `home.ts` ya pasa las 300
+    líneas.
+  * **De paso llegaron DOS datos reales más de la ficha de Maps**: el CP es
+    **M5502** (yo había puesto 5500 a ojo) y el teléfono es **0261 599-0627**.
+    Actualizados en `constants.ts`. ⚠ NO se sabe si ese teléfono es WhatsApp:
+    `DEFAULTS.whatsapp.numero` sigue en placeholder hasta que el cliente confirme.
 * **SECCIÓN "WORK" (2026-09-02, pedido del cliente)**: `Work.tsx`, ancla `#work`
   — el aviso de búsqueda de personal. El link del nav ya apunta ahí, así que el
   único que sigue en `#` es BURGUERS. Un rótulo, el título "Sumate!", un párrafo
@@ -684,6 +799,45 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
     nítido en tamaño chico y pesa una fracción.
   * Los cuadrados miden 56px de lado — por encima de los 44px de un blanco de
     toque cómodo en móvil.
+  * **LLAMAS EN EL TECHO (2026-09-02, pedido del cliente)**: una banda dentada
+    colgando del borde superior y espejada, con los picos hacia abajo. El hero y
+    el pie cierran con el mismo gesto, uno derecho y otro invertido.
+    * **DIBUJO PROPIO, no el del hero** (`llamasrojas.png`, aportado por el
+      cliente el mismo día → `public/zocalo-llamas-rojas-2.webp`): picos MACIZOS
+      rojos CON CONTORNO NARANJA. Los del hero son negros con contorno rojo y
+      sobre el #000 del footer quedaban casi invisibles. El mecanismo es el mismo
+      (mosaico `repeat-x` + `background-size: auto 100%`, misma altura).
+      El cliente mandó DOS versiones el mismo día: primero sin contorno (quedó
+      en `originales/llamasrojas.png`) y después con el contorno naranja
+      (`originales/llamasrojas-contorno.png`), que es la que se usa. El
+      `-2` del nombre es por eso: URL nueva = caché imposible.
+    * **EL ROJO SE REPINTÓ AL DE MARCA, EL NARANJA NO**: el relleno venía en
+      #ff0000 puro y `--primary` es #e3211f. Importa porque la sección de arriba
+      (Work) es de ese rojo y la banda arranca pegada a ella: con dos rojos
+      distintos se vería una línea horizontal donde termina Work. Repintado, el
+      rojo es CONTINUO y los picos negros muerden hacia arriba — se lee como si
+      Work tuviera el borde dentado. El contorno naranja (255,147,30) se deja
+      tal cual: es ilustración, no UI — mismo criterio que las llamas del hero y
+      la mascota. Y la BASE no tiene contorno (medido, 0 de 112 muestras), así
+      que dado vuelta el borde que toca a Work es rojo limpio.
+    * **El blanco se saca por el CANAL MÁS BAJO, no por "rojez"**: con dos
+      colores, el naranja tiene su mínimo en 30 y el rojo en 0, así que
+      normalizando por 225 los dos quedan opacos y solo el antialias es
+      semitransparente. Quién es quién se decide por `G - B` (naranja 117, rojo
+      y blanco 0). Con el método de "rojez" de la primera versión el contorno
+      habría salido semitransparente. 141KB → 47KB.
+    * **EMPALMA consigo mismo**: los dos bordes caen en el valle con 2px de
+      diferencia sobre 625 (medido). Verificado en el render: en 1440 entran 2.2
+      repeticiones y no se ve la juntura.
+    * **Va `-scale-y-100` y NO `rotate-180`**: el giro de 180° espejaría también
+      en horizontal, y acá solo hay que dar vuelta el dibujo de arriba a abajo.
+      El mosaico se arma ANTES de la transformación, así que el patrón sigue
+      empalmando consigo mismo igual que en el hero.
+    * **La altura vive en `--llamas`**, declarada en el `<footer>`: el padding de
+      arriba la reutiliza (`calc(var(--llamas) + 56px)`) para que el contenido
+      arranque siempre por debajo. Si se cambia el alto, se cambia en un solo
+      lugar y el aire acompaña solo. Verificado: 56px de aire en móvil, 80 en
+      desktop, sin tapar el título.
   * ⚠ **Instagram y WhatsApp apuntan a los placeholders** de `constants.ts` /
     `defaults.ts` (`instagram.com/hellsburger`, `+5493411234567`): el cliente
     todavía no dio los reales. Cambiarlos ahí y el footer los toma solo.
@@ -1097,9 +1251,6 @@ tocadiscos, con la foto como botón para repetirlo (los 12 mp4 siguen en
 * Favicon generado desde el isotipo (`src/app/icon.png`)
 * Metadata base, Open Graph, `sitemap.ts`, `robots.ts` y JSON-LD de `Restaurant`
 * 404 y error boundary diseñados con la estética del sitio
-* Mascota en el hero (`components/ui/DiabloHero.tsx`): guiña cada 4.2s y se
-  desvanece al salir del hero vía `IntersectionObserver`. La web entra directo al
-  hero
 * Pantalla de carga (`components/ui/PantallaCarga.tsx`): la línea de **neón rojo** forma
   el logo —los 28 trazos crecen en paralelo y cierran todos juntos— y al cerrar se
   solidifica (3.0s). Los trazos, ordenados y con su largo precalculado, están en
@@ -1107,12 +1258,13 @@ tocadiscos, con la foto como botón para repetirlo (los 12 mp4 siguen en
 * Tipografías reales de la marca servidas con `next/font/local` (Ardillah Kafi /
   Splatink / Sveningsson)
 * Sección «Nuestra historia» (`Nosotros.tsx`) con los tres huecos de foto marcados
+* Sección «Reseñas» (`Resenas.tsx`): 10 reseñas reales de Google en loop
 * Sección «Work» (`Work.tsx`): el aviso de búsqueda con el link al formulario
 * Footer (`Footer.tsx`): contacto, mapa real de Olascoaga 715, logo y crédito
 
 **Lo que está pendiente**:
-* Datos reales del negocio (teléfono, WhatsApp, Instagram, horarios, dominio, CP) —
-  marcados con ⚠. **La dirección ya es real** (2026-09-02)
+* Datos reales del negocio (WhatsApp, Instagram, horarios, dominio) — marcados con
+  ⚠. **Dirección, CP y teléfono ya son reales** (2026-09-02, de la ficha de Maps)
 * `public/og.jpg` (1200x630)
 * Logo **vectorial** (.svg): los PNG actuales se derivaron del JPG, sirven bien pero
   un SVG escalaría mejor y pesaría menos
