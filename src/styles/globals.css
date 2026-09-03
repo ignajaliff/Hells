@@ -246,10 +246,14 @@ body {
   }
 }
 
-/* Con `prefers-reduced-motion` la barra se queda quieta: un texto en loop
-   continuo es justo lo que molesta a quien pidió no ver movimiento. */
+/* Con `prefers-reduced-motion` la pista se queda quieta: un loop continuo es
+   justo lo que molesta a quien pidió no ver movimiento.
+   VA CON `!important` A PROPÓSITO: los carruseles que calculan su duración
+   según la cantidad de items (reseñas, tira de fotos) la fijan con `style`
+   inline, y un estilo inline le gana a cualquier clase. Sin el `!important`
+   esta regla no hacía nada en esos dos y el movimiento seguía. */
 @media (prefers-reduced-motion: reduce) {
   .marquee-pista {
-    animation: none;
+    animation: none !important;
   }
 }

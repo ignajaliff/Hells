@@ -184,6 +184,14 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
 
 ## Trampas del entorno de desarrollo
 
+* **Un `style` inline le gana a la regla de `prefers-reduced-motion`**: los
+  carruseles que calculan su duración según la cantidad de items (reseñas, tira
+  de fotos) la fijan con `style={{ animation: ... }}`, y eso pisaba al
+  `.marquee-pista { animation: none }` de `globals.css` — o sea que quien pidió
+  no ver movimiento lo seguía viendo. **La regla va con `!important`**
+  (2026-09-03). La barra promo no estaba afectada: usa una clase de Tailwind,
+  no un inline.
+
 * **Las tres fuentes de marca NO traen emoji** y el contenido sí los usa (las
   reseñas de Google, el 🥱 del remate, el 👇). El token de cada fuente en
   `globals.css` lleva ahora una cadena de emoji AL FINAL (`--font-emoji`), así
@@ -224,6 +232,37 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
 ---
 
 ## Decisiones técnicas tomadas
+
+* **LA TIRA DE FOTOS REEMPLAZA A «NUESTRA HISTORIA» (2026-09-03, pedido del
+  cliente)**: `TiraFotos.tsx` (antes `Nosotros.tsx`, borrado). Se fueron el
+  título y los dos párrafos —el copy aprobado del cliente, la historia de
+  Gastón y Gonzalo, queda en el historial de git— y quedaron SOLO las tres
+  fotos, pasando solas a todo el ancho. **Conserva el ancla `#nosotros`**
+  porque el link del nav apunta ahí.
+  * **VA HACIA LA DERECHA**, al revés que los otros dos carruseles de la web:
+    mismo `@keyframes marquee` (que termina en `-50%`) con `animation-direction:
+    reverse`, así arranca en -50% y vuelve a 0. Un keyframe propio sería el
+    mismo movimiento escrito dos veces.
+  * **LAS FOTOS SE REPITEN 3 VECES POR COPIA**: son solo tres y el loop necesita
+    que UNA copia sea más ancha que la pantalla, o se ve el hueco. Tres fotos a
+    300px de alto miden ~1050px, menos que un desktop de 1440; repetidas tres
+    veces son 3136px (medido). `next/image` sirve el mismo archivo para todas.
+  * **ALTURA FIJA, ancho automático** (180/240/300px): las tres tienen
+    proporciones distintas (16:9 la del local, 4:5 las otras dos), así que
+    fijando el alto quedan alineadas y de distinto ancho — que es lo que hace
+    que se lea como una tira y no como una grilla.
+  * **Solo la primera vuelta lleva `alt` real**; el resto va vacío y
+    `aria-hidden`, para que un lector de pantalla no lea la misma foto nueve
+    veces. La copia duplicada, entera en `aria-hidden`.
+  * Lleva `pb` y no `py`: arriba el aire ya lo pone el `py` de reseñas, pero
+    abajo la sección Work es ROJA y arrancaba pegada al borde de las fotos,
+    cortándoles las esquinas redondeadas.
+* **EL ESQUELETO DEL HERO SE BORRÓ (2026-09-03, pedido del cliente)**: duró un
+  día. Con él se fue `public/esqueleto.webp` (el original queda en
+  `originales/esqueleto.png`). **La caja de la burger se dejó como está** —era
+  `display: contents` y se hizo real para que el esqueleto tuviera contra qué
+  posicionarse—: es a lo que se ancla cualquier cosa que se apoye sobre la
+  burger, y volver atrás cambiaría el layout sin ganar nada.
 
 * **NAV STICKY, LOGO EN EL NAV Y ESQUELETO SOBRE LA BURGER (2026-09-02, pedido
   del cliente)** — cuatro cambios que van juntos:
@@ -338,6 +377,24 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
     duplicada se oculta. Duración = 7s × cantidad de reseñas, así la velocidad
     no cambia si se agregan o sacan. Las tarjetas tienen ANCHO FIJO (no `min-w`):
     el `-50%` solo cierra si las dos copias miden exactamente lo mismo.
+  * **LAS TARJETAS SON APAISADAS Y LLEVAN LA "G" (2026-09-03, pedido del
+    cliente con captura de referencia)**: se ensancharon (340/416px contra
+    320/368) y el texto pasa a cortarse en **3 líneas y no 5**. Las dos cosas
+    van juntas: ensanchar sin recortar el texto habría hecho la tarjeta más
+    grande, no más apaisada. Quedó en **416x214 — ratio 1.94** (medido; antes
+    era casi cuadrada), y las 20 tarjetas de la fila miden exactamente lo mismo.
+    * **La referencia es el WIDGET de reseñas de Google**, el que se incrusta
+      en sitios — no el panel de Maps que se había clonado el 2026-09-02, que
+      es angosto y alto porque vive en una barra lateral.
+    * **LA FECHA SUBIÓ a la línea gris**, junto a "Google", y las estrellas
+      quedaron solas en su fila. Antes esa línea era el recuento de reseñas de
+      la persona (`meta`): ese dato **ya no se dibuja** y vive en el `title`
+      del nombre — con la tarjeta apaisada no sobra alto para las dos líneas.
+      El campo sigue en `content/resenas.ts` con su nota.
+    * **La "G" va en sus CUATRO COLORES oficiales**, inline como SVG: es el
+      sello de procedencia y en monocromo dejaría de leerse como la de Google.
+      Es la única excepción de color de toda la web junto al ámbar de las
+      estrellas, y por el mismo motivo.
   * **LAS TARJETAS SON CLONES DE LAS DE GOOGLE MAPS, en oscuro** (2ª iteración
     del mismo día, pedido del cliente: "exactamente como Google en formato
     oscuro"). Viven en `ui/TarjetaResena.tsx`. La anatomía NO se hizo de memoria:
@@ -1231,7 +1288,7 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
 
 ## Estado actual del desarrollo
 
-**Última sesión**: 2026-09-02
+**Última sesión**: 2026-09-03
 **Próximo paso**: las tres fotos de «Nuestra historia» (el cliente dice qué va en
 cada marco punteado) y aprobar su copy; el sticker de Balak, que no vino (su nombre
 va en texto mientras tanto). Desktop sigue con la grilla; el cliente pidió no

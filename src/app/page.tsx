@@ -2,7 +2,7 @@ import { NavHero } from '@/components/ui/NavHero'
 import { Hero } from '@/components/sections/Hero'
 import { LasBurgasV2 } from '@/components/sections/LasBurgasV2'
 import { Resenas } from '@/components/sections/Resenas'
-import { Nosotros } from '@/components/sections/Nosotros'
+import { TiraFotos } from '@/components/sections/TiraFotos'
 import { Work } from '@/components/sections/Work'
 import { Footer } from '@/components/sections/Footer'
 
@@ -24,9 +24,9 @@ export default function HomePage() {
       <LasBurgasV2 />
       {/* Las resenas de Google, debajo de la carta (2026-09-02). */}
       <Resenas />
-      {/* Sobre nosotros — "Nuestra historia" (2026-09-01): los huecos de las
-          fotos van con borde punteado hasta que el cliente mande el material. */}
-      <Nosotros />
+      {/* La tira de fotos que pasa sola (2026-09-03). Reemplazó a la sección
+          «Nuestra historia»; conserva su ancla porque el nav apunta ahí. */}
+      <TiraFotos />
       {/* Work — la búsqueda de personal, con el link al formulario. */}
       <Work />
       {/* El pie: contacto, mapa, logo y el crédito de Nuvvora. */}

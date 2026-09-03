@@ -6,17 +6,23 @@
  * Va en su propio archivo y no en `home.ts` porque ese ya pasa las 300 líneas
  * (rules.txt) y diez reseñas lo empeoraban.
  *
- * LA FECHA SÍ SE MUESTRA (2026-09-02, 2ª iteración): el cliente pidió las
- * tarjetas "exactamente como Google", y ahí la fecha va al lado de las
- * estrellas. Es RELATIVA ("Hace 7 meses") y está CONGELADA al día en que se
- * tomaron: no se recalcula sola, así que envejece. Si algún día se nota,
- * volver a pasar el scraper (la URL está más abajo).
+ * LA FECHA SÍ SE MUESTRA (2026-09-02): el cliente pidió las tarjetas
+ * "exactamente como Google", y ahí la fecha está. Desde el 2026-09-03 va en
+ * la línea gris bajo el nombre, junto a "Google". Es RELATIVA ("Hace 7
+ * meses") y está CONGELADA al día en que se tomaron: no se recalcula sola,
+ * así que envejece. Si algún día se nota, volver a pasar el scraper (la URL
+ * está más abajo).
  */
 export type Resena = {
   autor: string
   estrellas: 1 | 2 | 3 | 4 | 5
   texto: string
-  /** La línea gris bajo el nombre, tal cual la muestra Google. */
+  /**
+   * El recuento de reseñas de la persona, tal cual lo muestra Google.
+   * YA NO SE DIBUJA (2026-09-03): la línea gris de la tarjeta pasó a llevar
+   * la fecha, y con la tarjeta apaisada no sobra alto para las dos. Queda en
+   * el `title` del nombre.
+   */
   meta: string
   /** Relativa, como la escribe Google. Ver la nota de arriba. */
   fecha: string
@@ -29,7 +35,8 @@ export const resenasContent = {
   parrafo1:
     'Podríamos escribirte un texto interminable sobre cómo empezamos, pero la verdad es que preferimos que hablen los que realmente saben.',
   parrafo2: 'Mejor, mirá lo que opinan los que ya se sentaron en nuestra mesa 👇',
-  fuente: 'Reseña de Google',
+  /** La procedencia, en la línea gris de cada tarjeta, junto a la fecha. */
+  fuente: 'Google',
   verTodas: 'Ver todas las reseñas en Google',
 } as const
 

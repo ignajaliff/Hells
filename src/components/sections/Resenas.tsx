@@ -13,9 +13,10 @@ import { LINK_RESENAS, SECCIONES } from '@/lib/constants'
  * en itálica y atenuado, entre comillas: se tiene que leer como "lo que NO
  * vamos a decir".
  *
- * LAS TARJETAS SON CLONES DE LAS DE GOOGLE MAPS en oscuro (2ª iteración del
- * mismo día, pedido del cliente). Toda la anatomía y el detalle de qué se
- * copió y qué no viven en `ui/TarjetaResena.tsx`.
+ * LAS TARJETAS SON CLONES DE LAS DE GOOGLE en oscuro (2026-09-02, pedido del
+ * cliente), APAISADAS y con la "G" arriba a la derecha desde el 2026-09-03.
+ * Toda la anatomía y el detalle de qué se copió y qué no viven en
+ * `ui/TarjetaResena.tsx`.
  *
  * EL CARRUSEL ES EL MISMO MECANISMO QUE LA BARRA PROMO: las tarjetas van
  * DUPLICADAS y la pista se desplaza exactamente -50% (`@keyframes marquee`,

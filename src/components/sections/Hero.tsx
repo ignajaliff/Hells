@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import { esqueletoContent, heroContent } from '@/content/home'
+import { heroContent } from '@/content/home'
 import { LINK_PEDIDOS, SECCIONES } from '@/lib/constants'
 import { BarraPromo } from '@/components/ui/BarraPromo'
 
@@ -12,9 +12,10 @@ import { BarraPromo } from '@/components/ui/BarraPromo'
  *   restando `--nav` de la altura, así la primera pantalla sigue midiendo
  *   exactamente lo mismo que cuando el nav estaba adentro.
  * * SE FUE EL LOGO de la columna de texto —ahora vive en el nav, tenerlo en
- *   los dos lados lo duplicaba— y en su lugar el título y los CTAs SUBEN. Ese
- *   hueco es justo lo que necesitaba el esqueleto para apoyarse sobre la
- *   burger. También se borró la mascota del diablito.
+ *   los dos lados lo duplicaba— y en su lugar el título y los CTAs SUBEN.
+ *   También se borraron la mascota del diablito y el esqueleto que se apoyaba
+ *   sobre la burger (2026-09-03), así que el hero no tiene más ilustraciones
+ *   sueltas: fondo, llamas, burger y texto.
  *
  * ALTURA: `100svh` y no `100vh`. En los navegadores móviles `vh` incluye la
  * barra de direcciones, así que un hero de `100vh` queda cortado por abajo
@@ -27,9 +28,8 @@ import { BarraPromo } from '@/components/ui/BarraPromo'
  *
  * MÓVIL: el diseño original está definido solo para desktop (1440x900) y ahí
  * no entra —la columna de texto ocupa 62% y la burger 54%, se pisarían—. Se
- * resolvió apilando: el texto arriba, la burger abajo con el esqueleto
- * encima, y los CTAs uno sobre otro. De `lg` para arriba es el diseño tal
- * cual lo entregaron.
+ * resolvió apilando: el texto arriba, la burger abajo y los CTAs uno sobre
+ * otro. De `lg` para arriba es el diseño tal cual lo entregaron.
  *
  * Los tamaños del texto van en `vh` y no en `vw` porque la restricción real es
  * la ALTURA: todo tiene que entrar en una pantalla. Con `vw`, en un monitor
@@ -132,9 +132,7 @@ export function Hero() {
           dentro de las llamas (2026-08-21), así que la zona llega hasta el pie
           y la burger baja hasta meterse en la banda. */}
       <div className="relative flex min-h-0 flex-1 flex-col justify-center lg:flex-row lg:items-center lg:justify-start lg:pb-[12svh]">
-        {/* LA BURGER Y EL ESQUELETO. El wrapper es la caja de referencia de los
-            dos: el esqueleto se posiciona contra ella, así que si la burger
-            cambia de tamaño o de lugar, el esqueleto la sigue solo.
+        {/* LA BURGER.
 
             MÓVIL — TAMAÑO FIJO POR ANCHO (2026-09-01, pedido del cliente):
             antes la burger medía "el alto que sobraba" (`flex-1` +
@@ -149,10 +147,11 @@ export function Hero() {
             cierre en 844px EXACTOS (con 112% desbordaba 81px hasta ahí).
             `mt-auto` la manda al pie, hundida en las llamas (el zócalo, en
             `z-[5]` sobre esta capa en `z-[4]`, le tapa la base).
-            El wrapper dejó de ser `display: contents` en móvil (2026-09-02):
-            ahora es una caja real, que es lo que le da al esqueleto contra qué
-            posicionarse. Lleva las clases que antes tenía la imagen, así el
-            layout no cambia.
+            El wrapper es una caja real y no `display: contents` (lleva las
+            clases que antes tenía la imagen, así el layout es el mismo). Se
+            hizo así para el esqueleto, que necesitaba contra qué posicionarse;
+            el esqueleto se borró el 2026-09-03 pero la caja se deja, porque
+            es a lo que se ancla cualquier cosa que se apoye sobre la burger.
 
             DESKTOP: absoluta, sangrando por la derecha, como el diseño.
             NO TAPAR EL FUEGO (2026-08-21): el zócalo ocupa el 9.7% de abajo,
@@ -173,33 +172,6 @@ export function Hero() {
             priority
             sizes="(min-width: 1024px) 50vw, 82vw"
             className="pointer-events-none h-auto w-full drop-shadow-[-16px_16px_30px_rgba(0,0,0,.55)] lg:drop-shadow-[-24px_24px_44px_rgba(0,0,0,.55)]"
-          />
-
-          {/* EL ESQUELETO, apoyado sobre la burger (2026-09-02, dibujo del
-              cliente). Reemplaza a la mascota del diablito, que se borró.
-
-              Se posiciona contra la CAJA DE LA BURGER, no contra el viewport:
-              el `bottom` en % lo deja siempre a la misma altura relativa del
-              pan, y el `w` en % lo mantiene en proporción. Así no hay ningún
-              número que recalcular si la burger cambia de tamaño — que es
-              justo la deuda que arrastraba el diablito.
-
-              El `bottom` lo deja con los brazos cruzados sobre el pan y el
-              cuerpo saliendo por arriba de la caja. Es MÁS CHICO EN DESKTOP en
-              proporción: ahí la burger mide 720px y a la misma escala que en
-              móvil el esqueleto se saldría del hero por arriba (medido).
-
-              `z-[6]`: por encima de la burger y también del zócalo de llamas
-              (`z-[5]`), que si no le comería los pies en pantallas bajas. */}
-          <Image
-            src={esqueletoContent.src}
-            alt=""
-            aria-hidden
-            width={esqueletoContent.ancho}
-            height={esqueletoContent.alto}
-            priority
-            sizes="(min-width: 1024px) 18vw, 42vw"
-            className="pointer-events-none absolute bottom-[72%] left-1/2 z-[6] h-auto w-[52%] -translate-x-1/2 select-none drop-shadow-[0_14px_26px_rgba(0,0,0,.55)] lg:bottom-[62%] lg:w-[36%]"
           />
         </div>
 

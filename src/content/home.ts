@@ -65,19 +65,6 @@ export const marqueeFrases = [
 ] as const
 
 /**
- * El esqueleto que se apoya sobre la burger del hero (2026-09-02, dibujo del
- * cliente). Reemplaza a la mascota del diablito, que se borró ese mismo día.
- * El PNG venía en 4752x3358 con el dibujo ocupando 2191x2407 en el medio: se
- * recortó a su contorno y se pasó a WebP (500KB -> 105KB).
- * Decorativo: va con alt="".
- */
-export const esqueletoContent = {
-  src: '/esqueleto.webp',
-  ancho: 1000,
-  alto: 1099,
-} as const
-
-/**
  * Sección "Las Burgas" — la carta. Las DOCE hamburguesas, cada una con su
  * video y su foto (2026-08-27, material del cliente).
  *
@@ -339,45 +326,41 @@ export const burgasContent = {
 } as const
 
 /**
- * Sobre nosotros — "Nuestra historia".
- * EL COPY ES DEL CLIENTE (2026-09-02) y reemplaza al provisorio que había
- * escrito yo: ya no es placeholder. Solo se le corrigieron los acentos y un
- * dedazo ("de3" -> "de"), y se escribió "Hell's" con apóstrofo, como el logo.
- * Los dos párrafos son UN texto partido en el corte natural —el origen, y
- * después el objetivo— porque la sección los alterna con las fotos.
- * Las fotos siguen sin estar: los huecos van con borde punteado.
+ * La TIRA DE FOTOS que pasa sola (2026-09-03, pedido del cliente): reemplaza a
+ * la sección «Nuestra historia», que tenía título y dos párrafos. Son las
+ * MISMAS tres fotos que ya estaban ahí; el copy del cliente (la historia de
+ * Gastón y Gonzalo) se sacó y queda en el historial de git por si vuelve.
+ *
+ * Es una LISTA y no un objeto con nombres: acá el orden es lo único que
+ * importa y el carrusel las recorre.
+ *
+ * Las tres venían verticales (2:3, ~1.7MB cada una): la del local se recortó a
+ * 16:9 centrada en el cartel de neón (más ancho no entra, el cartel se come el
+ * 29% del alto) y las otras dos a 4:5. Los originales están en
+ * `originales/nosotros/`. En la tira se muestran a ALTURA fija, así que la
+ * diferencia de proporción se ve como fotos de distinto ancho — que es
+ * exactamente lo que hace que se lea como una tira de fotos.
  */
-export const nosotrosContent = {
-  // Tenía un rótulo "Sobre nosotros" en Splatink encima del título; el
-  // cliente lo sacó el 2026-09-02 (queda en el historial).
-  titulo: 'Nuestra historia',
-  parrafo1:
-    'Hell’s Burger nació de las ganas de dos amigos, Gastón y Gonzalo, de apostar por una idea real.',
-  parrafo2:
-    'Más que hacer buenas hamburguesas, nuestro objetivo siempre fue crear el lugar ideal para encontrarse. Un espacio donde las charlas se alargan y los momentos se comparten.',
-  /**
-   * Las fotos las mandó el cliente el 2026-09-02 y reemplazan a los tres
-   * marcos punteados. Las tres venían VERTICALES (2:3, ~1.7MB cada una):
-   * `local` se recortó a 16:9 centrada en el cartel de neón (más ancho no
-   * entra: el cartel se come el 29% del alto) y las otras dos a 4:5, que es
-   * la proporción con la que van a media columna. Los originales están en
-   * `originales/nosotros/`.
-   */
-  fotos: {
-    local: {
-      src: '/nosotros-1.webp',
-      alt: 'El cartel de neón de Hell’s Burger encendido en la puerta del local, de noche',
-    },
-    izquierda: {
-      src: '/nosotros-2.webp',
-      alt: 'Dos manos sosteniendo una hamburguesa de pollo crocante sobre una bandeja de papas',
-    },
-    derecha: {
-      src: '/nosotros-3.webp',
-      alt: 'Dos manos sosteniendo una hamburguesa con cheddar frente a las luces de la calle',
-    },
+export const tiraFotosContent = [
+  {
+    src: '/nosotros-1.webp',
+    alt: 'El cartel de neón de Hell’s Burger encendido en la puerta del local, de noche',
+    ancho: 1920,
+    alto: 1080,
   },
-} as const
+  {
+    src: '/nosotros-2.webp',
+    alt: 'Dos manos sosteniendo una hamburguesa de pollo crocante sobre una bandeja de papas',
+    ancho: 900,
+    alto: 1125,
+  },
+  {
+    src: '/nosotros-3.webp',
+    alt: 'Dos manos sosteniendo una hamburguesa con cheddar frente a las luces de la calle',
+    ancho: 900,
+    alto: 1125,
+  },
+] as const
 
 /**
  * Work — "Sumate!" (2026-09-02, texto y link aportados por el cliente).
