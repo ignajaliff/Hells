@@ -184,6 +184,22 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
 
 ## Trampas del entorno de desarrollo
 
+* **`position: relative` SIN `z-index` no crea contexto de apilamiento — y
+  eso dejó al tocadiscos tapando al nav (2026-09-03)**: `CarruselBurgasV2`
+  tiene un carril invisible en `z-[200]` (capta el arrastre) y una ficha en
+  `z-[300]` (nombre + ingredientes), ambos por encima del escenario a
+  propósito. El escenario y la sección que lo contiene (`LasBurgasV2`) son
+  `relative` pero SIN un `z-index` explícito, así que —por spec— no delimitan
+  un contexto de apilamiento propio: el 200 y el 300 competían, en el
+  contexto RAÍZ de toda la página, contra el `z-50` del nav sticky (que es
+  HERMANO de la sección, no ancestro). Con 200/300 > 50, el nav —con fondo
+  sólido y todo— quedaba pintado DEBAJO de la foto de la burga activa al
+  scrollear. Se corrigió con `relative z-0` en el wrapper raíz de
+  `CarruselBurgasV2`, que sí es explícito y encierra el 200/300 adentro.
+  **Regla: cualquier `z-index` de dos o tres dígitos necesita un contenedor
+  con `z-index` (no solo `position`) más arriba, si no compite directo
+  contra el nav.**
+
 * **Un `style` inline le gana a la regla de `prefers-reduced-motion`**: los
   carruseles que calculan su duración según la cantidad de items (reseñas, tira
   de fotos) la fijan con `style={{ animation: ... }}`, y eso pisaba al
@@ -193,9 +209,10 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
   no un inline.
 
 * **Las tres fuentes de marca NO traen emoji** y el contenido sí los usa (las
-  reseñas de Google, el 🥱 del remate, el 👇). El token de cada fuente en
-  `globals.css` lleva ahora una cadena de emoji AL FINAL (`--font-emoji`), así
-  solo entra donde la fuente de marca no tiene glifo.
+  reseñas de Google). El token de cada fuente en `globals.css` lleva ahora una
+  cadena de emoji AL FINAL (`--font-emoji`), así solo entra donde la fuente de
+  marca no tiene glifo. El 🥱 del remate y el 👇 del segundo párrafo de
+  Reseñas se sacaron el 2026-09-03 (ver más abajo): ya no aplica.
   **Eso no alcanza si el emoji es demasiado nuevo**: 🫨 (U+1FAE8, Unicode 15 de
   2022) se dibujaba igual como cuadradito porque la fuente del sistema no lo
   tiene. Se quitó de la reseña que lo usaba.
@@ -351,6 +368,25 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
   CLIENTE tal cual (el cliché "somos dos amigos…" en itálica atenuada y entre
   comillas, cortado por un "Ufff, qué aburrido 🥱" en display que hace de título)
   y debajo diez reseñas de Google en una fila que se desplaza sola.
+  * **LA INTRO SE REORDENÓ EN TRES BLOQUES Y GANÓ EL ESQUELETO DORMIDO
+    (2026-09-03, pedido del cliente)**: antes los cuatro textos iban en una
+    sola columna pegada a la izquierda. Ahora:
+    1. El cliché, CENTRADO.
+    2. Una fila con el remate — ya sin el 🥱, quedó "Ufff, aburrido." a secas
+       — a la izquierda y el ESQUELETO DORMIDO de la marca (dibujo del
+       cliente, `esqueletoDurmiendo` en `content/resenas.ts`) tirado a la
+       derecha. **El dibujo reemplaza al emoji**: ya cuenta el chiste del
+       aburrimiento con la bandeja de comida y el "ZZZ", así que el 🥱 sobraba
+       al lado.
+    3. Los dos párrafos, otra vez CENTRADOS. El segundo perdió el 👇 final:
+       sin un remate-emoji arriba señalando, un emoji suelto apuntando hacia
+       abajo ya no acompañaba nada.
+    * PNG con alpha del cliente, recortado a su contorno real (ratio 1.77) y
+      pasado a WebP: **1.9MB → 115KB**. El original queda en
+      `originales/esqueletodurmiendo.png`.
+    * Se dimensiona por ANCHO (`w-[46%] sm:w-[38%] lg:w-[30%]`, `h-auto`) y
+      no por alto: es un dibujo apaisado que tiene que convivir al lado del
+      remate en la misma fila, en vez de imponer su propia altura.
   * **LAS RESEÑAS SON REALES**, sacadas de la ficha de Google Maps del local
     (4,9 con 28 reseñas con texto al 2026-09-02). El cliente dijo "si no podés
     conseguirlas, inventalas" — no hizo falta, y mejor: reseñas inventadas en la

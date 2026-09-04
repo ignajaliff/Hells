@@ -39,13 +39,17 @@ export const heroContent = {
 /**
  * Links del navegador.
  *
- * `BURGUERS` es el único que todavía no tiene sección a la que apuntar:
- * queda en `#` a propósito hasta que exista (`NOSOTROS` y `WORK` ya apuntan
- * a las suyas). `activo` marca cuál lleva el óvalo rojo dibujado a mano.
+ * LOS CUATRO APUNTAN A SU SECCIÓN (2026-09-03): `BURGUERS` pasó a "Burgers"
+ * —pedido del cliente, sin la U— y de apuntar a `#` (a ningún lado) pasó a
+ * `#carta`, el ancla de `LasBurgasV2` (la sección "Las Burgas"; conserva ese
+ * nombre de ancla porque el CTA del hero también apunta ahí). Hasta ahora
+ * en desktop no se notaba —el link activo no navega, solo marca "Inicio" con
+ * el óvalo— pero en el DESPLEGABLE DE MÓVIL sí se toca, y llevaba a ningún
+ * lado. `activo` marca cuál lleva el óvalo rojo dibujado a mano.
  */
 export const navLinks = [
   { label: 'Inicio', href: '#inicio', activo: true },
-  { label: 'Burguers', href: '#', activo: false },
+  { label: 'Burgers', href: '#carta', activo: false },
   { label: 'Nosotros', href: '#nosotros', activo: false },
   { label: 'Work', href: '#work', activo: false },
 ] as const

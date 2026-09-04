@@ -55,6 +55,18 @@ import { useReducedMotion } from 'motion/react'
  *
  * SOLO MÓVIL. `prefers-reduced-motion`: sin fundido en la ficha; el giro
  * sigue al dedo, que es scroll, no animación.
+ *
+ * `relative z-0` EN EL WRAPPER RAÍZ (2026-09-03) — sin él, el nav sticky
+ * (z-50, en `NavHero.tsx`) se veía TAPADO por este carrusel al scrollear.
+ * El carril (z-[200]) y la ficha (z-[300]) necesitan ganarle al escenario
+ * (que va sin z-index propio), pero `position: relative` SIN `z-index` no
+ * crea contexto de apilamiento — así que esos números competían, en el
+ * contexto RAÍZ de la página, contra el z-50 del nav, que es hermano de
+ * esta sección y no un ancestro. Con `z-0` acá, el wrapper pasa a competir
+ * él solo (con su 0) en la raíz, y el 200/300 de adentro quedan encerrados
+ * sin poder escapar. **Cualquier z-index nuevo que se agregue en este
+ * componente por encima de ~50 necesita este contenedor, o vuelve a tapar
+ * el nav.**
  */
 
 type Burga = {
@@ -226,7 +238,7 @@ export function CarruselBurgasV2({
 
 
   return (
-    <div className={className}>
+    <div className={`relative z-0 ${className}`}>
       {/* EL ESCENARIO: cuadrado a todo el ancho. Es la foto activa entera —
           su fondo abajo, su silueta encima— y sobre ella las vecinas girando.
           `overflow-hidden` recorta las siluetas que salen por los costados sin

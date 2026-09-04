@@ -21,12 +21,14 @@ import { useEsMovil } from '@/lib/useEsMovil'
  * montadas las dos, la rama oculta igual existiría en el DOM y descargaría
  * sus assets (medido con los videos: 13 en un celular en vez de 1).
  *
- * FONDO NEGRO PURO (#000, no `--background`): los fondos de las fotos
- * arrancan en negro puro y se funden con la sección sin borde visible.
- *
- * CONTRASTE: el título en `--primary` sobre negro da 4.50:1 — para el texto
- * display grande sobra. La bajada va en BLANCO (pedido del cliente,
- * 2026-09-01; además 15.96:1, holgado para texto chico).
+ * FONDO NEGRO PURO (2026-09-03, pedido del cliente). Durante unas horas del
+ * mismo día se probó una variante ROJA con un bloque negro tapando de la
+ * mitad de la foto hacia abajo; se descartó y quedó en el historial de git.
+ * Al volver al negro vuelven también los colores de texto de siempre: el
+ * título en rojo de marca (es texto grande, 3.79:1 alcanza) y la bajada en
+ * `--foreground`, que sobre negro da 15.96:1. Los del rojo (título en negro
+ * puro, bajada en `--primary-foreground`) existían solo por contraste y
+ * sobre negro no se leerían.
  */
 export function LasBurgasV2() {
   const { titulo, bajada, items } = burgasContent
@@ -49,9 +51,9 @@ export function LasBurgasV2() {
       </header>
 
       {esMovil ? (
-        <CarruselBurgasV2 items={items} className="relative z-[1] -mx-4" />
+        <CarruselBurgasV2 items={items} className="-mx-4" />
       ) : (
-        <GrillaBurgas items={items} className="relative z-[1]" />
+        <GrillaBurgas items={items} />
       )}
     </section>
   )

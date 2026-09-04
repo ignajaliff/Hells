@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { resenas, resenasContent } from '@/content/resenas'
 import { TarjetaResena } from '@/components/ui/TarjetaResena'
 import { LINK_RESENAS, SECCIONES } from '@/lib/constants'
@@ -12,6 +13,16 @@ import { LINK_RESENAS, SECCIONES } from '@/lib/constants'
  * y el remate "Ufff, aburrido" en display hace de titular. El cliché va
  * en itálica y atenuado, entre comillas: se tiene que leer como "lo que NO
  * vamos a decir".
+ *
+ * LA INTRO SE REORDENÓ EN TRES BLOQUES (2026-09-03, pedido del cliente):
+ * 1. El cliché, CENTRADO — antes iba pegado a la izquierda junto con todo
+ *    lo demás.
+ * 2. Una fila con el remate a la izquierda y el ESQUELETO DORMIDO de la
+ *    marca tirado a la derecha (`esqueletoDurmiendo`, reemplaza al 🥱 que
+ *    llevaba el remate: el dibujo ya cuenta el chiste solo).
+ * 3. Los dos párrafos, otra vez CENTRADOS. Se sacó el 👇 del segundo: sin
+ *    el remate emoji arriba, señalar hacia abajo con un emoji suelto ya no
+ *    acompañaba a nada.
  *
  * LAS TARJETAS SON CLONES DE LAS DE GOOGLE en oscuro (2026-09-02, pedido del
  * cliente), APAISADAS y con la "G" arriba a la derecha desde el 2026-09-03.
@@ -40,7 +51,7 @@ import { LINK_RESENAS, SECCIONES } from '@/lib/constants'
  * es el fondo y las tarjetas la superficie elevada, igual que en Google.
  */
 export function Resenas() {
-  const { cliche, remate, parrafo1, parrafo2, verTodas } = resenasContent
+  const { cliche, remate, esqueletoDurmiendo, parrafo1, parrafo2, verTodas } = resenasContent
   // ~7s por tarjeta: legible sin ser lento. Si cambia la cantidad de
   // reseñas, la velocidad se mantiene sola.
   const duracion = `${Math.max(resenas.length, 4) * 7}s`
@@ -48,14 +59,26 @@ export function Resenas() {
   return (
     <section id={SECCIONES.resenas} className="relative overflow-hidden bg-black py-20 sm:py-28">
       <div className="px-4 sm:px-8 lg:px-14">
-        <div className="max-w-[58ch]">
-          <p className="font-body text-[clamp(15px,4vw,18px)] italic leading-relaxed text-foreground/55">
-            “{cliche}”
-          </p>
-          <p className="mt-3 font-display text-[clamp(34px,9vw,84px)] uppercase leading-none tracking-[-0.01em] text-primary">
+        <p className="mx-auto max-w-[58ch] text-center font-body text-[clamp(15px,4vw,18px)] italic leading-relaxed text-foreground/55">
+          “{cliche}”
+        </p>
+
+        {/* Remate a la izquierda, esqueleto dormido tirado a la derecha. */}
+        <div className="mt-5 flex items-center justify-center gap-3 sm:mt-7 sm:gap-6">
+          <p className="shrink-0 font-display text-[clamp(28px,7vw,64px)] uppercase leading-none tracking-[-0.01em] text-primary">
             {remate}
           </p>
-          <p className="mt-7 font-body text-[clamp(15px,4vw,18px)] leading-relaxed text-foreground/90">
+          <Image
+            src={esqueletoDurmiendo.src}
+            alt={esqueletoDurmiendo.alt}
+            width={esqueletoDurmiendo.ancho}
+            height={esqueletoDurmiendo.alto}
+            className="h-auto w-[46%] max-w-[380px] shrink object-contain sm:w-[38%] lg:w-[30%]"
+          />
+        </div>
+
+        <div className="mx-auto mt-7 max-w-[58ch] text-center sm:mt-10">
+          <p className="font-body text-[clamp(15px,4vw,18px)] leading-relaxed text-foreground/90">
             {parrafo1}
           </p>
           <p className="mt-4 font-body text-[clamp(15px,4vw,18px)] leading-relaxed text-foreground/90">

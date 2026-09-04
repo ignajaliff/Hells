@@ -31,10 +31,23 @@ export type Resena = {
 export const resenasContent = {
   cliche:
     'Somos dos amigos que un día decidieron abrir una hamburguesería con el gran sueño de...',
-  remate: 'Ufff, aburrido. 🥱',
+  remate: 'Ufff, aburrido.',
+  /**
+   * El esqueleto dormido de la marca (2026-09-03, pedido del cliente),
+   * tirado a la derecha del remate. Reemplaza al 🥱 que llevaba el texto: el
+   * dibujo ya cuenta el chiste del aburrimiento, así que el emoji sobraba.
+   * PNG con alpha del cliente, recortado a su contorno y pasado a WebP:
+   * 1.9MB → 115KB.
+   */
+  esqueletoDurmiendo: {
+    src: '/esqueleto-durmiendo.webp',
+    alt: 'Esqueleto de Hells Burger dormido sobre una bandeja de comida',
+    ancho: 1400,
+    alto: 789,
+  },
   parrafo1:
     'Podríamos escribirte un texto interminable sobre cómo empezamos, pero la verdad es que preferimos que hablen los que realmente saben.',
-  parrafo2: 'Mejor, mirá lo que opinan los que ya se sentaron en nuestra mesa 👇',
+  parrafo2: 'Mejor, mirá lo que opinan los que ya se sentaron en nuestra mesa',
   /** La procedencia, en la línea gris de cada tarjeta, junto a la fecha. */
   fuente: 'Google',
   verTodas: 'Ver todas las reseñas en Google',
