@@ -54,7 +54,7 @@ export function TiraFotos() {
   return (
     <section
       id={SECCIONES.nosotros}
-      className="relative overflow-hidden bg-black pb-5 motion-reduce:overflow-x-auto sm:pb-7"
+      className="relative overflow-hidden bg-background pb-5 motion-reduce:overflow-x-auto sm:pb-7"
     >
       <div
         className="marquee-pista flex w-max gap-2 sm:gap-3"

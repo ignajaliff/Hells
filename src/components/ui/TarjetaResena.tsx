@@ -50,7 +50,7 @@ export function TarjetaResena({ resena }: { resena: Resena }) {
   const { autor, meta, fecha, estrellas, texto } = resena
 
   return (
-    <li className="flex w-[340px] shrink-0 flex-col rounded-2xl bg-background p-5 sm:w-[416px]">
+    <li className="flex w-[340px] shrink-0 flex-col rounded-2xl bg-black p-5 sm:w-[416px]">
       {/* Encabezado: avatar + nombre a la izquierda, la "G" a la derecha.
           `items-start` y no `items-center`: la G se alinea con la primera
           línea del nombre, como en la referencia, y no con el bloque entero. */}

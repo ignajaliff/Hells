@@ -65,7 +65,7 @@ export function Resenas() {
   return (
     <section
       id={SECCIONES.resenas}
-      className="relative overflow-hidden bg-black pb-20 pt-[calc(var(--llamas)_+_44px)] [--llamas:min(max(52px,11svh),96px)] sm:pb-28 sm:pt-[calc(var(--llamas)_+_64px)] lg:[--llamas:min(10svh,110px)]"
+      className="relative overflow-hidden bg-background pb-20 pt-[calc(var(--llamas)_+_44px)] [--llamas:min(max(52px,11svh),96px)] sm:pb-28 sm:pt-[calc(var(--llamas)_+_64px)] lg:[--llamas:min(10svh,110px)]"
     >
       {/* LAS LLAMAS, colgando del techo y apuntando hacia abajo.
 
