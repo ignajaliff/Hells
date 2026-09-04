@@ -4,30 +4,36 @@ import { SECCIONES } from '@/lib/constants'
 
 /**
  * Tira de fotos (2026-09-03, pedido del cliente). REEMPLAZA a la sección
- * «Nuestra historia», que tenía título, dos párrafos y las tres fotos
- * maquetadas: ahora son SOLO las fotos, pasando solas, a todo el ancho.
- * El archivo se llamaba `Nosotros.tsx`; conserva el ancla `#nosotros` porque
- * el link del nav apunta ahí.
+ * «Nuestra historia», que tenía título, dos párrafos y las fotos maquetadas:
+ * ahora son SOLO las fotos, pasando solas, a todo el ancho. Son OCHO desde el
+ * 2026-09-04 (llegaron seis del cliente y salió una).
+ * El archivo se llamaba `Nosotros.tsx` y conserva el ancla `#nosotros`, pero
+ * **ya no la usa ningún link**: el "Nosotros" del nav pasó a apuntar a
+ * `#resenas`, que es donde la marca se cuenta con palabras (2026-09-04,
+ * pedido del cliente). La tira arranca justo debajo de esa sección.
  *
  * VA HACIA LA DERECHA, no hacia la izquierda como los otros dos carruseles
  * de la web: es el mismo `@keyframes marquee` (que termina en `-50%`) pero
  * con `reverse`, así arranca en -50% y vuelve a 0. Un keyframe propio para
  * esto sería el mismo movimiento escrito dos veces.
  *
- * ALTURA FIJA y ancho automático: las tres fotos tienen proporciones
- * distintas (16:9 la del local, 4:5 las otras dos), así que fijando el alto
- * quedan alineadas y de distinto ancho — que es justo lo que hace que se lea
- * como una tira y no como una grilla. Con ancho fijo habría que recortarlas.
+ * ALTURA FIJA y ancho automático: las fotos tienen proporciones distintas
+ * (2:3 las seis nuevas, 4:5 las dos viejas), así que fijando el alto quedan
+ * alineadas y de distinto ancho — que es justo lo que hace que se lea como
+ * una tira y no como una grilla. Con ancho fijo habría que recortarlas.
  *
  * CASI SIN PADDING: el cliente pidió que no fuera una sección grande, "solo
  * fotos que pasan". Arriba no lleva nada —el aire ya lo pone el `py` de
  * reseñas—, pero ABAJO sí: la sección que sigue (Work) es roja y arrancaba
  * pegada al borde de las fotos, cortándoles las esquinas redondeadas.
  *
- * LAS FOTOS SE REPITEN `REPETICIONES` VECES POR COPIA: son solo tres, y el
- * loop del marquee necesita que UNA copia sea más ancha que la pantalla —si
- * no, se ve el hueco entre copias. Tres fotos a 300px de alto miden ~1050px,
- * menos que un desktop de 1440. Repetidas tres veces son ~3100px y sobra.
+ * LAS FOTOS SE REPITEN `REPETICIONES` VECES POR COPIA porque el loop del
+ * marquee necesita que UNA copia sea más ancha que la pantalla — si no, se ve
+ * el hueco entre copias. Con las ocho fotos (2026-09-04) una vuelta mide
+ * ~1760px a 300px de alto: alcanza para un desktop de 1440 pero NO para uno
+ * de 1920, así que van dos vueltas (~3530px) y sobra en cualquier pantalla.
+ * Eran tres cuando había tres fotos (~1050px la vuelta). **Si se sacan fotos,
+ * rehacer esta cuenta.**
  * `next/image` sirve el mismo archivo para todas: son nodos del DOM
  * repetidos, no descargas nuevas.
  *
@@ -37,7 +43,7 @@ import { SECCIONES } from '@/lib/constants'
  */
 
 /** Cuántas veces se repite la lista dentro de cada copia del loop. */
-const REPETICIONES = 3
+const REPETICIONES = 2
 
 export function TiraFotos() {
   const unaCopia = Array.from({ length: REPETICIONES }, () => tiraFotosContent).flat()

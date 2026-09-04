@@ -46,11 +46,18 @@ export const heroContent = {
  * en desktop no se notaba —el link activo no navega, solo marca "Inicio" con
  * el óvalo— pero en el DESPLEGABLE DE MÓVIL sí se toca, y llevaba a ningún
  * lado. `activo` marca cuál lleva el óvalo rojo dibujado a mano.
+ *
+ * "NOSOTROS" APUNTA A RESEÑAS (2026-09-04, pedido del cliente): iba a
+ * `#nosotros`, la tira de fotos, y ahí el visitante caía en fotos sueltas sin
+ * una palabra. **Quien es la marca se cuenta en `Resenas`** —el "somos dos
+ * amigos que un día decidieron…" y lo que dice la gente— y la tira arranca
+ * justo debajo, así que sigue apareciendo al scrollear. El ancla `#nosotros`
+ * queda puesta en `TiraFotos` pero ya no la usa ningún link.
  */
 export const navLinks = [
   { label: 'Inicio', href: '#inicio', activo: true },
   { label: 'Burgers', href: '#carta', activo: false },
-  { label: 'Nosotros', href: '#nosotros', activo: false },
+  { label: 'Nosotros', href: '#resenas', activo: false },
   { label: 'Work', href: '#work', activo: false },
 ] as const
 
@@ -331,26 +338,42 @@ export const burgasContent = {
 
 /**
  * La TIRA DE FOTOS que pasa sola (2026-09-03, pedido del cliente): reemplaza a
- * la sección «Nuestra historia», que tenía título y dos párrafos. Son las
- * MISMAS tres fotos que ya estaban ahí; el copy del cliente (la historia de
- * Gastón y Gonzalo) se sacó y queda en el historial de git por si vuelve.
+ * la sección «Nuestra historia», que tenía título y dos párrafos. El copy del
+ * cliente (la historia de Gastón y Gonzalo) se sacó y queda en el historial
+ * de git por si vuelve.
  *
  * Es una LISTA y no un objeto con nombres: acá el orden es lo único que
  * importa y el carrusel las recorre.
  *
- * Las tres venían verticales (2:3, ~1.7MB cada una): la del local se recortó a
- * 16:9 centrada en el cartel de neón (más ancho no entra, el cartel se come el
- * 29% del alto) y las otras dos a 4:5. Los originales están en
- * `originales/nosotros/`. En la tira se muestran a ALTURA fija, así que la
- * diferencia de proporción se ve como fotos de distinto ancho — que es
- * exactamente lo que hace que se lea como una tira de fotos.
+ * SON OCHO (2026-09-04, material nuevo del cliente): llegaron seis fotos más
+ * y se sacó la del cartel de neón recortada a 16:9 (`nosotros-1`), que el
+ * cliente pidió quitar — su original sigue en `originales/nosotros/`, y el
+ * cartel igual está en la tira, ahora en `nosotros-9` y sin recortar.
+ *
+ * EL ORDEN ES UN RITMO, no el de los archivos: alterna local / producto /
+ * manos para que la tira no muestre dos fotos parecidas seguidas, y eso vale
+ * también en el salto del final al principio (cierra con la bolsa roja y
+ * arranca con la fachada). Las dos 4:5 —las únicas más anchas— quedan
+ * separadas a propósito, si no se leerían como un bloque.
+ *
+ * Las seis nuevas son 2:3 y las dos viejas 4:5. En la tira se muestran a
+ * ALTURA fija, así que esa diferencia se ve como fotos de distinto ancho —
+ * que es exactamente lo que hace que se lea como una tira y no como una
+ * grilla. Los JPG originales (7MB en total) están en `originales/nosotros/`;
+ * acá van en WebP a 1125px de alto: **7MB → 295KB**.
  */
 export const tiraFotosContent = [
   {
-    src: '/nosotros-1.webp',
-    alt: 'El cartel de neón de Hell’s Burger encendido en la puerta del local, de noche',
-    ancho: 1920,
-    alto: 1080,
+    src: '/nosotros-6.webp',
+    alt: 'La fachada del local de noche, con el cartel de Hell’s Burger encendido y gente esperando en la vereda',
+    ancho: 750,
+    alto: 1125,
+  },
+  {
+    src: '/nosotros-4.webp',
+    alt: 'Una hamburguesa con cebolla crocante y papas fritas onduladas, servidas en un plato con papel de la marca',
+    ancho: 750,
+    alto: 1125,
   },
   {
     src: '/nosotros-2.webp',
@@ -359,9 +382,33 @@ export const tiraFotosContent = [
     alto: 1125,
   },
   {
+    src: '/nosotros-7.webp',
+    alt: 'Tres hamburguesas alineadas en fila sobre una bandeja oscura',
+    ancho: 750,
+    alto: 1125,
+  },
+  {
+    src: '/nosotros-5.webp',
+    alt: 'Una mano mojando un aro de cebolla en salsa, sobre una canasta con más aros',
+    ancho: 750,
+    alto: 1125,
+  },
+  {
+    src: '/nosotros-9.webp',
+    alt: 'El cartel colgante de Hell’s Burger, con el isotipo de la hamburguesa, en la fachada de noche',
+    ancho: 750,
+    alto: 1125,
+  },
+  {
     src: '/nosotros-3.webp',
     alt: 'Dos manos sosteniendo una hamburguesa con cheddar frente a las luces de la calle',
     ancho: 900,
+    alto: 1125,
+  },
+  {
+    src: '/nosotros-8.webp',
+    alt: 'Una hamburguesa doble con cheddar apoyada sobre una bolsa roja de Hell’s Burger',
+    ancho: 750,
     alto: 1125,
   },
 ] as const

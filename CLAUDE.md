@@ -250,6 +250,38 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
 
 ## Decisiones técnicas tomadas
 
+* **"NOSOTROS" DEL NAV APUNTA A RESEÑAS (2026-09-04, pedido del cliente)**:
+  iba a `#nosotros`, o sea a la tira de fotos, y ahí el visitante caía en fotos
+  sueltas sin una sola palabra que le dijera quién es la marca. Eso ahora se
+  cuenta en `Resenas` —el "somos dos amigos que un día decidieron…" del cliente
+  más lo que dice la gente—, y la tira arranca JUSTO DEBAJO, así que sigue
+  apareciendo al scrollear. **El ancla `#nosotros` se dejó puesta en
+  `TiraFotos` pero ya no la usa ningún link**; `SECCIONES.nosotros` sigue en
+  `constants.ts` por lo mismo. Verificado en móvil y desktop: los dos aterrizan
+  en `#resenas` con la sección al tope.
+
+* **LA TIRA PASÓ A OCHO FOTOS (2026-09-04, material nuevo del cliente)**:
+  llegaron seis (`nosotros-4` a `-9`, 2:3, 7MB de JPG → **295KB** en WebP a
+  1125px de alto) y salió `nosotros-1`, la del cartel de neón recortada a 16:9,
+  que el cliente pidió quitar. **No se perdió nada**: el cartel sigue en la tira,
+  ahora en `nosotros-9` y sin recortar. El original de la que salió queda en
+  `originales/nosotros/`; su WebP se borró de `public/` porque ahí solo va lo
+  que la web sirve.
+  * **EL ORDEN ES UN RITMO, no el de los archivos**: alterna local / producto /
+    manos para que no queden dos fotos parecidas seguidas, **y eso vale también
+    en el salto del final al principio** (cierra con la bolsa roja y arranca con
+    la fachada). Las dos 4:5 —las únicas más anchas— van separadas: juntas se
+    leerían como un bloque.
+  * **`REPETICIONES` BAJÓ DE 3 A 2** y esa cuenta hay que rehacerla si se sacan
+    fotos: el loop necesita que UNA copia sea más ancha que la pantalla. Con
+    ocho, una vuelta mide ~1770px — alcanza para 1440 pero **no para 1920**—, y
+    dos vueltas dan **3540px** (medido), que sobra en cualquier pantalla. Con
+    tres vueltas serían 48 nodos de DOM para nada.
+  * Verificado en 390/1440/1920: las 8 distintas en orden, las dos copias del
+    mismo ancho exacto, la tira yendo hacia la derecha, sin desborde horizontal
+    ni errores. Las imágenes que `next/image` deja sin cargar son SOLO las que
+    están fuera de pantalla (lazy): todas las visibles cargan, 0 fallos HTTP.
+
 * **LA TIRA DE FOTOS REEMPLAZA A «NUESTRA HISTORIA» (2026-09-03, pedido del
   cliente)**: `TiraFotos.tsx` (antes `Nosotros.tsx`, borrado). Se fueron el
   título y los dos párrafos —el copy aprobado del cliente, la historia de
@@ -1324,12 +1356,11 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
 
 ## Estado actual del desarrollo
 
-**Última sesión**: 2026-09-03
-**Próximo paso**: las tres fotos de «Nuestra historia» (el cliente dice qué va en
-cada marco punteado) y aprobar su copy; el sticker de Balak, que no vino (su nombre
-va en texto mientras tanto). Desktop sigue con la grilla; el cliente pidió no
-trabajarlo todavía. Queda una sola sección que el nav anticipa y no existe:
-BURGUERS. Pendiente de decisión: **reponer los videos** — el cliente los quiere
+**Última sesión**: 2026-09-04
+**Próximo paso**: el sticker de Balak, que no vino (su nombre va en texto
+mientras tanto). Desktop sigue con la grilla; el cliente pidió no trabajarlo
+todavía. **El nav ya no anticipa ninguna sección que no exista**: los cuatro
+links apuntan a su ancla. Pendiente de decisión: **reponer los videos** — el cliente los quiere
 usar y la idea sobre la mesa es que la burga se arme sola al llegar al centro del
 tocadiscos, con la foto como botón para repetirlo (los 12 mp4 siguen en
 `public/burgas/`, sin referencia desde el código).
@@ -1350,7 +1381,8 @@ tocadiscos, con la foto como botón para repetirlo (los 12 mp4 siguen en
   `components/ui/logoPath.ts`
 * Tipografías reales de la marca servidas con `next/font/local` (Ardillah Kafi /
   Splatink / Sveningsson)
-* Sección «Nuestra historia» (`Nosotros.tsx`) con los tres huecos de foto marcados
+* Tira de fotos (`TiraFotos.tsx`): las 8 fotos del local pasando solas hacia la
+  derecha, a todo el ancho. Reemplazó a «Nuestra historia»
 * Sección «Reseñas» (`Resenas.tsx`): 10 reseñas reales de Google en loop
 * Sección «Work» (`Work.tsx`): el aviso de búsqueda con el link al formulario
 * Footer (`Footer.tsx`): contacto, mapa real de Olascoaga 715, logo y crédito
@@ -1361,7 +1393,6 @@ tocadiscos, con la foto como botón para repetirlo (los 12 mp4 siguen en
 * `public/og.jpg` (1200x630)
 * Logo **vectorial** (.svg): los PNG actuales se derivaron del JPG, sirven bien pero
   un SVG escalaría mejor y pesaría menos
-* **Las 3 fotos de «Nuestra historia»** (hoy marcos punteados) y la aprobación del copy
 * **Confirmar las licencias comerciales** de Ardillah Kafi y Splatink (hoy "personal use")
 * **Las 8 fotos de las burgas** (`content/home.ts` → `burgasContent.items[].foto`, todas
   en `null`). Cuadradas, sobre fondo carbón para que peguen con la estética
