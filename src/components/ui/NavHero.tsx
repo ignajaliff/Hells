@@ -64,7 +64,15 @@ export function NavHero() {
             width={1258}
             height={722}
             priority
-            className="h-[34px] w-auto sm:h-[40px] lg:h-[48px]"
+            /* MÁS GRANDE de `sm` para arriba (2026-09-04, pedido del cliente):
+               48 → 76px en desktop, o sea del 52% al 83% del alto del nav (92px).
+               En TABLET va a 50: ahí el nav todavía mide 66px, así que el
+               mismo salto lo dejaría pegado a los bordes.
+               No cambia `--nav`, así que la cuenta del hero —que le resta esa
+               altura a su `100svh`— sigue dando igual.
+               MÓVIL QUEDA EN 34px: el cliente pidió no tocarlo, y ahí el nav
+               mide 66px, así que subirlo dejaría el logo pegado a los bordes. */
+            className="h-[55px] w-auto sm:h-[55px] lg:h-[76px]"
           />
         </a>
 
