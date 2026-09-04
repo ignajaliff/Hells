@@ -60,4 +60,10 @@ export const SECCIONES = {
   work: 'work',
   resenas: 'resenas',
   pedidos: 'pedidos',
+  /**
+   * El footer (2026-09-04): no era una seccion con ancla hasta que el cliente
+   * pidio el link "Contacto" en el nav. Sigue sin ser una seccion del recorrido
+   * —es el pie— pero necesita un ancla a la que llevar.
+   */
+  contacto: 'contacto',
 } as const

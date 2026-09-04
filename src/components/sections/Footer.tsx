@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import { footerContent } from '@/content/home'
 import { DEFAULTS } from '@/lib/defaults'
-import { MAPA_EMBED, MAPA_LINK, NEGOCIO } from '@/lib/constants'
+import { MAPA_EMBED, MAPA_LINK, NEGOCIO, SECCIONES } from '@/lib/constants'
 
 /**
  * Footer (2026-09-02, pedido del cliente): "Contacto", los dos cuadraditos de
@@ -34,7 +34,7 @@ export function Footer() {
   const { titulo, instagram, whatsapp, mapa, creditos } = footerContent
 
   return (
-    <footer className="relative overflow-hidden bg-black px-4 pb-12 pt-[calc(var(--llamas)_+_56px)] [--llamas:min(max(52px,11svh),96px)] sm:px-8 sm:pb-14 sm:pt-[calc(var(--llamas)_+_80px)] lg:px-14 lg:[--llamas:min(10svh,110px)]">
+    <footer id={SECCIONES.contacto} className="relative overflow-hidden bg-black px-4 pb-12 pt-[calc(var(--llamas)_+_56px)] [--llamas:min(max(52px,11svh),96px)] sm:px-8 sm:pb-14 sm:pt-[calc(var(--llamas)_+_80px)] lg:px-14 lg:[--llamas:min(10svh,110px)]">
       {/* LAS LLAMAS, colgando del techo y apuntando hacia abajo.
 
           Mismo mecanismo que la banda del hero —mosaico (`repeat-x` +

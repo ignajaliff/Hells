@@ -59,6 +59,13 @@ export const navLinks = [
   { label: 'Burgers', href: '#carta', activo: false },
   { label: 'Nosotros', href: '#resenas', activo: false },
   { label: 'Work', href: '#work', activo: false },
+  /**
+   * CONTACTO (2026-09-04, pedido del cliente): apunta al footer, que hasta
+   * ahora no tenía ancla porque no es una sección del recorrido sino el pie.
+   * Es donde viven la dirección, el mapa y los links a Instagram y WhatsApp,
+   * así que es lo que alguien busca cuando toca "Contacto".
+   */
+  { label: 'Contacto', href: '#contacto', activo: false },
 ] as const
 
 /**
