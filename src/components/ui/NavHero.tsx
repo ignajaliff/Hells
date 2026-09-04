@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import Image from 'next/image'
 import { navLinks, heroContent } from '@/content/home'
 import { LINK_PEDIDOS, NEGOCIO } from '@/lib/constants'
+import { useSeccionActiva } from '@/lib/useSeccionActiva'
 
 /**
  * NavHero — el navegador del sitio.
@@ -34,6 +35,19 @@ import { LINK_PEDIDOS, NEGOCIO } from '@/lib/constants'
 export function NavHero() {
   const [abierto, setAbierto] = useState(false)
 
+  /* EL ÓVALO SIGUE AL SCROLL (2026-09-04, pedido del cliente): marca la
+     sección que el visitante está mirando, en vez de quedarse clavado en
+     "Inicio". Los ids salen del `href` de cada link, así que no hay una
+     segunda lista que mantener sincronizada — si se agrega un link a una
+     sección nueva, el óvalo lo sigue solo.
+     `useMemo` porque el array es dependencia del efecto del hook: recreado en
+     cada render, volvería a montar los listeners en cada scroll. */
+  const idsSecciones = useMemo(
+    () => navLinks.map((l) => l.href.replace('#', '')),
+    [],
+  )
+  const seccionActiva = useSeccionActiva(idsSecciones)
+
   return (
     <nav className="sticky top-0 z-50 h-[var(--nav)] bg-background px-5 sm:px-8 lg:px-14">
       <div className="grid h-full grid-cols-[1fr_auto] items-center gap-x-6 lg:grid-cols-[1fr_auto_1fr] lg:gap-x-[clamp(24px,3vw,48px)]">
@@ -57,7 +71,12 @@ export function NavHero() {
         {/* Links: centrados en desktop, plegados en un menú en móvil. */}
         <div className="hidden items-center gap-[clamp(18px,2.6vw,44px)] lg:flex">
           {navLinks.map((link) => (
-            <LinkNav key={link.label} {...link} />
+            <LinkNav
+              key={link.label}
+              label={link.label}
+              href={link.href}
+              activo={link.href.replace('#', '') === seccionActiva}
+            />
           ))}
         </div>
 
