@@ -250,6 +250,38 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
 
 ## Decisiones técnicas tomadas
 
+* **LLAMAS ENTRE LA CARTA Y RESEÑAS (2026-09-04, pedido del cliente)**: una
+  banda dentada colgando del techo de `Resenas`, con los picos hacia abajo, en
+  el hueco negro que quedaba entre las dos secciones. Es el **tercer** lugar
+  donde la web hace este gesto (el hero al pie, el footer al techo).
+  * **SON LAS DEL HERO** (`zocalo-llamas.webp`), que es lo que pidió el
+    cliente — no las rojas macizas del footer.
+  * **SE VE EL CONTORNO ROJO, NO EL RELLENO**: el dibujo es **81% negro y 19%
+    filo rojo** (medido) y acá el fondo es #000 puro, así que el relleno se
+    funde del todo y lo que dibuja la silueta es el filo. **Es el mismo
+    resultado que en el hero** —ahí el fondo es #1a1a1a y ya casi se fundía,
+    está documentado como deliberado—; verificado comparando las dos bandas
+    en 390px, se ven iguales. Donde el hero SÍ muestra el relleno negro es
+    sobre la foto de la burger, que es lo único que tiene detrás.
+    Por eso el footer, con este mismo fondo negro, usa OTRO dibujo: allá la
+    banda tiene que empalmar con el rojo de Work y un filo suelto no
+    alcanzaba. Acá arriba y abajo es todo negro, no hay nada con qué
+    empalmar, y el filo solo funciona.
+  * **NO DEJA COSTURA con la carta**: la base del dibujo es 100% opaca
+    (medido, 366 de 366 muestras), o sea negra maciza, y dada vuelta ese es
+    el borde que toca el negro de arriba — se funden. La sección arranca
+    exactamente donde termina `#carta` (0px, medido).
+  * `-scale-y-100` y no `rotate-180`, misma razón que en el footer. **Al
+    verificarlo, `transform` devuelve `none`**: Tailwind v4 pone la escala en
+    la propiedad `scale` (`1 -1`), que es la trampa ya documentada.
+  * **La altura reusa los valores de `--llamas` DEL FOOTER** para que las tres
+    bandas compartan un solo lenguaje de tamaño, y el padding superior de la
+    sección la reutiliza (`calc(var(--llamas) + 44px)` / `+ 64px` en `sm`)
+    para que el cliché arranque siempre debajo de los picos. Medido: banda de
+    93px con 44 de aire en móvil, 90 con 64 en desktop. La sección crece unos
+    50px — no hay acá ninguna restricción de "una pantalla exacta" como en el
+    hero.
+
 * **"NOSOTROS" DEL NAV APUNTA A RESEÑAS (2026-09-04, pedido del cliente)**:
   iba a `#nosotros`, o sea a la tira de fotos, y ahí el visitante caía en fotos
   sueltas sin una sola palabra que le dijera quién es la marca. Eso ahora se
