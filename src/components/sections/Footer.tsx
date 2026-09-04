@@ -115,15 +115,31 @@ export function Footer() {
         {/* El rectángulo curvado con la ubicación. El `aspect-[4/3]` le da alto
             sin fijarlo en píxeles, así entra igual en cualquier ancho.
             `border` rojo + `overflow-hidden`: sin el overflow, las esquinas del
-            iframe se comen el redondeo. */}
-        <div className="mt-9 w-full overflow-hidden rounded-2xl border-2 border-primary/70">
+            iframe se comen el redondeo.
+
+            MÁS ANCHO EN ESCRITORIO (2026-09-04, pedido del cliente). El resto
+            del footer vive en una columna de 520px —que es lo que le conviene
+            al texto, para que las líneas no queden larguísimas— y ahí el mapa
+            se veía chico: medido, apenas el 27% del ancho en 1920.
+            Se sale de esa columna con `w-[80vw]` y un margen negativo de la
+            mitad de lo que sobra: `calc((520px - 80vw) / 2)` a cada lado.
+            Así queda CENTRADO respecto de la pantalla, no de la columna.
+            **No sirve `left-1/2` + `-ml-[50vw]`**: con el contenedor ya
+            centrado, ese desplazamiento se suma al que la columna trae y el
+            mapa termina corrido a la derecha — medido, se salía 88px fuera de
+            la ventana en 1440.
+            El tope de 1100px evita que en pantallas muy anchas quede una
+            banda desproporcionada.
+            De `sm` para abajo no cambia nada: en el celular ya ocupaba el 91%
+            del ancho y el cliente pidió no tocar móvil. */}
+        <div className="mt-9 w-full overflow-hidden rounded-2xl border-2 border-primary/70 sm:mx-[calc((520px_-_min(80vw,1100px))/2)] sm:w-[min(80vw,1100px)]">
           <iframe
             src={MAPA_EMBED}
             title={mapa}
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
             allowFullScreen
-            className="block aspect-[4/3] w-full border-0"
+            className="block aspect-[4/3] w-full border-0 sm:aspect-[21/9]"
           />
         </div>
 
