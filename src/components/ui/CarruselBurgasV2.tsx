@@ -238,12 +238,56 @@ export function CarruselBurgasV2({
 
 
   return (
-    <div className={`relative z-0 ${className}`}>
-      {/* EL ESCENARIO: cuadrado a todo el ancho. Es la foto activa entera —
-          su fondo abajo, su silueta encima— y sobre ella las vecinas girando.
+    /* `@container` (2026-09-04): en ESCRITORIO el tocadiscos no ocupa la
+       pantalla entera sino una caja centrada, y las medidas de la ficha —el
+       sticker y su margen negativo— tienen que referirse a ESA caja, no al
+       viewport. Con `vw` puro, en 1440px el sticker salía de 216px de alto
+       (contra 58 en un celular) y se montaba sobre la foto muchísimo más de
+       lo debido. Las unidades `cqw` miden el ancho de este contenedor, así
+       que la proporción sticker/foto queda idéntica en las dos pantallas.
+       La geometría del giro no necesita nada de esto: ya está toda en
+       fracciones del escenario (ver `RADIO`, `SUBIDA`, las `caja`). */
+    /* UNA SOLA COLUMNA, el texto DEBAJO de la foto, en las dos pantallas.
+       Se probó con el texto a la derecha en escritorio (2026-09-04) para que
+       la foto pudiera ser más ancha, y el cliente lo descartó: prefiere el
+       nombre y los ingredientes abajo, como en el celular.
+       Para que la foto igual ocupe de lado a lado sin que las dos compitan
+       por la altura, en escritorio la caja se achata (ver `sm:aspect-[5/3]`)
+       en vez de repartirse el ancho. */
+    <div className={`relative z-0 @container flex flex-col ${className}`}>
+      {/* EL ESCENARIO. Es la foto activa entera —su fondo abajo, su silueta
+          encima— y sobre ella las vecinas girando.
           `overflow-hidden` recorta las siluetas que salen por los costados sin
-          generar scroll horizontal. */}
-      <div className="relative aspect-square w-full overflow-hidden bg-black">
+          generar scroll horizontal.
+
+          EN MÓVIL ES CUADRADO, como siempre (`aspect-square`).
+          EN ESCRITORIO se le RECORTA EL AIRE DE ARRIBA (2026-09-04): medido,
+          la hamburguesa ocupa del 35% al 80% del alto de la foto, o sea que
+          el 35% superior es fondo vacío. Como el cuadrado está limitado por
+          la ALTURA de la pantalla, ese aire era ancho que no se podía usar y
+          se traducía en los 650px muertos a cada lado (el 57-68% del ancho).
+          Con `sm:aspect-[5/3]` la caja es bien apaisada: a la misma altura
+          entra mucho más ancha —de lado a lado— la burger se ve grande y la
+          ficha sigue quedando dentro de la pantalla. El recorte se lo lleva
+          el `object-cover` de los fondos, que ya estaba.
+
+          `sm:-translate-y-[3%]` SUBE el contenido dentro de esa caja. Sin él
+          la burger quedaba pegada al piso con una franja negra arriba: las
+          siluetas se posicionan en FRACCIONES del alto de la caja (35%-80%),
+          así que al achatarla esas mismas fracciones la dejan baja. Se mueve
+          el bloque ENTERO —fondos y siluetas juntos— para que no se
+          desalineen entre sí, y el `overflow-hidden` del padre se lleva lo
+          que sobra. */}
+      <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-black sm:aspect-[5/3] sm:max-h-[calc(100svh-23rem)]">
+        {/* `sm:scale-[1.35]` AGRANDA el contenido dentro de la caja recortada.
+            Al limitar el alto (ver `sm:max-h-…` arriba) la caja queda bien
+            apaisada, y como la foto entra con `object-cover` el dibujo se
+            aleja: la hamburguesa quedaba chica con mucho negro alrededor.
+            Escalar el bloque entero —fondos y siluetas juntos— la devuelve a
+            un tamaño que llena la caja sin deformar nada; lo que sobra se lo
+            lleva el `overflow-hidden` del padre.
+            El `-translate-y` compensa que al escalar el conjunto baja. */}
+        <div className="absolute inset-0 sm:-translate-y-[3%] sm:scale-[1.35]">
         {/* LOS FONDOS: uno por burga, apilados. Solo se ven el de la activa y
             el de la que viene, fundiéndose según el scroll. */}
         {items.map((b, i) => (
@@ -297,8 +341,43 @@ export function CarruselBurgasV2({
             />
           </div>
         ))}
+        </div>
 
-        {/* EL CARRIL INVISIBLE que capta el dedo, por encima de todo. Cada
+        {/* EL FUNDIDO CON EL FONDO (2026-09-04, pedido del cliente: "se nota
+            mucho el cambio de rojo a negro, que quede armonizado").
+            La foto tiene un degradé rojo horneado que arranca de golpe contra
+            el negro de la sección, y ese canto duro se veía como una línea de
+            corte en los cuatro bordes.
+            Esto lo disimula con negro que se desvanece hacia adentro: arriba
+            —donde el rojo es más fuerte y el salto más visible— entra bastante
+            más que abajo, y a los costados una franja corta alcanza.
+            Va DEBAJO del carril (que vive en 200) y con `pointer-events-none`:
+            si no, se comería el gesto. Es puro CSS sobre la caja, así que no
+            depende de la burga activa ni hay que regenerar ninguna imagen.
+
+            TAMBIÉN EN MÓVIL (2026-09-04, pedido del cliente): al principio iba
+            solo en escritorio, pero en el celular el corte contra el título de
+            la sección se ve igual de duro.
+            La diferencia es que en móvil la foto ocupa TODO el ancho de la
+            pantalla, así que ahí no hay canto lateral que disimular: va solo
+            el fundido de arriba y abajo. Meter también el horizontal
+            oscurecería los bordes de la foto sin motivo.
+
+            EL NEGRO BAJA MÁS EN MÓVIL —hasta el 52% contra el 28% de
+            escritorio— (2026-09-04, pedido del cliente: "la franja roja está
+            muy arriba, parece de fondo"). La caja del celular es CUADRADA y
+            la de escritorio apaisada, así que el mismo porcentaje no tapa lo
+            mismo: al 28% el rojo asomaba a 109px del borde, muy por encima de
+            la hamburguesa, y se leía como un fondo aparte en vez de como el
+            ambiente de la foto. Al 52% el color arranca recién cerca del pan. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 z-[100] bg-[linear-gradient(to_bottom,#000_0%,#000_18%,transparent_52%,transparent_88%,#000_100%)] sm:bg-[linear-gradient(to_bottom,#000_0%,transparent_28%,transparent_88%,#000_100%),linear-gradient(to_right,#000_0%,transparent_9%,transparent_91%,#000_100%)]"
+        />
+
+        {/* EL CARRIL INVISIBLE que capta el dedo, por encima de todo. Va
+            FUERA del bloque que se sube en escritorio: tiene que cubrir la
+            caja entera para captar el gesto, no correrse con la imagen. Cada
             slot es un botón: tocarlo trae esa burga al frente. */}
         <div
           ref={carril}
@@ -315,6 +394,40 @@ export function CarruselBurgasV2({
             />
           ))}
         </div>
+
+        {/* LAS FLECHAS — SOLO ESCRITORIO (2026-09-04, pedido del cliente).
+            En el celular el carrusel se pasa con el dedo y no hacen falta;
+            con mouse, en cambio, la única forma era hacer clic en la burga de
+            al lado, y eso hay que descubrirlo. `hidden sm:flex` las deja
+            fuera del móvil, que no se tocó.
+
+            Van en `z-[210]`, POR ENCIMA del carril (200): si no, el carril
+            —que cubre todo el escenario para captar el gesto— se come el clic.
+            En los extremos se deshabilitan en vez de esconderse: si
+            desaparecieran, la otra flecha saltaría de lugar al llegar al
+            final. */}
+        <button
+          type="button"
+          onClick={() => irA(Math.max(0, activa - 1))}
+          disabled={activa === 0}
+          aria-label="Burga anterior"
+          className="absolute left-1 bottom-[6%] z-[210] sm:left-[12%] sm:bottom-[10%] lg:left-[26%] hidden items-center justify-center rounded-full border-2 border-primary bg-black/70 p-3 text-primary transition-opacity hover:bg-black disabled:pointer-events-none disabled:opacity-25 sm:flex"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path d="M15 5 8 12l7 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          onClick={() => irA(Math.min(items.length - 1, activa + 1))}
+          disabled={activa === items.length - 1}
+          aria-label="Burga siguiente"
+          className="absolute right-1 bottom-[6%] z-[210] sm:right-[12%] sm:bottom-[10%] lg:right-[26%] hidden items-center justify-center rounded-full border-2 border-primary bg-black/70 p-3 text-primary transition-opacity hover:bg-black disabled:pointer-events-none disabled:opacity-25 sm:flex"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path d="m9 5 7 7-7 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
       </div>
 
       {/* LA FICHA de la activa: el STICKER con el nombre (2026-09-01, pedido
@@ -347,6 +460,9 @@ export function CarruselBurgasV2({
 
           Sin sticker (hoy solo Balak, que no vino) queda el nombre en texto.
           CONTRASTE del texto: rojo sobre negro da 4.50:1, justo AA — no achicar. */}
+      {/* EN ESCRITORIO ES LA COLUMNA DERECHA (2026-09-04): `flex-1` para que
+          se coma el ancho que deja la foto, alineada a la izquierda y sin el
+          `px` del móvil. En móvil no cambia nada: sigue debajo y centrada. */}
       <div className="pointer-events-none relative z-[300] grid px-6 text-center">
         {items.map((b, i) => (
           <div
@@ -355,22 +471,40 @@ export function CarruselBurgasV2({
             className={`col-start-1 row-start-1 ${i === activa ? 'opacity-100' : 'opacity-0'} ${sinMovimiento ? '' : 'transition-opacity duration-150'}`}
           >
             {b.escena.sticker ? (
-              <div className="pointer-events-none relative mx-auto -mt-[7.5vw] h-[15vw] w-[64vw]">
+              /* El margen negativo que lo monta sobre la foto es SOLO de
+                 móvil (`max-sm:`): al costado no hay borde inferior sobre el
+                 que montarse y el sticker se subía solo, descolgado.
+                 En escritorio su ancho se mide contra la COLUMNA, no contra
+                 el escenario, así que va en `%` y no en `cqw`. */
+              <div className="pointer-events-none relative mx-auto h-[15cqw] w-[64cqw] -mt-[7.5cqw] sm:-mt-[5cqw] sm:h-[10cqw] sm:w-[40cqw]">
                 <Image
                   src={b.escena.sticker}
                   alt={b.nombre}
                   fill
-                  sizes="64vw"
+                  sizes="(min-width: 640px) 420px, 64vw"
+                  /* CENTRADO, sin `object-left`: ése venía del intento de
+                     poner el texto en una columna a la derecha (descartado) y
+                     dejaba el sello corrido a la izquierda respecto de la
+                     hamburguesa — medido, 152px de desfase en 1440. */
                   className="object-contain drop-shadow-[0_6px_14px_rgba(0,0,0,.6)]"
                 />
               </div>
             ) : (
-              <h3 className="pt-6 font-display text-[clamp(26px,7vw,34px)] uppercase leading-none tracking-[0.01em] text-primary">
+              /* En `cqw` y no `vw`: el ancho de referencia es el escenario.
+                 Con `vw`, en escritorio el `clamp` se clavaba en su tope
+                 (34px / 15px) y el texto quedaba diminuto al lado de una foto
+                 mucho más grande que la del celular. */
+              <h3 className="pt-6 font-display text-[clamp(26px,7cqw,34px)] uppercase leading-none tracking-[0.01em] text-primary">
                 {b.nombre}
               </h3>
             )}
             {b.ingredientes ? (
-              <p className="mt-2 font-body text-[clamp(13px,3.4vw,15px)] font-semibold uppercase leading-snug tracking-[0.08em] text-primary">
+              /* BLANCOS y no rojos (2026-09-04, pedido del cliente). De paso
+                 gana contraste: `--primary` sobre negro daba 4.50:1, justo el
+                 mínimo AA y sin margen para achicar el texto; `--foreground`
+                 da 15.96:1. El nombre sigue en rojo — es texto grande y ahí
+                 el rojo de marca sí funciona. */
+              <p className="mt-2 font-body text-[clamp(13px,3.4cqw,15px)] font-semibold uppercase leading-snug tracking-[0.08em] text-foreground sm:mt-4 sm:text-[clamp(15px,1.5cqw,20px)]">
                 {b.ingredientes}
               </p>
             ) : null}
