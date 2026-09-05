@@ -85,8 +85,21 @@ type Burga = {
 
 /** Ángulo de giro por cada paso de distancia a la activa, en radianes. */
 const ANGULO_PASO = Math.PI / 3 // 60°
-/** Radio del arco, en fracción del ancho del escenario. */
-const RADIO = 0.44
+/**
+ * Radio del arco, en fracción del ancho del escenario.
+ *
+ * EN ESCRITORIO ES MÁS CHICO (2026-09-05, pedido del cliente: "que se vean la
+ * anterior y la siguiente a los costados, como en el celular").
+ * El bloque de escritorio va con `scale-[1.35]` —para que la burger llene la
+ * caja apaisada— y esa escala se lleva también el arco, así que las vecinas
+ * salían disparadas fuera del escenario: medido en 1440, se veían al 45%
+ * contra el 90-100% del celular (una llegaba a 1576px sobre una caja de 1328).
+ * Dividirlo por esa misma escala las devuelve adentro sin tocar el móvil, que
+ * no lleva escala y sigue con el 0.44 de siempre.
+ */
+const RADIO_MOVIL = 0.44
+const ESCALA_ESCRITORIO = 1.35
+const RADIO_ESCRITORIO = RADIO_MOVIL / ESCALA_ESCRITORIO
 /** Cuánto sube la silueta al alejarse un paso, en fracción del alto. */
 const SUBIDA = 0.07
 /** Escala de la vecina inmediata (la activa va en 1). */
@@ -124,6 +137,13 @@ export function CarruselBurgasV2({
       const paso = rail.scrollWidth / items.length
       const posicion = rail.scrollLeft / paso
 
+      /* El radio depende del ancho: de `sm` para arriba el bloque va escalado
+         y el arco tiene que compensarlo (ver `RADIO_ESCRITORIO`). Se mide acá
+         y no con `matchMedia` en un estado aparte porque `pintar` ya corre en
+         cada scroll y resize, así que sigue al viewport sin listeners nuevos.
+         640px es el breakpoint `sm` de Tailwind: si allá cambia, acá también. */
+      const radio = window.innerWidth >= 640 ? RADIO_ESCRITORIO : RADIO_MOVIL
+
       items.forEach((b, i) => {
         const d = i - posicion
         const dist = Math.abs(d)
@@ -153,7 +173,7 @@ export function CarruselBurgasV2({
           dist <= 1
             ? 1 - (1 - ESCALA_VECINA) * dist
             : ESCALA_VECINA - (ESCALA_VECINA - ESCALA_MINIMA) * clamp(dist - 1, 0, 1)
-        const ncx = cx + Math.sin(ang) * RADIO
+        const ncx = cx + Math.sin(ang) * radio
         const ncy = cy - SUBIDA * clamp(dist, 0, 1.6)
         const nw = w * esc
         const nh = h * esc
@@ -300,13 +320,26 @@ export function CarruselBurgasV2({
             className="absolute inset-0"
             style={{ opacity: i === 0 ? 1 : 0, visibility: i === 0 ? 'visible' : 'hidden' }}
           >
+            {/* LA SOMBRA/LUZ MÁS CHICA EN ESCRITORIO (2026-09-05, pedido del
+                cliente). El degradé rojo está HORNEADO en la imagen, que es la
+                misma en las dos pantallas, así que no se puede achicar en el
+                archivo sin afectar al celular — y ahí el cliente lo quiere como
+                está.
+                Se recorta con una máscara radial: el centro queda intacto y el
+                halo se desvanece antes de llegar a los bordes, o sea que la luz
+                ocupa menos sin cambiar de color ni de intensidad.
+                Hace falta JUSTO en escritorio porque ahí el contenido va con
+                `scale-[1.35]` —para que la burger llene la caja apaisada— y esa
+                escala agranda el degradé junto con todo (medido: la imagen se
+                dibuja a 1793px sobre una caja de 1328). En móvil la escala es 1
+                y la máscara no se aplica. */}
             <Image
               src={b.escena.fondo}
               alt=""
               fill
               sizes="100vw"
               priority={i < 2}
-              className="object-cover"
+              className="object-cover sm:[mask-image:radial-gradient(58%_62%_at_50%_52%,#000_38%,transparent_100%)]"
             />
           </div>
         ))}
@@ -411,10 +444,10 @@ export function CarruselBurgasV2({
           onClick={() => irA(Math.max(0, activa - 1))}
           disabled={activa === 0}
           aria-label="Burga anterior"
-          className="absolute left-1 bottom-[6%] z-[210] sm:left-[12%] sm:bottom-[10%] lg:left-[26%] hidden items-center justify-center rounded-full border-2 border-primary bg-black/70 p-3 text-primary transition-opacity hover:bg-black disabled:pointer-events-none disabled:opacity-25 sm:flex"
+          className="absolute left-3 bottom-[8%] z-[210] sm:left-[12%] sm:bottom-[10%] lg:left-[26%] flex items-center justify-center rounded-full border border-primary/25 bg-black/30 p-2.5 text-primary/70 backdrop-blur-sm transition-[color,border-color,background-color] hover:border-primary/60 hover:bg-black/55 hover:text-primary disabled:pointer-events-none disabled:opacity-0 sm:p-3"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-            <path d="M15 5 8 12l7 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M15 5 8 12l7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
         <button
@@ -422,10 +455,10 @@ export function CarruselBurgasV2({
           onClick={() => irA(Math.min(items.length - 1, activa + 1))}
           disabled={activa === items.length - 1}
           aria-label="Burga siguiente"
-          className="absolute right-1 bottom-[6%] z-[210] sm:right-[12%] sm:bottom-[10%] lg:right-[26%] hidden items-center justify-center rounded-full border-2 border-primary bg-black/70 p-3 text-primary transition-opacity hover:bg-black disabled:pointer-events-none disabled:opacity-25 sm:flex"
+          className="absolute right-3 bottom-[8%] z-[210] sm:right-[12%] sm:bottom-[10%] lg:right-[26%] flex items-center justify-center rounded-full border border-primary/25 bg-black/30 p-2.5 text-primary/70 backdrop-blur-sm transition-[color,border-color,background-color] hover:border-primary/60 hover:bg-black/55 hover:text-primary disabled:pointer-events-none disabled:opacity-0 sm:p-3"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-            <path d="m9 5 7 7-7 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="m9 5 7 7-7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
       </div>
@@ -476,7 +509,18 @@ export function CarruselBurgasV2({
                  que montarse y el sticker se subía solo, descolgado.
                  En escritorio su ancho se mide contra la COLUMNA, no contra
                  el escenario, así que va en `%` y no en `cqw`. */
-              <div className="pointer-events-none relative mx-auto h-[15cqw] w-[64cqw] -mt-[7.5cqw] sm:-mt-[5cqw] sm:h-[10cqw] sm:w-[40cqw]">
+              /* EN ESCRITORIO EL ANCHO MANDA (2026-09-04, pedido del cliente:
+                 "algunos son muy grandes"). La caja fija SOLO el alto y los
+                 sellos tienen proporciones muy distintas —medido, de 1.71 a
+                 3.80, o sea 2.22x—, así que con `object-contain` el más
+                 apaisado se dibuja mucho más ancho: Asmodeo salía como un
+                 bloque rojo de borde a borde al lado del óvalo discreto de
+                 Lucifer.
+                 Con `max-w` el ancho queda acotado y los apaisados se achican
+                 hasta entrar; los cuadrados no lo tocan y conservan su alto.
+                 En MÓVIL no se toca: ahí la caja es más angosta en proporción
+                 y el problema no aparece. */
+              <div className="pointer-events-none relative mx-auto h-[15cqw] w-[64cqw] -mt-[7.5cqw] sm:-mt-[1cqw] sm:h-[8cqw] sm:w-auto sm:max-w-[24cqw]">
                 <Image
                   src={b.escena.sticker}
                   alt={b.nombre}

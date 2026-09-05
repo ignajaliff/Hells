@@ -144,7 +144,7 @@ export const burgasContent = {
       ingredientes: 'Triple medallón, cheddar x6 y salsa Hells',
       escena: {
         sticker: '/burgas/lucifer-sticker.webp',
-        fondo: '/burgas/lucifer-fondo.webp',
+        fondo: '/burgas/lucifer-fondo-rojo.webp',
         silueta: '/burgas/lucifer-silueta.webp',
         caja: { x: 0.2407, y: 0.3528, w: 0.5435, h: 0.4479 },
       },
@@ -166,7 +166,7 @@ export const burgasContent = {
       // recorte viejo cacheado ("sigue cortada"). URL nueva = caché imposible.
       escena: {
         sticker: '/burgas/satanas-sticker.webp',
-        fondo: '/burgas/satanas-fondo-2.webp',
+        fondo: '/burgas/satanas-fondo-rojo.webp',
         silueta: '/burgas/satanas-silueta-2.webp',
         caja: { x: 0.2065, y: 0.4037, w: 0.5787, h: 0.3954 },
       },
@@ -182,7 +182,7 @@ export const burgasContent = {
       },
       ingredientes: 'Triple medallón, cheddar x6, panceta, cebolla crispy y salsa Hells',
       escena: {
-        fondo: '/burgas/balak-fondo.webp',
+        fondo: '/burgas/balak-fondo-rojo.webp',
         silueta: '/burgas/balak-silueta.webp',
         caja: { x: 0.275, y: 0.3926, w: 0.4593, h: 0.4115 },
       },
@@ -199,7 +199,7 @@ export const burgasContent = {
       ingredientes: 'Doble medallón, cheddar x4, cebolla crispy y barbacoa',
       escena: {
         sticker: '/burgas/belcebu-sticker.webp',
-        fondo: '/burgas/belcebu-fondo.webp',
+        fondo: '/burgas/belcebu-fondo-rojo.webp',
         silueta: '/burgas/belcebu-silueta.webp',
         caja: { x: 0.2491, y: 0.413, w: 0.5046, h: 0.3979 },
       },
@@ -216,7 +216,7 @@ export const burgasContent = {
       ingredientes: 'Doble medallón, doble salsa, queso azul, rúcula y cebolla caramelizada',
       escena: {
         sticker: '/burgas/azazel-sticker.webp',
-        fondo: '/burgas/azazel-fondo.webp',
+        fondo: '/burgas/azazel-fondo-rojo.webp',
         silueta: '/burgas/azazel-silueta.webp',
         caja: { x: 0.2491, y: 0.3778, w: 0.4935, h: 0.4201 },
       },
@@ -233,7 +233,7 @@ export const burgasContent = {
       ingredientes: 'Doble medallón, queso dambo x4, huevo, tomate y lechuga',
       escena: {
         sticker: '/burgas/belfegor-sticker.webp',
-        fondo: '/burgas/belfegor-fondo.webp',
+        fondo: '/burgas/belfegor-fondo-rojo.webp',
         silueta: '/burgas/belfegor-silueta.webp',
         caja: { x: 0.2519, y: 0.3352, w: 0.5157, h: 0.4646 },
       },
@@ -250,7 +250,7 @@ export const burgasContent = {
       ingredientes: 'Doble medallón, queso dambo x4, guacamole y mayonesa',
       escena: {
         sticker: '/burgas/mammon-sticker.webp',
-        fondo: '/burgas/mammon-fondo.webp',
+        fondo: '/burgas/mammon-fondo-rojo.webp',
         silueta: '/burgas/mammon-silueta.webp',
         caja: { x: 0.2454, y: 0.3833, w: 0.5102, h: 0.4179 },
       },
@@ -267,7 +267,7 @@ export const burgasContent = {
       ingredientes: 'Doble medallón, cebolla caramelizada, cheddar líquido y cheddar x2',
       escena: {
         sticker: '/burgas/lilith-sticker.webp',
-        fondo: '/burgas/lilith-fondo.webp',
+        fondo: '/burgas/lilith-fondo-rojo.webp',
         silueta: '/burgas/lilith-silueta.webp',
         caja: { x: 0.275, y: 0.4185, w: 0.463, h: 0.3886 },
       },
@@ -284,7 +284,7 @@ export const burgasContent = {
       ingredientes: 'Medallón, cheddar x2 y salsa Hells',
       escena: {
         sticker: '/burgas/gualicho-sticker.webp',
-        fondo: '/burgas/gualicho-fondo.webp',
+        fondo: '/burgas/gualicho-fondo-rojo.webp',
         silueta: '/burgas/gualicho-silueta.webp',
         caja: { x: 0.2657, y: 0.4444, w: 0.475, h: 0.364 },
       },
@@ -301,7 +301,7 @@ export const burgasContent = {
       ingredientes: 'Medallón XL, cheddar x2, cebolla y ketchup',
       escena: {
         sticker: '/burgas/baal-sticker.webp',
-        fondo: '/burgas/baal-fondo.webp',
+        fondo: '/burgas/baal-fondo-rojo.webp',
         silueta: '/burgas/baal-silueta.webp',
         caja: { x: 0.2713, y: 0.4731, w: 0.4528, h: 0.3307 },
       },
@@ -318,7 +318,7 @@ export const burgasContent = {
       ingredientes: 'Pechuga de pollo rebozada en tempura, cheddar x2, panceta, tomate, lechuga y mayoliva',
       escena: {
         sticker: '/burgas/asmodeo-sticker.webp',
-        fondo: '/burgas/asmodeo-fondo.webp',
+        fondo: '/burgas/asmodeo-fondo-rojo.webp',
         silueta: '/burgas/asmodeo-silueta.webp',
         caja: { x: 0.2454, y: 0.3491, w: 0.5074, h: 0.4463 },
       },
@@ -335,7 +335,7 @@ export const burgasContent = {
       ingredientes: 'Medallón veggie a elección, queso dambo, portobellos, tomate y mayonesa de perejil',
       escena: {
         sticker: '/burgas/leviatan-sticker.webp',
-        fondo: '/burgas/leviatan-fondo.webp',
+        fondo: '/burgas/leviatan-fondo-rojo.webp',
         silueta: '/burgas/leviatan-silueta.webp',
         caja: { x: 0.2648, y: 0.4046, w: 0.4611, h: 0.3955 },
       },
