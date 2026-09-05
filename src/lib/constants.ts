@@ -14,9 +14,9 @@ export const NEGOCIO = {
   pais: 'AR',
   direccion: 'Olascoaga 715', // dato real del cliente (2026-09-02)
   codigoPostal: '5502', // de la ficha de Google Maps del local (M5502), 2026-09-02
-  telefono: '+542615990627', // de la ficha de Google Maps (0261 599-0627), 2026-09-02. ⚠ NO se sabe si es WhatsApp
+  telefono: '+542615990627', // de la ficha de Google Maps (0261 599-0627). Es el WhatsApp del local (confirmado 2026-09-05)
   email: 'hola@hellsburger.com.ar', // ⚠
-  instagram: 'https://instagram.com/hellsburger', // ⚠
+  instagram: 'https://www.instagram.com/hellsburgerok/', // dato real del cliente (2026-09-05)
 } as const
 
 /**

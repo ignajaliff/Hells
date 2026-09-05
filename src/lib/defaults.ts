@@ -12,7 +12,10 @@ import { NEGOCIO } from './constants'
 export const DEFAULTS = {
   whatsapp: {
     visible: true,
-    numero: '5493411234567', // ⚠ sin + ni espacios, formato wa.me
+    // Dato real del cliente (2026-09-05): 2615990627, el mismo de la ficha de
+    // Maps. Formato wa.me: sin + ni espacios, con código de país (54) y el 9
+    // de celular argentino.
+    numero: '5492615990627',
     desde: 19,
     hasta: 24,
     mensaje: 'Pedí por WhatsApp',
