@@ -39,11 +39,31 @@ export function LasBurgasV2() {
   return (
     <section
       id={SECCIONES.carta}
-      className="relative overflow-hidden bg-black px-4 py-20 sm:px-8 sm:py-28 lg:px-14"
+      className="relative scroll-mt-[var(--nav)] overflow-hidden bg-black px-4 pb-20 pt-12 sm:px-8 sm:pb-28 sm:pt-16 lg:px-14"
     >
       {/* Encabezado. El título se sale un poco por la izquierda (`-ml-[2%]`)
-          para que la sección no se lea como una caja centrada y prolija. */}
-      <header className="relative z-[1] mb-12 sm:mb-16">
+          para que la sección no se lea como una caja centrada y prolija.
+
+          MÁS ARRIBA Y MÁS PEGADO AL CATÁLOGO (2026-09-06, pedido del cliente).
+          Dos medidas distintas, las dos medidas antes de tocarlas:
+          * el aire de ARRIBA era el `py` de la sección (112px en escritorio,
+            80 en móvil). Ahora el padding se parte: abajo sigue igual —cierra
+            la sección contra la siguiente— y arriba baja a 64/48px. Sube el
+            título sin mover el pie.
+          * la separación hasta el tocadiscos era el `mb` del header (64px en
+            escritorio, 48 en móvil) y bajó a 32/24 — la mitad.
+          El h2 va con `leading-[0.85]`, así que su caja ya recorta algo por
+          arriba: el aire óptico es un poco mayor que estos números.
+          Ojo: en móvil ese `mb` es solo una PARTE del hueco real, porque el
+          escenario sube 72px sobre él (ver el comentario de la caja).
+
+          Por eso la sección necesitó `scroll-mt-[var(--nav)]`: el nav es
+          STICKY y tapa los primeros 66px (92 en escritorio) de lo que sea que
+          quede arriba de todo. El `py` grande alcanzaba para disimularlo, pero
+          al recortarlo el CTA "Las burgers" del hero aterrizaba con el título
+          cortado por la mitad. El `scroll-mt` corre el punto de aterrizaje
+          justo lo que mide el nav, sin devolver el aire que se sacó. */}
+      <header className="relative z-[1] mb-6 sm:mb-8">
         <h2 className="-ml-[2%] font-display text-[clamp(56px,16vw,190px)] uppercase leading-[0.85] tracking-[-0.02em] text-primary sm:text-[12vw] lg:text-[9vw]">
           {titulo}
         </h2>
@@ -78,7 +98,22 @@ export function LasBurgasV2() {
              (foto 64-68%, texto el resto).
           Por eso acá ya no hay `max-w` atado a `vh`: la sección usa su ancho
           completo y el único límite es el padding lateral. */}
-      <div className="w-full max-sm:-mx-4 max-sm:w-auto">
+      {/* EL ESCENARIO SUBE, SOLO EN MÓVIL (2026-09-06, 3er pedido del cliente:
+          "en celu disminuí el espacio, en PC alejalo y dejalo como estaba").
+
+          El margen del header no es lo que hace el hueco: medido, la caja ya
+          arrancaba a 24px de la bajada en móvil. **El vacío lo hace la FOTO**:
+          su 27% superior es degradé oscuro antes de que aparezca el pan (138px
+          de 505), así que el hueco visible era de ~162px aunque el margen
+          dijera 24. Recortar el margen no lo arreglaba.
+          Por eso el escenario se sube con un margen NEGATIVO: ese vacío queda
+          detrás del bloque del texto —que va en `z-[1]`, por encima— en vez de
+          empujarlo hacia abajo. Sube 72px de los 138 disponibles; el resto se
+          deja como aire real, si no el pan tocaría la bajada.
+
+          EN ESCRITORIO NO VA (`sm:mt-0`): se probó ahí primero (subía 96px) y
+          el cliente lo pidió de vuelta como estaba, o sea con el hueco. */}
+      <div className="-mt-[72px] w-full max-sm:-mx-4 max-sm:w-auto sm:mt-0">
         <CarruselBurgasV2 items={items} />
       </div>
     </section>
