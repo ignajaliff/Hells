@@ -183,51 +183,104 @@ export function Hero() {
         {/* `--titulo` es el tamaño del h1, sacado a variable para que la fila de
             CTAs pueda medirse contra él (ver más abajo). Si se cambia el tamaño
             del título, se cambia acá y los botones acompañan solos. */}
-        {/* El `pt-5` de móvil es el aire que antes daba el logo: sin él el h1
-            arrancaba EXACTAMENTE donde termina la barra promo (medido, 107px
-            los dos) y se leía pegado. No agranda el hero — se lo come el hueco
-            libre que queda por encima de la burger, que va con `mt-auto`. */}
-        <div className="relative z-[3] order-1 max-w-full shrink-0 px-5 pb-4 pt-5 [--titulo:clamp(38px,min(8.5vh,12.2vw),110px)] sm:px-8 lg:order-none lg:max-w-[62%] lg:shrink lg:px-14 lg:pt-0 lg:[--titulo:clamp(38px,min(13vh,9.2vw),150px)]">
-          {/* El tamaño se limita por ALTURA y por ANCHO a la vez.
-              El `9vh` solo mide alto, y en un celular alto y angosto (390x844)
-              daba 76px: "HAMBURGUESAS", que es la palabra más larga, se salía
-              de la pantalla. El `min()` lo ata a las DOS restricciones: `12.2vw`
-              para que la línea más larga entre a lo ancho, y `8.5vh` para que
-              las cuatro líneas no se coman el alto de la burger.
-              En desktop no cambia nada: ahí manda el `13vh` y el tope. */}
+        {/* REPARTO VERTICAL DEL HERO — **SOLO MÓVIL** (2026-09-06, pedido del
+            cliente: "el texto más grande, FOOD más grande que las demás, más
+            margen con el banner y el nav, y los botones más abajo, cerca de
+            la burga"). Se probó primero en escritorio y el cliente lo pidió
+            de vuelta: **ahí queda todo como estaba** (`lg:` sin tocar).
+
+            En móvil la columna pasa a ser FLEX de alto completo (`flex h-full
+            flex-col`) y los CTAs llevan `mt-auto`: así el aire sobrante se
+            junta ENTRE el título y los botones en vez de repartirse, que es lo
+            que los baja hacia la burger sin un margen fijo que habría que
+            recalcular en cada pantalla. En `lg` se anula (`lg:block`).
+
+            * AIRE DE ARRIBA: `pt-5` → `pt-14`. Antes el h1 arrancaba pegado a
+              la barra promo (medido: 107px los dos).
+            * TAMAÑO: `min(8.5vh,12.2vw)` → `min(10.5vh,15vw)`, tope 110→130px.
+              Se pudo porque el copy pasó de cuatro líneas a tres.
+            * `--destacado` es el tamaño de "FOOD", 1.28× el resto (ver el h1).
+              Se declara en las dos pantallas: en escritorio también se pidió
+              que FOOD fuera más grande.
+
+            El `pb-4` se mantiene: la burger va debajo en el flujo y este
+            bloque no debe pegarse a ella. */}
+        <div className="relative z-[3] order-1 flex h-full max-w-full shrink-0 flex-col px-5 pb-4 pt-14 [--destacado:calc(var(--titulo)*1.28)] [--titulo:clamp(38px,min(10.5vh,15vw),130px)] sm:px-8 lg:order-none lg:block lg:h-auto lg:max-w-[62%] lg:shrink lg:px-14 lg:pt-[6vh] lg:[--titulo:clamp(38px,min(17vh,14vw),200px)]">
+          {/* El tamaño se limita por ALTURA y por ANCHO a la vez, con un
+              `min()`: el `vh` solo mide alto, y en un celular angosto un
+              tamaño atado solo a la altura sacaba la palabra más larga fuera
+              de la pantalla (pasaba con el copy viejo, "HAMBURGUESAS").
+              Con "BEST BAD FOOD" la restricción que manda es la ALTURA en las
+              dos pantallas —son tres líneas más los dos CTAs—; el `vw` quedó
+              como red de seguridad para pantallas muy angostas. */}
           <h1 className="font-display text-[length:var(--titulo)] uppercase leading-none tracking-[0.005em] text-foreground">
             <span className="block">{titulo.linea1}</span>
-            {/* En móvil "hechas en el" se parte en dos para que la tipografía
-                pueda crecer: el límite del tamaño lo pone la línea más larga, y
-                con tres líneas era ésta la que frenaba todo. En `lg` vuelve a
-                ser una sola (`lg:inline`), como el diseño. */}
+            {/* La segunda línea puede venir partida en dos palabras: en móvil
+                se apilan para que la tipografía pueda crecer —el límite del
+                tamaño lo pone la línea más larga— y en `lg` vuelven a la misma
+                línea (`lg:inline`), como el diseño.
+                Con el copy actual ("BEST BAD FOOD") `linea2b` viene VACÍO, así
+                que el segundo `<span>` y su espacio se omiten: si se dibujaran
+                igual quedaría un espacio colgando al final de la línea. */}
             <span className="block">
-              <span className="block lg:inline">{titulo.linea2a}</span>{' '}
-              <span className="block lg:inline">{titulo.linea2b}</span>
+              <span className="block lg:inline">{titulo.linea2a}</span>
+              {titulo.linea2b ? (
+                <>
+                  {' '}
+                  <span className="block lg:inline">{titulo.linea2b}</span>
+                </>
+              ) : null}
             </span>
-            <span className="block text-primary">{titulo.destacado}</span>
+            {/* "FOOD" VA MÁS GRANDE QUE LAS OTRAS DOS (2026-09-06, pedido del
+                cliente). Su tamaño es `--destacado` = 1.28× `--titulo`, así
+                sigue atado al mismo valor: si cambia el título, la proporción
+                se mantiene sola.
+                Lleva `leading-[0.9]` propio porque `leading-none` sobre un
+                cuerpo más grande abre un escalón visible respecto de las dos
+                líneas de arriba — con 0.9 las tres quedan con el mismo ritmo.
+                A lo ancho no molesta: aun a 1.28× sobran 557px en 1440 hasta
+                donde arranca el dibujo de la burger (medido). */}
+            <span className="block text-[length:var(--destacado)] leading-[0.9] text-primary">
+              {titulo.destacado}
+            </span>
           </h1>
 
           {/* MÓVIL: los dos CTAs SIEMPRE apilados y a lo ancho (2026-08-21). */}
-          {/* DESKTOP: la fila mide EXACTAMENTE lo que la palabra "INFIERNO" del
+          {/* DESKTOP: la fila mide EXACTAMENTE lo que la LÍNEA MÁS LARGA del
               h1, así los botones arrancan y terminan donde ella. El ancho sale
-              de medir la fuente: "INFIERNO" ocupa 3.2627em contando el tracking
-              de 0.005em, así que la fila es el tamaño del título por ese
-              factor. Los dos botones se reparten ese ancho en partes iguales
-              con `flex-1 basis-0` — no importa que las etiquetas midan
-              distinto, quedan del mismo tamaño y crecen juntos.
-              **Si cambia el texto del destacado o el tracking del h1, hay que
-              recalcular el 3.2627.**
+              de medir la fuente contando el tracking de 0.005em, así que la
+              fila es el tamaño del título por ese factor. Los dos botones se
+              reparten ese ancho en partes iguales con `flex-1 basis-0` — no
+              importa que las etiquetas midan distinto, quedan del mismo tamaño
+              y crecen juntos.
+
+              Con "BEST BAD FOOD" el factor es 2.4461 y la línea más ancha es
+              "FOOD": mide 1.911em de glifos, pero se dibuja a `--destacado`,
+              o sea 1.28× el título → 1.911 × 1.28 = 2.4461 del `--titulo`.
+              **Ojo, cambió dos veces el mismo día (2026-09-06)**: con las tres
+              palabras al mismo cuerpo la más ancha era "BEST" (2.026em) y el
+              factor era ése; al agrandar el destacado pasó a ganar "FOOD".
+              **Si cambia una línea del h1, el tracking o el 1.28, volver a
+              medir cuál es la más ancha y rehacer esta cuenta.**
               `items-stretch` iguala también el ALTO: el botón primario lleva una
               flecha en `text-lg` que si no lo dejaba 4px más alto que el otro.
 
+              `mt-auto` EMPUJA LOS BOTONES ABAJO, **SOLO EN MÓVIL** (2026-09-06,
+              pedido del cliente): la columna es flex de alto completo, así que
+              el margen automático se come todo el sobrante y los deja cerca de
+              la burger. **En `lg` se anula** con `lg:mt-[clamp(...)]`: en
+              escritorio el cliente pidió dejar el reparto como estaba, y
+              además ahí los CTAs empujados al fondo se metían DENTRO del
+              zócalo de llamas (medido: 44px adentro en 1440).
+
               TIPOGRAFÍA DE LOS CTAs (2026-08-21): también atada a `--titulo`
               (×0.175), no un tamaño fijo. Con el ancho ya fijado por la fila,
-              un `text-base` suelto no podía crecer: medido, el techo era 17.3px
-              en 1280x720 antes de que "LAS BURGUERS" se desbordara.
-              **El límite lo pone "LAS BURGUERS" (6.0354em): si se alarga esa
-              etiqueta, baja el 0.175.** */}
-          <div className="mt-[clamp(20px,4vh,44px)] flex flex-col items-stretch gap-3 sm:gap-4 lg:w-[calc(var(--titulo)*3.2627)] lg:flex-row lg:gap-6">
+              un `text-base` suelto no podía crecer.
+              **El límite lo pone la etiqueta más larga**, hoy "LAS BURGERS"
+              (5.78em con su tracking de 0.06em; antes decía "LAS BURGUERS" y
+              medía 6.34). Al acortarse sobra margen, así que el 0.175 se deja
+              como está: **si se alarga esa etiqueta, hay que bajarlo.** */}
+          <div className="mt-auto flex flex-col items-stretch gap-3 pt-[clamp(28px,7vh,72px)] sm:gap-4 lg:mt-[clamp(20px,4vh,44px)] lg:w-[calc(var(--titulo)*2.4461)] lg:flex-row lg:gap-6 lg:pt-0">
             <a
               href={LINK_PEDIDOS}
               target="_blank"

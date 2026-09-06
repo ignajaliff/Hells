@@ -5,16 +5,26 @@
 
 export const heroContent = {
   /**
-   * `linea2` se parte en dos en móvil (`linea2a` / `linea2b`) para que la
-   * tipografía pueda crecer: el tamaño del h1 lo limita la línea más larga, y
-   * con "hechas en el" entera no había margen. En desktop las dos se muestran
-   * en la misma línea, así que el texto leído es idéntico.
+   * "BEST BAD FOOD" (2026-09-06, pedido del cliente): reemplaza a
+   * "Hamburguesas hechas en el infierno". Las tres palabras se reparten en
+   * los campos que ya existían, así el componente no cambia: `destacado` es
+   * el que va en ROJO, o sea "Food".
+   *
+   * `linea2` se parte en dos (`linea2a` / `linea2b`) para que en móvil la
+   * tipografía pueda crecer — el tamaño del h1 lo limita la línea más larga.
+   * Acá la segunda línea es UNA sola palabra, así que `linea2b` queda vacío;
+   * el componente lo omite en vez de dibujar un espacio suelto.
+   *
+   * OJO — la palabra más ancha YA NO ES el destacado: medido en Ardillah,
+   * "BEST" mide 2.026em y "FOOD" 1.911em. El ancho de la fila de CTAs en
+   * escritorio se calcula contra la línea más larga (ver `Hero.tsx`), así
+   * que ese factor pasó a atarse a "BEST" y no al destacado.
    */
   titulo: {
-    linea1: 'Hamburguesas',
-    linea2a: 'Hechas',
-    linea2b: 'en el',
-    destacado: 'Infierno',
+    linea1: 'Best',
+    linea2a: 'Bad',
+    linea2b: '',
+    destacado: 'Food',
   },
   /**
    * Foto de producto del hero (2026-09-01, pedido del cliente): la Satanás
@@ -32,7 +42,8 @@ export const heroContent = {
   },
   cta: {
     primario: 'Pedi ya',
-    secundario: 'Las burguers',
+    // 2026-09-06, pedido del cliente: decía "Las burguers".
+    secundario: 'Las burgers',
   },
 } as const
 
