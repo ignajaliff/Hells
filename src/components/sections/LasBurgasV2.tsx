@@ -34,7 +34,7 @@ import { CarruselBurgasV2 } from '@/components/ui/CarruselBurgasV2'
  * sobre negro no se leerían.
  */
 export function LasBurgasV2() {
-  const { titulo, bajada, items } = burgasContent
+  const { titulo, bajada, guarnicion, items } = burgasContent
 
   return (
     <section
@@ -114,7 +114,7 @@ export function LasBurgasV2() {
           EN ESCRITORIO NO VA (`sm:mt-0`): se probó ahí primero (subía 96px) y
           el cliente lo pidió de vuelta como estaba, o sea con el hueco. */}
       <div className="-mt-[72px] w-full max-sm:-mx-4 max-sm:w-auto sm:mt-0">
-        <CarruselBurgasV2 items={items} />
+        <CarruselBurgasV2 items={items} guarnicion={guarnicion} />
       </div>
     </section>
   )

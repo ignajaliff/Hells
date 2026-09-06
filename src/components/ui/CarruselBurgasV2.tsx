@@ -115,9 +115,15 @@ const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v))
 
 export function CarruselBurgasV2({
   items,
+  guarnicion,
   className = '',
 }: {
   items: readonly Burga[]
+  /**
+   * Aclaración que vale para TODAS las burgas (hoy: "vienen con papas"), al
+   * pie de la ficha. Es opcional: sin ella el bloque no se dibuja.
+   */
+  guarnicion?: string
   className?: string
 }) {
   const carril = useRef<HTMLDivElement>(null)
@@ -554,6 +560,35 @@ export function CarruselBurgasV2({
             ) : null}
           </div>
         ))}
+
+        {/* LA ACLARACIÓN DE LA GUARNICIÓN (2026-09-06, pedido del cliente:
+            "un widget abajo de los ingredientes que diga «todas las burgers
+            vienen con papas»").
+
+            VA FUERA DEL BUCLE, no dentro: el dato vale para las doce por
+            igual, así que montarlo por burga lo dibujaría doce veces apiladas
+            en la misma celda de la grilla. Acá se dibuja UNA sola vez y queda
+            fijo mientras las fichas se cruzan por encima.
+
+            Por lo mismo NO se desvanece con el crossfade: no cambia al pasar
+            de burga, y parpadear en cada giro lo haría leer como si fuera
+            parte de la ficha.
+
+            Es una PÍLDORA con borde rojo y no texto suelto: al pie de una
+            ficha que ya tiene nombre e ingredientes, un tercer renglón de
+            texto se leería como un ingrediente más. El recuadro lo separa
+            como lo que es, una aclaración de la casa.
+            Texto en `--foreground` (15.96:1 sobre negro) y el rojo solo en el
+            borde: es texto chico y `--primary` daría 4.50:1, el mínimo justo.
+
+            `col-start-1 row-start-1` NO va acá: este bloque es una celda más
+            de la grilla, la de abajo, así que se apila debajo de las fichas
+            en vez de encima de ellas. */}
+        {guarnicion ? (
+          <p className="mt-5 justify-self-center rounded-full border border-primary/45 px-4 py-1.5 font-body text-[clamp(11px,2.8cqw,13px)] font-semibold uppercase tracking-[0.1em] text-foreground/85 sm:mt-6 sm:text-[clamp(12px,1.2cqw,15px)]">
+            {guarnicion}
+          </p>
+        ) : null}
       </div>
     </div>
   )

@@ -142,6 +142,12 @@ export const marqueeFrases = [
 export const burgasContent = {
   titulo: 'Las Burgas',
   bajada: 'Doce maneras de pecar',
+  /**
+   * Aclaración al pie del tocadiscos (2026-09-06, pedido del cliente). Vale
+   * para las doce por igual, así que NO va en cada item ni dentro del bucle
+   * de las fichas: se dibuja UNA sola vez debajo de la ficha activa.
+   */
+  guarnicion: 'Todas las burgers vienen con papas',
   items: [
     {
       id: 'lucifer',
