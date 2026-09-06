@@ -9,10 +9,14 @@ import { LINK_RESENAS, SECCIONES } from '@/lib/constants'
  * "Ufff, aburrido"— y debajo una fila de reseñas de Google que se desplaza
  * sola, en loop.
  *
- * LA INTRO NO LLEVA TÍTULO: el cliente pidió que el texto fuera lo principal,
- * y el remate "Ufff, aburrido" en display hace de titular. El cliché va
- * en itálica y atenuado, entre comillas: se tiene que leer como "lo que NO
- * vamos a decir".
+ * LLEVA TÍTULO "NOSOTROS" (2026-09-06, pedido del cliente: "un título como el
+ * de Las Burgas"), con el mismo tratamiento que el de la carta. Hasta ahora la
+ * sección arrancaba directo con el cliché y el remate "Ufff, aburrido." hacía
+ * de titular — eso venía de un pedido anterior del cliente (2026-09-02) de que
+ * el texto fuera lo principal. El remate sigue donde estaba: pasó a rematar el
+ * cliché en vez de encabezar la sección.
+ * El cliché va en itálica y atenuado, entre comillas: se tiene que leer como
+ * "lo que NO vamos a decir".
  *
  * LA INTRO SE REORDENÓ EN TRES BLOQUES (2026-09-03, pedido del cliente):
  * 1. El cliché, CENTRADO — antes iba pegado a la izquierda junto con todo
@@ -57,7 +61,8 @@ import { LINK_RESENAS, SECCIONES } from '@/lib/constants'
  * qué va como va está en el div, más abajo.
  */
 export function Resenas() {
-  const { cliche, remate, esqueletoDurmiendo, parrafo1, parrafo2, verTodas } = resenasContent
+  const { titulo, cliche, remate, esqueletoDurmiendo, parrafo1, parrafo2, verTodas } =
+    resenasContent
   // ~7s por tarjeta: legible sin ser lento. Si cambia la cantidad de
   // reseñas, la velocidad se mantiene sola.
   const duracion = `${Math.max(resenas.length, 4) * 7}s`
@@ -105,7 +110,29 @@ export function Resenas() {
       />
 
       <div className="relative px-4 sm:px-8 lg:px-14">
-        <p className="mx-auto max-w-[58ch] text-center font-body text-[clamp(15px,4vw,18px)] italic leading-relaxed text-foreground/55">
+        {/* EL TÍTULO DE LA SECCIÓN (2026-09-06, pedido del cliente: "un título
+            como el de Las Burgas pero que diga Nosotros").
+
+            Es EL MISMO TRATAMIENTO que el de la carta —display, `--primary`,
+            `leading-[0.85]`, el mismo `clamp` y el `-ml-[2%]` que lo saca un
+            poco por la izquierda para que no se lea como una caja prolija—,
+            así las dos secciones grandes de la página se encabezan igual.
+            Rojo sobre negro da 3.79:1: alcanza porque es texto GRANDE, la
+            misma regla que en la carta.
+
+            VA PEGADO A LA IZQUIERDA aunque el resto de la intro esté centrado:
+            es lo que lo hace leerse como el título de la sección y no como una
+            línea más del bloque de texto. Por eso tampoco entra en el `mx-auto
+            max-w-[58ch]` de los párrafos.
+
+            OJO CON `#nosotros`: el ancla de ese nombre vive en `TiraFotos`, no
+            acá, y el link del nav apunta a `#resenas` (2026-09-04). Este
+            título es el rótulo visible de esa idea; el ancla no se movió. */}
+        <h2 className="-ml-[2%] font-display text-[clamp(56px,16vw,190px)] uppercase leading-[0.85] tracking-[-0.02em] text-primary sm:text-[12vw] lg:text-[9vw]">
+          {titulo}
+        </h2>
+
+        <p className="mx-auto mt-8 max-w-[58ch] text-center font-body text-[clamp(15px,4vw,18px)] italic leading-relaxed text-foreground/55 sm:mt-10">
           “{cliche}”
         </p>
 

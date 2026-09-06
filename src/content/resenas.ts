@@ -29,6 +29,16 @@ export type Resena = {
 }
 
 export const resenasContent = {
+  /**
+   * Título de la sección (2026-09-06, pedido del cliente: "un título como el
+   * de Las Burgas pero que diga Nosotros"). Va con el mismo tratamiento que
+   * el de la carta — display, rojo de marca, gigante y sangrando por la
+   * izquierda.
+   * La sección ya no arranca con el cliché suelto: hasta ahora el remate
+   * "Ufff, aburrido." hacía de titular, y sigue estando, pero ahora como
+   * remate del cliché y no como encabezado de la sección.
+   */
+  titulo: 'Nosotros',
   cliche:
     'Somos dos amigos que un día decidieron abrir una hamburguesería con el gran sueño de...',
   remate: 'Ufff, aburrido.',
