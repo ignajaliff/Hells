@@ -70,7 +70,7 @@ export function Resenas() {
   return (
     <section
       id={SECCIONES.resenas}
-      className="relative overflow-hidden bg-background pb-20 pt-[calc(var(--llamas)_+_44px)] [--llamas:min(max(52px,11svh),96px)] sm:pb-28 sm:pt-[calc(var(--llamas)_+_64px)] lg:[--llamas:min(10svh,110px)]"
+      className="relative overflow-hidden bg-background pb-20 pt-[calc(var(--llamas)_+_88px)] [--llamas:min(max(52px,11svh),96px)] sm:pb-28 sm:pt-[calc(var(--llamas)_+_128px)] lg:[--llamas:min(10svh,110px)]"
     >
       {/* LAS LLAMAS, colgando del techo y apuntando hacia abajo.
 
@@ -101,9 +101,15 @@ export function Resenas() {
 
           La ALTURA vive en `--llamas`, con los MISMOS valores que el footer:
           las tres bandas de la web comparten un solo lenguaje de tamaño. El
-          padding de arriba la reutiliza (`calc(var(--llamas) + 44px)`) para
-          que el cliché arranque siempre por debajo de los picos; si se cambia
-          el alto, el aire acompaña solo. */}
+          padding de arriba la reutiliza (`calc(var(--llamas) + N)`) para que
+          el contenido arranque siempre por debajo de los picos; si se cambia
+          el alto de la banda, el aire acompaña solo.
+          MÁS AIRE (2026-09-06, pedido del cliente: "más margen entre el
+          título de Nosotros y las llamas, en PC y móvil"): ese N pasó de
+          44→88px en móvil y de 64→128px en escritorio. Los valores viejos
+          estaban calculados cuando la sección arrancaba con el cliché en
+          texto chico; ahora arranca con el título en display gigante y
+          quedaba comiéndose los picos. */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 h-[var(--llamas)] -scale-y-100 select-none bg-[url('/zocalo-llamas.webp')] bg-[length:auto_100%] bg-repeat-x"
