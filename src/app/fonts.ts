@@ -38,6 +38,29 @@ export const grafiti = localFont({
   display: 'swap',
 })
 
+/**
+ * LA OTRA SPLATINK — la INCLINADA (2026-09-07, archivo aportado por el
+ * cliente: `Splatink_PERSONAL_USE_ONLY.otf`).
+ *
+ * **No es la misma que `grafiti`, aunque la fundición llame Splatink a las
+ * dos**: comparadas lado a lado, aquélla es recta y de trazo parejo y ésta va
+ * inclinada y bastante más pesada. Por eso convive en vez de reemplazarla —
+ * el rótulo "Buscamos crew" de Work sigue con la recta.
+ *
+ * Trae **729 caracteres contra 104**, o sea que —a diferencia de la otra—
+ * **SÍ tiene acentos y eñes** (verificado: no falta ninguno de áéíóúñüÁÉÍÓÚÑ¿¡).
+ * Así que acá no rige la regla de "solo palabras sin tilde".
+ *
+ * Del OTF de 182KB se subsetea a Latin básico + suplemento + comillas y
+ * guiones: 47KB en woff2 completa → **22KB**.
+ */
+export const grafitiItalica = localFont({
+  src: './fonts/splatink-italica.woff2',
+  weight: '400',
+  variable: '--font-grafiti-italica',
+  display: 'swap',
+})
+
 export const body = localFont({
   src: './fonts/sveningsson.woff2',
   weight: '400',

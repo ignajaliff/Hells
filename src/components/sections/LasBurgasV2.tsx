@@ -39,10 +39,18 @@ export function LasBurgasV2() {
   return (
     <section
       id={SECCIONES.carta}
-      className="relative scroll-mt-[var(--nav)] overflow-hidden bg-black px-4 pb-20 pt-12 sm:px-8 sm:pb-28 sm:pt-16 lg:px-14"
+      className="relative scroll-mt-[var(--nav)] overflow-hidden bg-black px-5 pb-20 pt-12 sm:px-8 sm:pb-28 sm:pt-16 lg:px-14"
     >
       {/* Encabezado. El título se sale un poco por la izquierda (`-ml-[2%]`)
           para que la sección no se lea como una caja centrada y prolija.
+
+          EN MÓVIL ESE `-ml-[2%]` SE ANULA (2026-09-07, pedido del cliente:
+          "que no estén tan pegadas a la pared izquierda"). En una pantalla
+          angosta el padding es de solo 16px y el margen negativo se comía casi
+          la mitad, así que el título quedaba tocando el borde; en escritorio,
+          con 56px de padding, el mismo gesto se lee como intención y se
+          mantiene. La bajada acompaña con un poco de sangría propia para que
+          las dos arranquen alineadas.
 
           MÁS ARRIBA Y MÁS PEGADO AL CATÁLOGO (2026-09-06, pedido del cliente).
           Dos medidas distintas, las dos medidas antes de tocarlas:
@@ -64,7 +72,7 @@ export function LasBurgasV2() {
           cortado por la mitad. El `scroll-mt` corre el punto de aterrizaje
           justo lo que mide el nav, sin devolver el aire que se sacó. */}
       <header className="relative z-[1] mb-6 sm:mb-8">
-        <h2 className="-ml-[2%] font-display text-[clamp(56px,16vw,190px)] uppercase leading-[0.85] tracking-[-0.02em] text-primary sm:text-[12vw] lg:text-[9vw]">
+        <h2 className="ml-0 font-display text-[clamp(56px,16vw,190px)] sm:-ml-[2%] uppercase leading-[0.85] tracking-[-0.02em] text-primary sm:text-[12vw] lg:text-[9vw]">
           {titulo}
         </h2>
         <p className="mt-3 max-w-[36ch] font-body text-[clamp(15px,4vw,19px)] font-medium text-foreground">
@@ -75,7 +83,7 @@ export function LasBurgasV2() {
       {/* EL MISMO TOCADISCOS EN LAS DOS PANTALLAS (2026-09-04, pedido del
           cliente: "lo mismo pero en formato PC").
 
-          En MÓVIL va de borde a borde (`-mx-4` para salirse del padding de la
+          En MÓVIL va de borde a borde (`-mx-5`, que cancela exacto el padding de la
           sección), tal cual estaba — no se tocó nada de su comportamiento.
 
           En ESCRITORIO se acota a una caja centrada: el escenario es CUADRADO
@@ -113,7 +121,7 @@ export function LasBurgasV2() {
 
           EN ESCRITORIO NO VA (`sm:mt-0`): se probó ahí primero (subía 96px) y
           el cliente lo pidió de vuelta como estaba, o sea con el hueco. */}
-      <div className="-mt-[72px] w-full max-sm:-mx-4 max-sm:w-auto sm:mt-0">
+      <div className="-mt-[72px] w-full max-sm:-mx-5 max-sm:w-auto sm:mt-0">
         <CarruselBurgasV2 items={items} guarnicion={guarnicion} />
       </div>
     </section>

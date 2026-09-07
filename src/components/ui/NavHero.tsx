@@ -1,9 +1,9 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import { navLinks, heroContent } from '@/content/home'
-import { LINK_PEDIDOS, NEGOCIO } from '@/lib/constants'
+import { LINK_PEDIDOS, NEGOCIO, SECCIONES } from '@/lib/constants'
 import { useSeccionActiva } from '@/lib/useSeccionActiva'
 
 /**
@@ -16,9 +16,22 @@ import { useSeccionActiva } from '@/lib/useSeccionActiva'
  * DE ESE ANCESTRO, o sea que se despegaría al terminar el hero. Por eso ahora
  * se monta en `page.tsx`, como hermano del hero.
  *
- * ALTURA FIJA (`--nav`, en globals.css): el hero la resta de su `100svh` para
- * que la primera pantalla siga midiendo exactamente lo mismo que cuando el nav
- * estaba adentro. Si cambia el contenido del nav, medir y actualizar el token.
+ * ALTURA FIJA (`--nav`, en globals.css): en ESCRITORIO el hero la resta de su
+ * `100svh` para que la primera pantalla siga midiendo exactamente lo mismo que
+ * cuando el nav estaba adentro. Si cambia el contenido del nav, medir y
+ * actualizar el token.
+ *
+ * EN MÓVIL SE ESCONDE MIENTRAS SE VE EL HERO (2026-09-07, pedido del cliente)
+ * y entra al scrollear más abajo. Dos cosas van juntas:
+ * * Pasa a `fixed` (`fixed lg:sticky`), o sea FUERA DEL FLUJO: si siguiera
+ *   siendo sticky, esconderlo dejaría su hueco de 66px reservado igual y el
+ *   hero arrancaría más abajo. Por eso en móvil **el hero ya no resta
+ *   `--nav`**: ahora toma la pantalla entera (ver `Hero.tsx`).
+ * * Aparece al pasar LA MITAD del hero (2026-09-07, pedido del cliente). El
+ *   umbral se mide contra el alto real del hero, no contra un número fijo:
+ *   el hero es `min-h`, así que en pantallas cortas crece y la cuenta lo
+ *   sigue sola.
+ * En escritorio no cambia nada: `lg:sticky`, siempre visible.
  *
  * Tres columnas (`1fr auto 1fr`) para que los links queden centrados en la
  * pantalla de verdad, sin que los corra el ancho del logo o del botón.
@@ -48,8 +61,43 @@ export function NavHero() {
   )
   const seccionActiva = useSeccionActiva(idsSecciones)
 
+  /* ¿Todavía no se pasó la MITAD del hero? Mientras sea así, en móvil el nav
+     se va para arriba (ver la doc de arriba). Arranca en `true` para que el
+     primer pintado ya lo tenga escondido: si arrancara en `false` se vería el
+     nav un instante y saldría solo, que es justo lo que se quiso evitar.
+
+     Es un listener de scroll y no un `IntersectionObserver` (2026-09-07,
+     pedido del cliente: "que aparezca pasando la mitad del hero"). Con el
+     observer el nav entraba recién cuando el hero terminaba de salir del todo
+     —o sea una pantalla entera sin nav—; el umbral de la mitad no es un borde
+     de elemento, así que no hay nada que observar y sale más directo
+     comparando contra el alto del hero. `offsetHeight` se lee en cada evento
+     a propósito: el hero es `min-h` y puede crecer en pantallas cortas.
+     `setState` con el mismo valor no re-renderiza, así que scrollear no
+     cuesta nada. */
+  const [heroALaVista, setHeroALaVista] = useState(true)
+
+  useEffect(() => {
+    const hero = document.getElementById(SECCIONES.hero)
+    if (!hero) return
+    const alScrollear = () => setHeroALaVista(window.scrollY < hero.offsetHeight / 2)
+    alScrollear()
+    window.addEventListener('scroll', alScrollear, { passive: true })
+    window.addEventListener('resize', alScrollear)
+    return () => {
+      window.removeEventListener('scroll', alScrollear)
+      window.removeEventListener('resize', alScrollear)
+    }
+  }, [])
+
   return (
-    <nav className="sticky top-0 z-50 h-[var(--nav)] bg-background px-5 sm:px-8 lg:px-14">
+    <nav
+      className={`fixed inset-x-0 top-0 z-50 h-[var(--nav)] bg-background px-5 transition-transform duration-300 sm:px-8 lg:sticky lg:translate-y-0 lg:px-14 lg:transition-none ${
+        heroALaVista
+          ? 'pointer-events-none -translate-y-full lg:pointer-events-auto'
+          : 'translate-y-0'
+      }`}
+    >
       <div className="grid h-full grid-cols-[1fr_auto] items-center gap-x-6 lg:grid-cols-[1fr_auto_1fr] lg:gap-x-[clamp(24px,3vw,48px)]">
         {/* EL LOGO DE MARCA (2026-09-02, pedido del cliente): reemplaza al
             sticker "Demons Crew", que se borró. Es el mismo lockup que estaba

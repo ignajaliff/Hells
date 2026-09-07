@@ -14,13 +14,21 @@ import { BarraPromo } from '@/components/ui/BarraPromo'
  * * SE FUE EL LOGO de la columna de texto —ahora vive en el nav, tenerlo en
  *   los dos lados lo duplicaba— y en su lugar el título y los CTAs SUBEN.
  *   También se borraron la mascota del diablito y el esqueleto que se apoyaba
- *   sobre la burger (2026-09-03), así que el hero no tiene más ilustraciones
- *   sueltas: fondo, llamas, burger y texto.
+ *   sobre la burger (2026-09-03).
+ *   **VOLVIÓ UN LOGO AL HERO el 2026-09-07** (pedido del cliente), pero es
+ *   OTRO: el lockup VERTICAL, al lado del título. No reabre la duplicación de
+ *   antes —aquél era el mismo lockup horizontal que el del nav, a un palmo de
+ *   distancia— y acá funciona como remate del h1, no como firma de la página.
  *
  * ALTURA: `100svh` y no `100vh`. En los navegadores móviles `vh` incluye la
  * barra de direcciones, así que un hero de `100vh` queda cortado por abajo
  * justo donde van los CTAs. `svh` mide el viewport chico —el que queda con la
  * barra visible— y entra siempre.
+ * **EN MÓVIL YA NO RESTA `--nav`** (2026-09-07): el nav pasó a esconderse
+ * mientras se ve el hero y por eso es `fixed`, o sea que no ocupa lugar (ver
+ * `NavHero`). El hero toma la pantalla ENTERA y gana esos 66px, que es lo que
+ * permitió agrandar el título y el logo. En `lg` el nav sigue sticky y en
+ * flujo, así que ahí la resta se mantiene.
  * En móvil es `min-h` y no `h` (2026-09-01): la burger tiene tamaño FIJO (ver
  * su comentario), así que si una pantalla es muy corta el hero crece unos
  * píxeles y se scrollea, en vez de achicar la burger. En `lg` sigue siendo
@@ -36,12 +44,12 @@ import { BarraPromo } from '@/components/ui/BarraPromo'
  * ancho y bajo el h1 desbordaría por abajo.
  */
 export function Hero() {
-  const { titulo, imagen, cta } = heroContent
+  const { titulo, imagen, logo, cta } = heroContent
 
   return (
     <section
       id={SECCIONES.hero}
-      className="relative isolate flex min-h-[calc(100svh-var(--nav))] flex-col overflow-hidden bg-background lg:h-[calc(100svh-var(--nav))]"
+      className="relative isolate flex min-h-[100svh] flex-col overflow-hidden bg-background lg:h-[calc(100svh-var(--nav))]"
     >
       {/* Fondo ilustrado: trae las palabras de marca. Va `aria-hidden` porque
           es decoración: el texto que importa está en el h1.
@@ -75,20 +83,33 @@ export function Hero() {
         className="pointer-events-none -z-10 hidden select-none object-cover object-bottom lg:block"
       />
 
-      {/* MÓVIL: las palabras de marca, en MOSAICO vertical.
-          `background-size: 100% auto` las muestra al ancho completo de la
-          pantalla —o sea a escala legible, no como manchas— y `repeat-y` apila
-          las ~3.8 copias que hacen falta para cubrir el alto.
-          Es `background-image` y no `<Image>` a propósito: `next/image` no puede
-          repetir un patrón, y con `object-contain` la imagen ocuparía solo el
-          26% de la altura dejando el resto vacío.
-          El asset (`fondo-palabras.webp`, 1280x648, 3.5KB) es el mismo fondo
-          **recortado antes del fuego**: el zócalo de llamas ya lo pone la capa
-          siguiente, y si viniera incluido se repetiría en mitad de la pantalla.
-          Va a la mitad de resolución porque en móvil se muestra a ~390px. */}
-      <div
+      {/* MÓVIL: el fondo de palabras de marca, en UNA sola imagen
+          (2026-09-07, arte aportado por el cliente). Reemplaza al mosaico
+          vertical de `fondo-palabras.webp`, que repetía un recorte del fondo
+          de escritorio ~3.8 veces para cubrir el alto: este dibujo ya viene
+          hecho a proporción de celular (0.5908), así que no hay que repetir
+          nada y el patrón no se corta a mitad de pantalla.
+          Por eso pasó de ser un `background-image` a un `<Image>`: la única
+          razón para lo primero era que `next/image` no repite patrones.
+
+          VA APLANADO CONTRA `--background` Y SIN ALPHA: el PNG del cliente
+          venía transparente con las palabras dibujadas encima, pero esta capa
+          se apoya directo sobre el `bg-background` del hero, así que
+          componerlo de antemano se ve idéntico —el borde quedó en (25,25,25)
+          contra el (26,26,26) del token, 1/255— y comprime muchísimo mejor:
+          **1.77MB → 19KB**, contra 272KB conservando el alpha.
+          `unoptimized`: ya está en WebP a su tamaño final, volver a pasarla
+          por el optimizador solo agregaría latencia.
+          `object-top`: el patrón arranca desde el borde de arriba. */}
+      <Image
+        src="/fondo-movil.webp"
+        alt=""
         aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10 select-none bg-[url('/fondo-palabras.webp')] bg-[length:100%_auto] bg-repeat-y lg:hidden"
+        fill
+        priority
+        unoptimized
+        sizes="100vw"
+        className="pointer-events-none -z-10 select-none object-cover object-top lg:hidden"
       />
 
       {/* LA FRANJA DE LLAMAS al pie, a todo el ancho.
@@ -199,13 +220,24 @@ export function Hero() {
               la barra promo (medido: 107px los dos).
             * TAMAÑO: `min(8.5vh,12.2vw)` → `min(10.5vh,15vw)`, tope 110→130px.
               Se pudo porque el copy pasó de cuatro líneas a tres.
-            * `--destacado` es el tamaño de "FOOD", 1.28× el resto (ver el h1).
-              Se declara en las dos pantallas: en escritorio también se pidió
-              que FOOD fuera más grande.
+            * `--destacado` es el tamaño de "FOOD", más grande que el resto.
+
+            SEGUNDA VUELTA DE TAMAÑOS — **SOLO MÓVIL** (2026-09-07, pedido del
+            cliente: "Best Bad más grande y Food mucho más"). `--titulo` pasó a
+            `min(12vh,16.5vw)` (tope 150) y `--destacado` de 1.28× a **1.45×**.
+            Medido en 390x844: BEST/BAD 58→64px y FOOD 75→93px.
+            **Lo que manda acá es el ANCHO, no el alto**: la línea más larga
+            ("FOOD") y el logo se reparten los 350px del contenido, y con el
+            logo ocupando 156 quedan 178 para el texto — que es justo lo que
+            mide FOOD a 93px, con 10px de aire entre los dos. O sea que el
+            techo del título lo pone el logo. **Para agrandar más el texto hay
+            que achicar el logo, y viceversa**: la palanca es `--aire-ctas`,
+            que al crecer acorta la fila y con ella el alto (y el ancho) del
+            logo. En `lg` no cambia nada: ahí `--destacado` vuelve a 1.28.
 
             El `pb-4` se mantiene: la burger va debajo en el flujo y este
             bloque no debe pegarse a ella. */}
-        <div className="relative z-[3] order-1 flex h-full max-w-full shrink-0 flex-col px-5 pb-4 pt-14 [--destacado:calc(var(--titulo)*1.28)] [--titulo:clamp(38px,min(10.5vh,15vw),130px)] sm:px-8 lg:order-none lg:block lg:h-auto lg:max-w-[62%] lg:shrink lg:px-14 lg:pt-[6vh] lg:[--titulo:clamp(38px,min(17vh,14vw),200px)]">
+        <div className="relative z-[3] order-1 flex h-full max-w-full shrink-0 flex-col items-center px-5 pb-4 pt-6 [--aire-ctas:clamp(36px,8vh,90px)] [--destacado:calc(var(--titulo)*1.8667)] [--titulo:clamp(38px,min(10.5vh,17.5vw),150px)] sm:px-8 lg:order-none lg:block lg:h-auto lg:max-w-[62%] lg:shrink lg:px-14 lg:pt-[6vh] lg:[--destacado:calc(var(--titulo)*1.28)] lg:[--titulo:clamp(38px,min(17vh,14vw),200px)]">
           {/* El tamaño se limita por ALTURA y por ANCHO a la vez, con un
               `min()`: el `vh` solo mide alto, y en un celular angosto un
               tamaño atado solo a la altura sacaba la palabra más larga fuera
@@ -213,33 +245,63 @@ export function Hero() {
               Con "BEST BAD FOOD" la restricción que manda es la ALTURA en las
               dos pantallas —son tres líneas más los dos CTAs—; el `vw` quedó
               como red de seguridad para pantallas muy angostas. */}
-          <h1 className="font-display text-[length:var(--titulo)] uppercase leading-none tracking-[0.005em] text-foreground">
-            <span className="block">{titulo.linea1}</span>
-            {/* La segunda línea puede venir partida en dos palabras: en móvil
-                se apilan para que la tipografía pueda crecer —el límite del
-                tamaño lo pone la línea más larga— y en `lg` vuelven a la misma
-                línea (`lg:inline`), como el diseño.
-                Con el copy actual ("BEST BAD FOOD") `linea2b` viene VACÍO, así
-                que el segundo `<span>` y su espacio se omiten: si se dibujaran
-                igual quedaría un espacio colgando al final de la línea. */}
-            <span className="block">
-              <span className="block lg:inline">{titulo.linea2a}</span>
+          {/* EL LOGO ARRIBA Y CENTRADO — **SOLO MÓVIL** (2026-09-07, 2ª vuelta,
+              pedido del cliente). Reemplaza al lockup vertical que estuvo unas
+              horas al lado del título; ese archivo se borró.
+
+              Es el MISMO del nav, y por eso está: el nav ahora se esconde
+              mientras se ve el hero, así que sin esto la marca no aparecía en
+              toda la primera pantalla del celular.
+              Va por ALTURA atada a `--titulo` (×1.15) y no en píxeles, para
+              que acompañe al título en cualquier pantalla.
+              **En `lg` no se muestra** (`lg:hidden`): ahí el nav está siempre
+              visible con este mismo lockup, y ponerlo dos veces a un palmo de
+              distancia es justo lo que se sacó del hero el 2026-09-02.
+              `alt=""`: DECORATIVO — el nombre de marca ya lo anuncia el nav y
+              el contenido indexable es el h1. */}
+          <Image
+            src={logo.src}
+            alt=""
+            width={logo.ancho}
+            height={logo.alto}
+            priority
+            sizes="50vw"
+            className="pointer-events-none mb-[clamp(20px,4.5vh,52px)] h-[calc(var(--titulo)*1.15)] w-auto select-none lg:hidden"
+          />
+
+          {/* EL TÍTULO. En MÓVIL va CENTRADO y en dos líneas: "BEST BAD"
+              arriba en blanco y "FOOD" debajo (2026-09-07, pedido del
+              cliente). En escritorio no cambia: pegado a la izquierda y en
+              tres líneas (BEST / BAD / FOOD), como el diseño. */}
+          <h1 className="text-center font-grafiti-italica text-[length:var(--titulo)] uppercase leading-none tracking-[0.005em] text-foreground lg:text-left">
+            {/* Las dos primeras palabras van INLINE en móvil —o sea en la misma
+                línea— y en bloque de `lg` para arriba, que es donde el diseño
+                las quiere apiladas. `linea2b` puede venir vacío (hoy lo está,
+                el copy es "BEST BAD FOOD"): si se dibujara igual quedaría un
+                espacio colgando al final de la línea. */}
+            <span className="inline lg:block">{titulo.linea1}</span>{' '}
+            <span className="inline lg:block">
+              <span className="inline">{titulo.linea2a}</span>
               {titulo.linea2b ? (
                 <>
                   {' '}
-                  <span className="block lg:inline">{titulo.linea2b}</span>
+                  <span className="inline">{titulo.linea2b}</span>
                 </>
               ) : null}
             </span>
-            {/* "FOOD" VA MÁS GRANDE QUE LAS OTRAS DOS (2026-09-06, pedido del
-                cliente). Su tamaño es `--destacado` = 1.28× `--titulo`, así
-                sigue atado al mismo valor: si cambia el título, la proporción
-                se mantiene sola.
-                Lleva `leading-[0.9]` propio porque `leading-none` sobre un
-                cuerpo más grande abre un escalón visible respecto de las dos
-                líneas de arriba — con 0.9 las tres quedan con el mismo ritmo.
-                A lo ancho no molesta: aun a 1.28× sobran 557px en 1440 hasta
-                donde arranca el dibujo de la burger (medido). */}
+            {/* "FOOD" OCUPA EXACTAMENTE EL ANCHO DE "BEST BAD" en móvil
+                (2026-09-07, pedido del cliente). No es un tamaño a ojo: sale
+                de MEDIR las dos cadenas en Ardillah con el tracking de
+                0.005em — "BEST BAD" mide **3.759em** y "FOOD" **1.911em**, así
+                que a 3.759/1.911 = **1.967×** el cuerpo del título las dos
+                líneas quedan del mismo ancho. Como las dos van centradas,
+                arrancan y terminan en el mismo punto.
+                **Si cambia el copy, el tracking o la fuente, volver a medir
+                ese 1.967.**
+                En `lg` vuelve a 1.28× (ver la variable en la columna), que es
+                el valor del diseño de escritorio.
+                `leading-[0.9]` propio: `leading-none` sobre un cuerpo tan
+                grande abre un escalón visible contra la línea de arriba. */}
             <span className="block text-[length:var(--destacado)] leading-[0.9] text-primary">
               {titulo.destacado}
             </span>
@@ -280,7 +342,7 @@ export function Hero() {
               (5.78em con su tracking de 0.06em; antes decía "LAS BURGUERS" y
               medía 6.34). Al acortarse sobra margen, así que el 0.175 se deja
               como está: **si se alarga esa etiqueta, hay que bajarlo.** */}
-          <div className="mt-auto flex flex-col items-stretch gap-3 pt-[clamp(28px,7vh,72px)] sm:gap-4 lg:mt-[clamp(20px,4vh,44px)] lg:w-[calc(var(--titulo)*2.4461)] lg:flex-row lg:gap-6 lg:pt-0">
+          <div className="mt-auto flex w-[74%] max-w-[300px] flex-col items-stretch gap-3 pt-[var(--aire-ctas)] sm:gap-4 lg:mt-[clamp(20px,4vh,44px)] lg:w-[calc(var(--titulo)*3.2358)] lg:max-w-none lg:flex-row lg:gap-6 lg:pt-0">
             <a
               href={LINK_PEDIDOS}
               target="_blank"

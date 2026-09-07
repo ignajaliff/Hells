@@ -40,6 +40,24 @@ export const heroContent = {
     src: '/burger-satanas.webp',
     alt: 'Hamburguesa de Hell’s Burger',
   },
+  /**
+   * El LOGO DEL HERO, arriba de todo y centrado — **SOLO MÓVIL**
+   * (2026-09-07, 2ª vuelta, pedido del cliente).
+   *
+   * Es EL MISMO ARCHIVO QUE USA EL NAV (`/logo.png`), a propósito: como el
+   * nav ahora se esconde mientras se ve el hero, la marca no aparecía por
+   * ningún lado en la primera pantalla del celular. Reusar la misma URL
+   * además sale gratis — ya está en caché de la primera visita.
+   *
+   * Reemplazó al lockup VERTICAL que estuvo unas horas este mismo día al
+   * lado del título; el cliente lo descartó y pidió borrarlo, así que ese
+   * archivo ya no existe (tampoco en `originales/`).
+   */
+  logo: {
+    src: '/logo.png',
+    ancho: 1258,
+    alto: 722,
+  },
   cta: {
     primario: 'Pedi ya',
     // 2026-09-06, pedido del cliente: decía "Las burguers".

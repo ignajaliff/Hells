@@ -126,15 +126,22 @@ export function Resenas() {
             Rojo sobre negro da 3.79:1: alcanza porque es texto GRANDE, la
             misma regla que en la carta.
 
-            VA PEGADO A LA IZQUIERDA aunque el resto de la intro esté centrado:
-            es lo que lo hace leerse como el título de la sección y no como una
-            línea más del bloque de texto. Por eso tampoco entra en el `mx-auto
-            max-w-[58ch]` de los párrafos.
+            CENTRADO EN MÓVIL, PEGADO A LA IZQUIERDA DE `sm` PARA ARRIBA
+            (2026-09-07, pedido del cliente). En escritorio va a la izquierda
+            porque es lo que lo hace leerse como el título de la sección y no
+            como una línea más del bloque de texto —por eso tampoco entra en el
+            `mx-auto max-w-[58ch]` de los párrafos—; en móvil, en cambio, todo
+            lo que sigue (cliché, remate y párrafos) está centrado y el título
+            solo quedaba desalineado del resto.
+            **El `-ml-[2%]` se anula en móvil**: ese margen negativo corre la
+            caja del h2 un 2% hacia afuera, así que con él puesto el texto
+            quedaría centrado respecto de una caja descentrada — o sea 1% corrido
+            a la izquierda. Solo vuelve con el `sm:`, junto con el `text-left`.
 
             OJO CON `#nosotros`: el ancla de ese nombre vive en `TiraFotos`, no
             acá, y el link del nav apunta a `#resenas` (2026-09-04). Este
             título es el rótulo visible de esa idea; el ancla no se movió. */}
-        <h2 className="-ml-[2%] font-display text-[clamp(56px,16vw,190px)] uppercase leading-[0.85] tracking-[-0.02em] text-primary sm:text-[12vw] lg:text-[9vw]">
+        <h2 className="ml-0 text-center font-display text-[clamp(56px,16vw,190px)] uppercase leading-[0.85] tracking-[-0.02em] text-primary sm:-ml-[2%] sm:text-left sm:text-[12vw] lg:text-[9vw]">
           {titulo}
         </h2>
 
