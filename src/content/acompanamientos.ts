@@ -22,25 +22,22 @@ export type Acompanamiento = {
   titulo: string
   subtitulo: string
   lado: 'derecha' | 'izquierda'
-  /**
-   * El título CENTRADO sobre su subtítulo en vez de alineado con él
-   * (2026-09-07, pedido del cliente para "Papas Hells"). Es el único cuyo
-   * nombre parte en dos líneas cortas —"PAPAS" / "HELLS"— sobre un subtítulo
-   * más ancho, y alineado al ras quedaba desparejo. Es una decisión por
-   * pieza, como `lado`, no una regla: los otros dos se leen bien alineados.
-   */
-  tituloCentrado?: boolean
   imagen: { src: string; ancho: number; alto: number }
 }
 
 export const acompanamientosContent = {
-  titulo: 'Acompañamientos',
+  /**
+   * "SIDES" (2026-09-08, pedido del cliente): reemplaza a "Acompañamientos".
+   * El nombre del archivo, el ancla `#acompanamientos` y `SECCIONES` no
+   * cambian — son identificadores internos, y renombrarlos rompería el link
+   * sin que se vea nada distinto en pantalla.
+   */
+  titulo: 'Sides',
   items: [
     {
       titulo: 'Papas Hells',
       subtitulo: 'Chedar y bacon',
       lado: 'derecha',
-      tituloCentrado: true,
       imagen: { src: '/papas.webp', ancho: 860, alto: 431 },
     },
     {

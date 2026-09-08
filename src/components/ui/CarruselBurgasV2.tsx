@@ -73,13 +73,32 @@ type Burga = {
   id: string
   nombre: string
   ingredientes?: string
-  video: { alt: string }
+  /** Texto alternativo de la silueta. Era `video.alt`, del objeto `video`
+   *  que se borro el 2026-09-08 al quedar sin un solo consumidor. */
+  alt: string
   escena: {
     fondo: string
     silueta: string
     caja: { x: number; y: number; w: number; h: number }
     /** El sello con el nombre. Sin él, el nombre va en texto. */
     sticker?: string
+    /**
+     * Achica ESTE sello respecto de los demás (2026-09-08, pedido del cliente
+     * para Balak: "lo veo muy grande en comparación"). Default 1.
+     * La caja fija el ALTO, así que todos los sellos se dibujan a la misma
+     * altura de caja — pero eso NO los iguala a la vista, porque cada dibujo
+     * llena su caja distinto. Medido: las letras de Balak ocupan el **0.672**
+     * del alto de su recorte contra una mediana de **0.62** en los otros once,
+     * y además su proporción es 2.87 contra ~2.45, o sea que también se dibuja
+     * más ancho. Igualar la altura de letra pedía 0.92 y igualar el ancho
+     * 0.85; **0.88 es el punto medio de las dos cuentas**, no un valor a ojo.
+     * **Se aplica con `scale` sobre la IMAGEN, no sobre la caja**: la caja
+     * define el alto que ocupa el sticker en el flujo, y los ingredientes van
+     * justo debajo — achicándola, Balak quedaba como la única burga con el
+     * texto corrido hacia arriba. `scale` no ocupa lugar, así que el sello se
+     * ve más chico y todo lo de abajo queda alineado con las otras once.
+     */
+    escalaSticker?: number
   }
 }
 
@@ -372,7 +391,7 @@ export function CarruselBurgasV2({
           >
             <Image
               src={b.escena.silueta}
-              alt={i === activa ? b.video.alt : ''}
+              alt={i === activa ? b.alt : ''}
               fill
               sizes="60vw"
               priority={i < 2}
@@ -536,6 +555,18 @@ export function CarruselBurgasV2({
                      poner el texto en una columna a la derecha (descartado) y
                      dejaba el sello corrido a la izquierda respecto de la
                      hamburguesa — medido, 152px de desfase en 1440. */
+                  /* LA ESCALA VA SOBRE LA IMAGEN, NUNCA SOBRE LA CAJA
+                     (2026-09-08). Primero se hizo achicando el alto de la
+                     caja y eso DESALINEÓ a Balak: los ingredientes van debajo
+                     del sticker en el flujo, así que una caja 12% más baja se
+                     los subía y esa burga quedaba como la única corrida.
+                     `scale` no ocupa lugar: el sello se dibuja más chico y
+                     todo lo de abajo sigue donde estaba. Escala desde el
+                     CENTRO, que es justo donde la caja cruza el borde de la
+                     foto, así el sello sigue montado igual que los otros.
+                     Ojo al verificar: Tailwind v4 pone las escalas en la
+                     propiedad `scale`, no en `transform`. */
+                  style={{ scale: String(b.escena.escalaSticker ?? 1) }}
                   className="object-contain drop-shadow-[0_6px_14px_rgba(0,0,0,.6)]"
                 />
               </div>
@@ -584,8 +615,21 @@ export function CarruselBurgasV2({
             `col-start-1 row-start-1` NO va acá: este bloque es una celda más
             de la grilla, la de abajo, así que se apila debajo de las fichas
             en vez de encima de ellas. */}
+        {/* MÁS ABAJO Y SIEMPRE EN UNA LÍNEA (2026-09-08, pedido del cliente:
+            "que esté un poco más abajo, está muy cerca de los ingredientes, e
+            importante que siempre entre en una línea").
+            * El margen pasó de 20/24px a **40/48**: el doble.
+            * `whitespace-nowrap` es lo que garantiza la línea única. **No
+              alcanza con que hoy entre**: sin él, un ancho de pantalla o un
+              texto un poco más largo lo parten en dos y el óvalo se deforma.
+              El riesgo del `nowrap` es el desborde, y con el texto nuevo se
+              desbordaba: medido, 329px de píldora contra 296 disponibles en
+              una pantalla de 320. Se ajustó **solo en móvil** —el piso del
+              clamp de 11 a 10px, el tracking de 0.10 a 0.08em y el padding de
+              16 a 14px— hasta los 293px que entran. Escritorio queda igual.
+            */}
         {guarnicion ? (
-          <p className="mt-5 justify-self-center rounded-full border border-primary/45 px-4 py-1.5 font-body text-[clamp(11px,2.8cqw,13px)] font-semibold uppercase tracking-[0.1em] text-foreground/85 sm:mt-6 sm:text-[clamp(12px,1.2cqw,15px)]">
+          <p className="mt-10 justify-self-center whitespace-nowrap rounded-full border border-primary/45 px-3.5 py-1.5 font-body text-[clamp(10px,2.8cqw,13px)] font-semibold uppercase tracking-[0.08em] text-foreground/85 sm:mt-12 sm:px-4 sm:text-[clamp(12px,1.2cqw,15px)] sm:tracking-[0.1em]">
             {guarnicion}
           </p>
         ) : null}

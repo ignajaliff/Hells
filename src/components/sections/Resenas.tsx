@@ -48,11 +48,16 @@ import { LINK_RESENAS, SECCIONES } from '@/lib/constants'
  * El degradé de los bordes (`mask-image`) hace que las tarjetas entren y
  * salgan fundidas en vez de cortadas por el borde de la sección.
  *
- * FONDO NEGRO PURO (#000, 2026-09-02, pedido del cliente): antes era carbón,
- * para separarse tonalmente de la carta y de nosotros, que son negras. Al
- * unificarlo, LAS TARJETAS PASARON A CARBÓN (`--background`): eran negras y
- * sobre un fondo del mismo color se les perdía el cuerpo. Ahora la sección
- * es el fondo y las tarjetas la superficie elevada, igual que en Google.
+ * EL FONDO ES `--carbon-hondo` (2026-09-08, pedido del cliente: "el mismo
+ * gris que se usa en las llamas, ese gris un poco más oscuro"). Es el relleno
+ * MEDIDO de la banda naranja con la que cierra «Sides», la sección de arriba:
+ * (24,24,24) contra los (26,26,26) de `--background`. Al compartir el color
+ * exacto con esa base, **el pie de «Sides» y el techo de Reseñas son el mismo
+ * color y la juntura desaparece del todo** — antes había 2 niveles.
+ * Historia del fondo: nació NEGRO PURO (2026-09-02) para separarse de la
+ * carta; el socio lo pasó al gris del hero en `023000c`; ahora baja esos dos
+ * niveles. **Las tarjetas son `bg-black`** y siguen leyéndose como pozos más
+ * oscuros sobre el carbón, que es lo que les da cuerpo.
  *
  * LAS LLAMAS DEL TECHO SE FUERON (2026-09-07, pedido del cliente). Estaban
  * desde el 2026-09-04 para llenar el hueco negro que quedaba entre la carta
@@ -75,7 +80,7 @@ export function Resenas() {
   return (
     <section
       id={SECCIONES.resenas}
-      className="relative overflow-hidden bg-background pb-20 pt-12 sm:pb-28 sm:pt-16"
+      className="relative overflow-hidden bg-carbon-hondo pb-20 pt-12 sm:pb-28 sm:pt-16"
     >
       <div className="relative px-4 sm:px-8 lg:px-14">
         {/* EL TÍTULO DE LA SECCIÓN (2026-09-06, pedido del cliente: "un título

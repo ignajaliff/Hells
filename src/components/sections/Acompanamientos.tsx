@@ -32,14 +32,55 @@ import { SECCIONES } from '@/lib/constants'
  * así la cola de la flecha sale SIEMPRE de media altura del plato, sea cual
  * sea su proporción —las papas son 2:1 y los nuggets 1.4:1— sin medir nada.
  * El nombre va EN FLUJO, encima de la fila, ocupando la columna libre
- * (`100% - var(--imagen)`, más un 8% de holgura — ver el comentario del
- * bloque): así nunca se monta sobre el plato y el alto de cada bloque sale
- * solo. El tramo horizontal se frena 8px antes del recorte de la imagen para
- * no tocar la comida.
+ * (`100% - var(--imagen)`, más un 8% de holgura).
+ *
+ * ── LA PUNTA APUNTA AL CENTRO DEL SUBTÍTULO (2026-09-08, pedido del cliente:
+ * "que apunten al medio del texto subtitulo, ya que apuntan mal") ──
+ * Antes la punta caía en el BORDE del subtítulo (el arranque en los platos de
+ * la derecha, el final en los de la izquierda), porque la caja de la flecha
+ * empezaba en el borde de la columna.
+ * **El texto pasó a ir CENTRADO en su columna, y ese cambio es lo que hace
+ * posible el pedido**: con el texto pegado al costado, el centro del subtítulo
+ * queda en `4% + anchoDelTexto/2` — depende de CUÁNTO mide el texto, y eso CSS
+ * no lo puede apuntar. Centrado, el centro del subtítulo es exactamente el
+ * centro de la columna, o sea `(100% - var(--imagen) + 8%) / 2`, que es un
+ * número que la caja de la flecha sí puede tomar. **Queda exacto para
+ * cualquier largo de subtítulo**, que era el punto.
+ * Por eso la caja arranca ahí y no en el 4%: la punta va literalmente en su
+ * borde (`left-0` / `left-full`), sin fracciones mágicas que recalcular.
+ * **Con esto se fue el truco de `tituloCentrado`**: existía para centrar el
+ * nombre sobre el subtítulo sin mover al subtítulo (un `inline-block` con el
+ * h3 en `w-0 min-w-full`), y hacía falta justamente porque centrar el grupo
+ * habría descolocado la flecha. Ahora la columna entera va centrada y el
+ * nombre queda centrado sobre el subtítulo solo — sin truco, y de paso el
+ * nombre dejó de estar acotado al ancho del subtítulo (en escritorio "PAPAS
+ * HELLS" vuelve a entrar en una línea).
+ * **La contra, asumida**: la flecha se acorta, porque su punta se corrió hacia
+ * adentro. Es inevitable — apuntar al medio y no al borde ES tener menos
+ * recorrido. Los puntos de control se rehicieron para que el trazo siga
+ * leyéndose como una curva con envión y no como un gancho.
  *
  * TIPOGRAFÍAS (pedido del cliente): el nombre con la del hero
  * (`font-grafiti-italica`, la Splatink inclinada) y el subtítulo con la de
  * los ingredientes del tocadiscos (cuerpo, semibold, versalitas espaciadas).
+ *
+ * EL TÍTULO DE LA SECCIÓN ES "SIDES", EN BLANCO Y MÁS GRANDE (2026-09-08,
+ * pedido del cliente). Tres cosas que van juntas:
+ * * el texto vive en `content/acompanamientos.ts`; el ancla y el nombre del
+ *   archivo siguen diciendo "acompanamientos" a propósito (son internos).
+ * * **el cuerpo VOLVIÓ al de "Las Burgas" y "Nosotros"** (16vw/12vw/9vw).
+ *   Estaba achicado a 11.5vw/9vw/7vw por una sola razón: "Acompañamientos"
+ *   tiene 15 letras y al tamaño de las otras dos no entraba en una línea.
+ *   "Sides" tiene 5, así que esa restricción desapareció y los tres títulos
+ *   de sección vuelven a medir lo mismo.
+ * * **en blanco y no en rojo**: es `--foreground`, 15.96:1 sobre este fondo,
+ *   holgado. De paso deja el rojo de marca solo para los nombres de los
+ *   platos y las flechas, que es lo que la sección quiere que se mire.
+ *
+ * MÁS AIRE ENTRE EL TÍTULO Y LOS PLATOS (2026-09-08, pedido del cliente):
+ * el margen del header pasó de 32/48px a 64/96/112. Hacía falta más que
+ * antes justamente porque el título creció: al mismo margen, un cuerpo de
+ * 16vw se comía el hueco y el primer nombre quedaba pegado.
  *
  * LOS NOMBRES VAN EN ROJO (2026-09-07, pedido del cliente): eran blancos. Es
  * `--primary` sobre el fondo del hero — 3.79:1, que **solo alcanza para texto
@@ -59,10 +100,28 @@ import { SECCIONES } from '@/lib/constants'
  * a 4–6 niveles del gris de fondo (medido) y la costura no se ve.
  * Es `background-image` y no `<Image>` porque `next/image` no repite.
  *
- * LA SECCIÓN VA ENMARCADA POR LAS LLAMAS DEL HERO, arriba y abajo
- * (2026-09-07, pedido del cliente). Las de ABAJO son las del hero tal cual,
- * con los picos hacia arriba. Las de ARRIBA son la misma banda dada vuelta y
- * son LAS QUE ESTABAN EN RESEÑAS: colgaban del techo de esa sección desde el
+ * LAS DOS BANDAS DE LLAMAS YA NO SON EL MISMO DIBUJO (2026-09-08, pedido del
+ * cliente: "al final cambiemos las llamas por estas"). Al pie va ahora
+ * `zocalo-llamas-naranja.webp`, dibujo nuevo del cliente: relleno GRIS con
+ * contorno NARANJA, contra el negro con filo rojo del hero que sigue arriba.
+ * * **El gris es (25,25,25) y `--background` es (26,26,26)** — medido, 1/255.
+ *   O sea que el relleno se funde con la sección igual que el negro se fundía
+ *   en el hero, y lo que dibuja la silueta es el filo naranja. Es el mismo
+ *   gesto, con otro color de filo.
+ * * **Y ADEMÁS TAPA LA COSTURA QUE HABÍA CON RESEÑAS**: la banda anterior
+ *   tenía la base NEGRA maciza y Reseñas es `--background`, así que al pie
+ *   quedaba una línea horizontal de 26 niveles a todo el ancho (medida el
+ *   2026-09-07 y anotada como pendiente). Con la base gris esa diferencia
+ *   pasa a 1/255 y desaparece sola.
+ * * Llega en un PNG de 6917x11135 donde el dibujo ocupa SOLO la franja
+ *   inferior (984px): recortado a su contorno y llevado a 2560px de ancho da
+ *   56KB. **Empalma consigo mismo**: los dos bordes caen en el valle con 1px
+ *   de diferencia sobre 984 — la misma calidad que el zócalo del hero.
+ * * Los picos ya vienen apuntando HACIA ARRIBA en el original, así que al pie
+ *   va sin dar vuelta.
+ *
+ * ARRIBA SIGUEN LAS DEL HERO (2026-09-07, pedido del cliente), dadas vuelta y
+ * son las QUE ESTABAN EN RESEÑAS: colgaban del techo de esa sección desde el
  * 2026-09-04 para llenar el hueco negro que había entre la carta y ella, y
  * al meterse «Acompañamientos» en el medio quedaban pegadas a las de acá,
  * formando una franja doble. Se movieron, no se duplicaron.
@@ -99,12 +158,12 @@ export function Acompanamientos() {
         className="pointer-events-none absolute inset-x-0 top-0 h-[var(--llamas)] -scale-y-100 select-none bg-[url('/zocalo-llamas.webp')] bg-[length:auto_100%] bg-repeat-x"
       />
 
-      {/* El título, con el MISMO tratamiento que "Las Burgas" y "Nosotros".
-          Un cuerpo más chico que aquéllos (11vw contra 16vw en móvil): esta
-          palabra tiene 15 letras contra 10 y al mismo tamaño no entraría en
-          una línea. En escritorio pasa lo mismo, 7vw contra 9vw. */}
-      <header className="relative mb-8 sm:mb-12">
-        <h2 className="ml-0 font-display text-[clamp(40px,11.5vw,190px)] uppercase leading-[0.85] tracking-[-0.02em] text-primary sm:-ml-[2%] sm:text-[9vw] lg:text-[7vw]">
+      {/* El título, con el MISMO tratamiento y el MISMO cuerpo que "Las
+          Burgas" y "Nosotros" — ver el comentario de arriba: estaba achicado
+          solo porque "Acompañamientos" no entraba en una línea, y "Sides" sí.
+          En BLANCO (`--foreground`, 15.96:1) y no en el rojo de marca. */}
+      <header className="relative mb-16 sm:mb-24 lg:mb-28">
+        <h2 className="ml-0 font-display text-[clamp(56px,16vw,190px)] uppercase leading-[0.85] tracking-[-0.02em] text-foreground sm:-ml-[2%] sm:text-[12vw] lg:text-[9vw]">
           {titulo}
         </h2>
       </header>
@@ -120,46 +179,23 @@ export function Acompanamientos() {
               key={item.titulo}
               className={`flex flex-col ${derecha ? 'items-start' : 'items-end'}`}
             >
-              {/* El nombre: en la columna libre, pegado al costado por donde
-                  sube la línea. `text-right` cuando el plato va a la
-                  izquierda, así el bloque cuelga del tramo vertical.
+              {/* El nombre y el subtítulo, CENTRADOS en la columna libre.
+                  El centrado no es estético: es lo que fija el centro del
+                  subtítulo en un punto que la flecha puede apuntar (ver el
+                  comentario de arriba). El padding es simétrico por lo mismo
+                  — con `pl-[4%] pr-3` el centro del contenido no caía en el
+                  centro de la columna.
                   ES UN 8% MÁS ANCHO QUE LA COLUMNA LIBRE a propósito: como va
                   en flujo ENCIMA de la fila del plato, no hay nada con qué
                   chocar, y ese margen es lo que hace que "AROS DE CEBOLLA"
-                  entre en dos líneas en 390px en vez de partirse en tres
-                  (medido: 147px de caja lo partía, 175 no). */}
-              <div
-                className={`w-[calc(100%_-_var(--imagen)_+_8%)] ${
-                  derecha ? 'pl-[4%] pr-3 text-left' : 'pl-3 pr-[4%] text-right'
-                }`}
-              >
-                {/* CÓMO SE CENTRA EL TÍTULO SOBRE EL SUBTÍTULO SIN MOVER AL
-                    SUBTÍTULO (`tituloCentrado`, hoy solo las papas): el grupo
-                    pasa a `inline-block`, o sea que se encoge al ancho de su
-                    contenido en vez de ocupar la columna — y así sigue pegado
-                    al costado, como los demás. Para que ese ancho lo fije el
-                    SUBTÍTULO y no el nombre, el h3 va `w-0 min-w-full`: un
-                    ancho definido de 0 no aporta nada al ancho intrínseco del
-                    grupo (los `min-width` en porcentaje no cuentan en esa
-                    medición), pero una vez que el grupo ya midió, el
-                    `min-w-full` lo hace ocupar ese ancho completo. Resultado:
-                    el grupo mide lo que "CHEDAR Y BACON" y el nombre se
-                    centra encima.
-                    **Centrar todo el grupo no servía**: correría también al
-                    subtítulo hacia el medio de la columna y la flecha, que
-                    apunta al borde, dejaría de señalarlo. */}
-                <div className={item.tituloCentrado ? 'inline-block text-center' : ''}>
-                  <h3
-                    className={`font-grafiti-italica text-[clamp(24px,7.5vw,40px)] uppercase leading-[0.95] tracking-[0.005em] text-primary lg:text-[clamp(40px,4vw,64px)] ${
-                      item.tituloCentrado ? 'w-0 min-w-full' : ''
-                    }`}
-                  >
-                    {item.titulo}
-                  </h3>
-                  <p className="mt-1.5 font-body text-[clamp(12px,3.2vw,15px)] font-semibold uppercase leading-snug tracking-[0.08em] text-foreground/85 lg:mt-3 lg:text-[clamp(15px,1.3vw,20px)]">
-                    {item.subtitulo}
-                  </p>
-                </div>
+                  entre en dos líneas en 390px en vez de partirse en tres. */}
+              <div className="w-[calc(100%_-_var(--imagen)_+_8%)] px-[4%] text-center">
+                <h3 className="font-grafiti-italica text-[clamp(24px,7.5vw,40px)] uppercase leading-[0.95] tracking-[0.005em] text-primary lg:text-[clamp(40px,4vw,64px)]">
+                  {item.titulo}
+                </h3>
+                <p className="mt-1.5 font-body text-[clamp(12px,3.2vw,15px)] font-semibold uppercase leading-snug tracking-[0.08em] text-foreground/85 lg:mt-3 lg:text-[clamp(15px,1.3vw,20px)]">
+                  {item.subtitulo}
+                </p>
               </div>
 
               {/* La fila del plato. La línea va absoluta adentro: baja desde
@@ -169,14 +205,16 @@ export function Acompanamientos() {
                   aria-hidden
                   className={`pointer-events-none absolute bottom-1/2 top-0 text-primary [stroke-width:2px] lg:[stroke-width:3px] ${
                     derecha
-                      ? 'left-[4%] right-[calc(var(--imagen)_+_8px)]'
-                      : 'left-[calc(var(--imagen)_+_8px)] right-[4%]'
+                      ? 'left-[calc((100%_-_var(--imagen)_+_8%)_/_2)] right-[var(--imagen)]'
+                      : 'left-[var(--imagen)] right-[calc((100%_-_var(--imagen)_+_8%)_/_2)]'
                   }`}
                 >
                   {/* La curva. Sale del plato a media altura, barre hacia el
-                      costado libre y remonta hasta el subtítulo. El primer
-                      punto de control la deja caer un poco antes de arrancar
-                      para arriba: eso es lo que le da el envión. */}
+                      costado libre y remonta hasta el centro del subtítulo.
+                      El primer punto de control la deja caer un poco antes de
+                      arrancar para arriba: eso es lo que le da el envión.
+                      Arranca en 96 y no en 100 para no tocar el recorte del
+                      plato. */}
                   <svg
                     viewBox="0 0 100 100"
                     preserveAspectRatio="none"
@@ -186,22 +224,24 @@ export function Acompanamientos() {
                     <path
                       d={
                         derecha
-                          ? 'M 100 86 C 66 102, 14 98, 8 8'
-                          : 'M 0 86 C 34 102, 86 98, 92 8'
+                          ? 'M 96 84 C 62 106, 22 92, 0 6'
+                          : 'M 4 84 C 38 106, 78 92, 100 6'
                       }
                       stroke="currentColor"
                       strokeLinecap="round"
                       vectorEffect="non-scaling-stroke"
                     />
                   </svg>
-                  {/* La punta, en el extremo de arriba, señalando al
-                      subtitulo. El `-translate-x-1/2` deja su vértice justo
-                      sobre el 8%/8% donde muere la curva. */}
+                  {/* La punta, en el extremo de arriba. Va en el BORDE de la
+                      caja —que es el centro de la columna, o sea el centro del
+                      subtítulo— con `-translate-x-1/2` para que su vértice caiga
+                      justo ahí. Es el mismo 0/100 en el que muere la curva, así
+                      que las dos coinciden siempre. */}
                   <svg
                     viewBox="0 0 12 12"
                     fill="none"
-                    className={`absolute top-[8%] size-[clamp(11px,3.4vw,22px)] -translate-x-1/2 -translate-y-[6%] ${
-                      derecha ? 'left-[8%]' : 'left-[92%]'
+                    className={`absolute top-[6%] size-[clamp(11px,3.4vw,22px)] -translate-x-1/2 -translate-y-[6%] ${
+                      derecha ? 'left-0' : 'left-full'
                     }`}
                   >
                     <path
@@ -232,11 +272,13 @@ export function Acompanamientos() {
         })}
       </ul>
 
-      {/* Las llamas del hero al pie, derechas: mismo dibujo y mismo mosaico
-          que las del techo, sin dar vuelta. Ver el zócalo en `Hero.tsx`. */}
+      {/* Las llamas al pie: dibujo PROPIO (gris con filo naranja), no el del
+          hero. Mismo mosaico y misma altura; los picos ya vienen para arriba
+          en el original, así que va sin dar vuelta. Ver arriba por qué el
+          gris importa: es lo que borra la costura con Reseñas. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[var(--llamas)] select-none bg-[url('/zocalo-llamas.webp')] bg-[length:auto_100%] bg-bottom bg-repeat-x"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[var(--llamas)] select-none bg-[url('/zocalo-llamas-naranja.webp')] bg-[length:auto_100%] bg-bottom bg-repeat-x"
       />
     </section>
   )

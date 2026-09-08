@@ -112,17 +112,20 @@ export const marqueeFrases = [
 ] as const
 
 /**
- * Sección "Las Burgas" — la carta. Las DOCE hamburguesas, cada una con su
- * video y su foto (2026-08-27, material del cliente).
+ * Sección "Las Burgas" — la carta. Las DOCE hamburguesas (2026-08-27,
+ * material del cliente). El orden y los ingredientes los dio él; los nombres
+ * se escriben acá.
  *
- * Cada tarjeta reproduce su video UNA vez al entrar en pantalla y queda en la
- * foto de producto (ver `BurgaVideo`). El orden y los ingredientes los dio el
- * cliente; los nombres se escriben acá y la tarjeta los dibuja.
- *
- * Los videos vienen de `burgashells/` (originales del cliente, 960x960 y ~2.3MB
- * cada uno) recomprimidos a 720px/24fps/crf26: ~200KB por video, 3.2MB las doce
- * con sus fotos. **Si entra un video nuevo, pasarlo por la misma receta** — está
- * en `originales/procesar.sh` y documentada en `BurgaVideo`.
+ * ── SE FUE EL CAMPO `video` (2026-09-08, pedido del cliente: "borrar todo lo
+ * que no se usa") ── Traía `src` (el mp4), `poster` y `foto`, y desde que el
+ * tocadiscos reemplazó a la grilla NINGUNO tenía consumidor: el único
+ * `<video>` del proyecto vivía en `BurgaVideo`, que no lo importaba nadie.
+ * Quedó solo `alt`, que sí usa `CarruselBurgasV2` para la silueta.
+ * **Para reponer los videos** (sigue siendo el plan pendiente con el cliente)
+ * hay que recuperar de git —commit `7c33558`— los mp4, los `-poster.webp`,
+ * las fotos de producto y los tres componentes (`BurgaVideo`, `BurgaCard`,
+ * `GrillaBurgas`), o regenerarlos: los 12 videos sin comprimir están en
+ * `originales/burgashells/` y la receta exacta en `originales/procesar.sh`.
  *
  * ── `escena`: LA FOTO EN DOS CAPAS (2026-09-01) ──
  * Para el carrusel "tocadiscos" (`CarruselBurgasV2`) cada foto se separa en
@@ -138,11 +141,15 @@ export const marqueeFrases = [
  * `sticker` (2026-09-01, material del cliente): el sello con el nombre, que en
  * el tocadiscos REEMPLAZA al nombre en texto — va montado sobre el borde
  * inferior de la foto. Recortados a su dibujo desde los PNG de la raíz (ahora
- * en `originales/stickers/`). **Falta el de Balak**: mientras no llegue, esa
- * burga muestra el nombre en texto, como antes.
+ * en `originales/stickers/`). **YA ESTÁN LOS DOCE**: el de Balak, que era el
+ * único que faltaba, llegó el 2026-09-08 y con él ninguna burga muestra el
+ * nombre en texto. Vino en 8825x3092 y se normalizó a los mismos 900px de
+ * ancho que los otros once (31KB): a resolución completa pesaba 315KB, diez
+ * veces lo que el más pesado del resto.
  *
  * Los PNG `-SFONDO` (1080x1080 con alpha real) son el origen. Los
- * `-recorte.webp` de la versión anterior del carrusel quedaron sin uso.
+ * `-recorte.webp` de la versión anterior del carrusel se borraron el
+ * 2026-09-08 junto con el resto de lo que no se servía.
  *
  * OJO CON LOS NOMBRES DE ARCHIVO, vienen corridos:
  *   * `AMODEO-SFONDO` (sin S) es el ASMODEO real — pollo rebozado, lechuga,
@@ -164,18 +171,17 @@ export const burgasContent = {
    * Aclaración al pie del tocadiscos (2026-09-06, pedido del cliente). Vale
    * para las doce por igual, así que NO va en cada item ni dentro del bucle
    * de las fichas: se dibuja UNA sola vez debajo de la ficha activa.
+   * Decía "Todas las burgers vienen con papas" hasta el 2026-09-08.
+   * **Va en una sola línea por contrato** (`whitespace-nowrap` en el
+   * componente): si se alarga este texto, verificar que siga entrando en
+   * pantallas de 320px antes de darlo por bueno.
    */
-  guarnicion: 'Todas las burgers vienen con papas',
+  guarnicion: 'Todas vienen con papas sazonadas',
   items: [
     {
       id: 'lucifer',
       nombre: 'Lucifer',
-      video: {
-        src: '/burgas/lucifer.mp4',
-        poster: '/burgas/lucifer-poster.webp',
-        foto: '/burgas/lucifer.webp',
-        alt: 'Hamburguesa Lucifer',
-      },
+      alt: 'Hamburguesa Lucifer',
       ingredientes: 'Triple medallón, cheddar x6 y salsa Hells',
       escena: {
         sticker: '/burgas/lucifer-sticker.webp',
@@ -187,12 +193,7 @@ export const burgasContent = {
     {
       id: 'satanas',
       nombre: 'Satanás',
-      video: {
-        src: '/burgas/satanas.mp4',
-        poster: '/burgas/satanas-poster.webp',
-        foto: '/burgas/satanas.webp',
-        alt: 'Hamburguesa Satanás',
-      },
+      alt: 'Hamburguesa Satanás',
       ingredientes: 'Doble medallón, cheddar x4, panceta y salsa Hells',
       // Su silueta fue un recorte automático por croma hasta que el cliente
       // mandó SATANAS-SFONDO.png (2026-09-01): ya usa el PNG real, como todas.
@@ -209,14 +210,11 @@ export const burgasContent = {
     {
       id: 'balak',
       nombre: 'Balak',
-      video: {
-        src: '/burgas/balak.mp4',
-        poster: '/burgas/balak-poster.webp',
-        foto: '/burgas/balak.webp',
-        alt: 'Hamburguesa Balak',
-      },
+      alt: 'Hamburguesa Balak',
       ingredientes: 'Triple medallón, cheddar x6, panceta, cebolla crispy y salsa Hells',
       escena: {
+        sticker: '/burgas/balak-sticker.webp',
+        escalaSticker: 0.88,
         fondo: '/burgas/balak-fondo-rojo.webp',
         silueta: '/burgas/balak-silueta.webp',
         caja: { x: 0.275, y: 0.3926, w: 0.4593, h: 0.4115 },
@@ -225,12 +223,7 @@ export const burgasContent = {
     {
       id: 'belcebu',
       nombre: 'Belcebú',
-      video: {
-        src: '/burgas/belcebu.mp4',
-        poster: '/burgas/belcebu-poster.webp',
-        foto: '/burgas/belcebu.webp',
-        alt: 'Hamburguesa Belcebú',
-      },
+      alt: 'Hamburguesa Belcebú',
       ingredientes: 'Doble medallón, cheddar x4, cebolla crispy y barbacoa',
       escena: {
         sticker: '/burgas/belcebu-sticker.webp',
@@ -242,12 +235,7 @@ export const burgasContent = {
     {
       id: 'azazel',
       nombre: 'Azazel',
-      video: {
-        src: '/burgas/azazel.mp4',
-        poster: '/burgas/azazel-poster.webp',
-        foto: '/burgas/azazel.webp',
-        alt: 'Hamburguesa Azazel',
-      },
+      alt: 'Hamburguesa Azazel',
       ingredientes: 'Doble medallón, doble salsa, queso azul, rúcula y cebolla caramelizada',
       escena: {
         sticker: '/burgas/azazel-sticker.webp',
@@ -259,12 +247,7 @@ export const burgasContent = {
     {
       id: 'belfegor',
       nombre: 'Belfegor',
-      video: {
-        src: '/burgas/belfegor.mp4',
-        poster: '/burgas/belfegor-poster.webp',
-        foto: '/burgas/belfegor.webp',
-        alt: 'Hamburguesa Belfegor',
-      },
+      alt: 'Hamburguesa Belfegor',
       ingredientes: 'Doble medallón, queso dambo x4, huevo, tomate y lechuga',
       escena: {
         sticker: '/burgas/belfegor-sticker.webp',
@@ -276,12 +259,7 @@ export const burgasContent = {
     {
       id: 'mammon',
       nombre: 'Mammón',
-      video: {
-        src: '/burgas/mammon.mp4',
-        poster: '/burgas/mammon-poster.webp',
-        foto: '/burgas/mammon.webp',
-        alt: 'Hamburguesa Mammón',
-      },
+      alt: 'Hamburguesa Mammón',
       ingredientes: 'Doble medallón, queso dambo x4, guacamole y mayonesa',
       escena: {
         sticker: '/burgas/mammon-sticker.webp',
@@ -293,12 +271,7 @@ export const burgasContent = {
     {
       id: 'lilith',
       nombre: 'Lilith',
-      video: {
-        src: '/burgas/lilith.mp4',
-        poster: '/burgas/lilith-poster.webp',
-        foto: '/burgas/lilith.webp',
-        alt: 'Hamburguesa Lilith',
-      },
+      alt: 'Hamburguesa Lilith',
       ingredientes: 'Doble medallón, cebolla caramelizada, cheddar líquido y cheddar x2',
       escena: {
         sticker: '/burgas/lilith-sticker.webp',
@@ -310,12 +283,7 @@ export const burgasContent = {
     {
       id: 'gualicho',
       nombre: 'Gualicho',
-      video: {
-        src: '/burgas/gualicho.mp4',
-        poster: '/burgas/gualicho-poster.webp',
-        foto: '/burgas/gualicho.webp',
-        alt: 'Hamburguesa Gualicho',
-      },
+      alt: 'Hamburguesa Gualicho',
       ingredientes: 'Medallón, cheddar x2 y salsa Hells',
       escena: {
         sticker: '/burgas/gualicho-sticker.webp',
@@ -327,12 +295,7 @@ export const burgasContent = {
     {
       id: 'baal',
       nombre: 'Baal',
-      video: {
-        src: '/burgas/baal.mp4',
-        poster: '/burgas/baal-poster.webp',
-        foto: '/burgas/baal.webp',
-        alt: 'Hamburguesa Baal',
-      },
+      alt: 'Hamburguesa Baal',
       ingredientes: 'Medallón XL, cheddar x2, cebolla y ketchup',
       escena: {
         sticker: '/burgas/baal-sticker.webp',
@@ -344,12 +307,7 @@ export const burgasContent = {
     {
       id: 'asmodeo',
       nombre: 'Asmodeo',
-      video: {
-        src: '/burgas/asmodeo.mp4',
-        poster: '/burgas/asmodeo-poster.webp',
-        foto: '/burgas/asmodeo.webp',
-        alt: 'Hamburguesa Asmodeo',
-      },
+      alt: 'Hamburguesa Asmodeo',
       ingredientes: 'Pechuga de pollo rebozada en tempura, cheddar x2, panceta, tomate, lechuga y mayoliva',
       escena: {
         sticker: '/burgas/asmodeo-sticker.webp',
@@ -361,12 +319,7 @@ export const burgasContent = {
     {
       id: 'leviatan',
       nombre: 'Leviatán',
-      video: {
-        src: '/burgas/leviatan.mp4',
-        poster: '/burgas/leviatan-poster.webp',
-        foto: '/burgas/leviatan.webp',
-        alt: 'Hamburguesa Leviatán',
-      },
+      alt: 'Hamburguesa Leviatán',
       ingredientes: 'Medallón veggie a elección, queso dambo, portobellos, tomate y mayonesa de perejil',
       escena: {
         sticker: '/burgas/leviatan-sticker.webp',

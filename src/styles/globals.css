@@ -43,6 +43,16 @@
   --superficie-fuego: 3 80% 47%; /* #d62218 */
   --superficie-fuego-foreground: 0 0% 10%;
 
+  /* EL GRIS DE LAS LLAMAS (2026-09-08, pedido del cliente: "el mismo gris que
+     se usa en las llamas, ese gris un poco más oscuro"). Es el relleno de
+     `zocalo-llamas-naranja.webp` MEDIDO sobre el WebP ya codificado —(24,24,24)
+     contra los (26,26,26) de `--background`—, no un valor a ojo. Dos niveles
+     de diferencia: se lee como el mismo carbón apenas más hondo.
+     Lo usa el fondo de Reseñas, que es la sección que arranca justo debajo de
+     esa banda: así el pie de «Sides» y el techo de Reseñas son EXACTAMENTE el
+     mismo color y la juntura desaparece del todo. */
+  --carbon-hondo: 0 0% 9.4%; /* #181818 */
+
   /* Las palabras del fondo del hero: apenas más oscuras que el fondo, para que
      se lean como relieve hundido y no como texto. 1.06:1 y 1.08:1 contra el
      fondo — son DECORATIVAS, por eso la capa va `aria-hidden`. */
@@ -64,6 +74,7 @@
   --color-highlight-foreground: hsl(var(--highlight-foreground));
   --color-superficie-fuego: hsl(var(--superficie-fuego));
   --color-superficie-fuego-foreground: hsl(var(--superficie-fuego-foreground));
+  --color-carbon-hondo: hsl(var(--carbon-hondo));
   --color-hundida: hsl(var(--hundida));
   --color-hundida-mas: hsl(var(--hundida-mas));
 

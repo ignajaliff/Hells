@@ -70,6 +70,7 @@ comercial con el cliente** (dice tener las fuentes en su Drive) antes de publica
 | `--foreground` | `0 0% 96%` | #f5f5f5 | Texto principal |
 | `--primary` | `1 78% 51%` | #e3211f | El rojo del logo — dominante, CTAs y títulos destacados |
 | `--accent` | `1 78% 62%` | #ea5553 | El mismo rojo aclarado — texto chico, foco y detalles |
+| `--carbon-hondo` | `0 0% 9.4%` | #181818 | Fondo de Reseñas — el gris medido de las llamas naranjas |
 | `--muted` | `0 0% 14%` | #242424 | Superficies elevadas |
 | `--border` | `0 0% 20%` | #333333 | Bordes |
 
@@ -177,8 +178,16 @@ otros 3.4MB de fuentes que no se servían. Se movieron a `originales/` (21 archi
 * `llamas-burger.png` — sin una sola referencia.
 * `dev.log` y `tsconfig.tsbuildinfo` — generados, ya estaban en `.gitignore`.
 
-`fondo-fuegitos.webp` **se conserva aunque no se renderice**: es la fuente de la que
-salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentarios.
+**LIMPIEZA DEL 2026-09-08**: 67 archivos y 3.5MB que no servía nadie (todo el
+material de video, las versiones superadas del tocadiscos y seis módulos de `src/`
+inalcanzables). `public/` pasó de 5.7MB a 2.2MB y hoy **cumple la regla de arriba
+al pie de la letra**: 0 de 53 archivos sin referencia, verificado. El detalle y
+cómo recuperar los videos están en "Decisiones técnicas tomadas".
+
+`fondo-fuegitos.webp` **se movió a `originales/`** el 2026-09-08: no se renderiza
+—es la fuente de `fondo-sin-fuego.webp`, y el JPEG original del cliente ya no
+existe— así que en `public/` no correspondía. `fondo-palabras.webp` se borró: es
+derivado y quedó sin uso cuando el hero móvil pasó a su arte propio.
 
 ---
 
@@ -250,6 +259,131 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
 
 ## Decisiones técnicas tomadas
 
+* **AJUSTES FINOS (2026-09-08, 2ª tanda de pedidos del cliente)**:
+  * **RESEÑAS PASÓ AL GRIS DE LAS LLAMAS** (`--carbon-hondo`, token nuevo).
+    No es un valor a ojo: es el relleno de `zocalo-llamas-naranja.webp`
+    MEDIDO sobre el WebP ya codificado, **(24,24,24)** contra los (26,26,26)
+    de `--background`. Como «Sides» cierra con esa banda justo arriba, el pie
+    de una y el techo de la otra son ahora EXACTAMENTE el mismo color y la
+    juntura desaparece del todo. Las tarjetas son `bg-black`, así que siguen
+    leyéndose como pozos más oscuros: el contraste no se tocó.
+  * **LAS FLECHAS APUNTAN AL CENTRO DEL SUBTÍTULO** (antes caían en su borde).
+    **El cambio que lo hace posible es que el texto pasó a ir CENTRADO en su
+    columna**: con el texto pegado al costado, el centro del subtítulo queda
+    en `4% + anchoDelTexto/2` —depende de cuánto mide el texto, y eso CSS no
+    lo puede apuntar—. Centrado, ese centro ES el centro de la columna,
+    `calc((100% - var(--imagen) + 8%) / 2)`, que la caja de la flecha sí
+    puede tomar; la punta va literalmente en su borde. **Queda exacto para
+    cualquier largo de subtítulo** — verificado: desvío 0px en las tres
+    piezas, en 320, 390 y 1440.
+    * **Se fue el truco de `tituloCentrado`**: existía para centrar el nombre
+      sobre el subtítulo sin mover al subtítulo, y hacía falta porque centrar
+      el grupo habría descolocado la flecha. Ahora la columna va centrada y el
+      nombre queda centrado solo. De paso el nombre dejó de estar acotado al
+      ancho del subtítulo: en escritorio "PAPAS HELLS" vuelve a una línea.
+    * **La contra, asumida**: la flecha se acorta. Es inevitable — apuntar al
+      medio y no al borde ES tener menos recorrido.
+  * **EL STICKER DE BALAK SE ACHICÓ A 0.88** (`escalaSticker` en `escena`).
+    El número sale de dos mediciones, no del ojo: sus letras ocupan el
+    **0.672** del alto de su recorte contra una mediana de **0.62** en los
+    otros once (igualar eso pedía 0.92) y su proporción es 2.87 contra ~2.45,
+    o sea que también se dibuja más ancho (igualar eso pedía 0.85). 0.88 es
+    el punto medio.
+    * ⚠ **LA ESCALA VA SOBRE LA IMAGEN, NUNCA SOBRE LA CAJA.** El primer
+      intento achicó el alto de la caja y eso **desalineó a Balak**: los
+      ingredientes van debajo del sticker en el flujo, así que una caja 12%
+      más baja se los subía y esa burga quedaba como la única corrida — lo
+      reportó el cliente. Con `scale` el sello se dibuja más chico sin ocupar
+      menos lugar. Verificado: los doce ingredientes en una sola altura (516
+      en móvil, 888 en escritorio).
+  * **LA GUARNICIÓN DICE "Todas vienen con papas sazonadas"**, 40/48px más
+    abajo (era 20/24) y **en una línea por contrato** (`whitespace-nowrap`).
+    El `nowrap` no es gratis: con el texto nuevo la píldora medía 329px contra
+    296 disponibles en una pantalla de 320 y se salía. Se ajustó SOLO en móvil
+    —piso del clamp de 11 a 10px, tracking de 0.10 a 0.08em y padding de 16 a
+    14px— hasta 291px, con 5px de margen. **Si se alarga ese texto, rehacer
+    esta cuenta antes de darlo por bueno.**
+
+* **«SIDES», LLAMAS NARANJAS Y EL STICKER QUE FALTABA (2026-09-08, pedidos del
+  cliente)**:
+  * **El título de la sección dice "SIDES", en BLANCO y al cuerpo de las
+    otras**. Estaba achicado a 11.5vw/9vw/7vw por una sola razón —
+    "Acompañamientos" tiene 15 letras y al tamaño de "Las Burgas" no entraba en
+    una línea—; "Sides" tiene 5, así que **volvió a 16vw/12vw/9vw** y los tres
+    títulos de sección miden lo mismo otra vez. Medido: 62px en móvil y 130 en
+    escritorio, una línea, sin desbordar. En blanco es `--foreground`, 15.96:1;
+    de paso el rojo de marca queda solo para los nombres de los platos y las
+    flechas. **El ancla y el nombre del archivo siguen diciendo
+    "acompanamientos"**: son identificadores internos y renombrarlos rompería
+    el link sin cambiar nada en pantalla.
+  * **Más aire entre el título y los platos**: el margen del header pasó de
+    32/48px a **64/96/112**. Hacía falta más justamente porque el título
+    creció — medido, quedó en 60px de hueco real en móvil y 102 en escritorio.
+  * **LA BANDA DE ABAJO YA NO ES LA DEL HERO**: dibujo nuevo del cliente
+    (`zocalo-llamas-naranja.webp`), relleno GRIS con contorno NARANJA, contra
+    el negro con filo rojo que sigue arriba. Ahora la sección está enmarcada
+    por dos bandas DISTINTAS, y eso es deliberado.
+    * **El gris es (25,25,25) y `--background` es (26,26,26)** — medido. O sea
+      que el relleno se funde con la sección y lo que dibuja la silueta es el
+      filo naranja: el mismo gesto que en el hero, con otro color de filo.
+    * **Y RESOLVIÓ SOLA LA COSTURA CON RESEÑAS** que había quedado pendiente
+      el 2026-09-07: la banda anterior tenía la base NEGRA maciza contra el
+      `--background` de Reseñas y dejaba una línea de 26 niveles a todo el
+      ancho. **Medido después del cambio: 2 niveles.** Ya no hay nada que
+      decidir ahí.
+    * El PNG venía 6917x11135 con el dibujo SOLO en la franja inferior (984px).
+      Recortado a su contorno y a 2560px de ancho: **440KB → 56KB**. Empalma
+      consigo mismo (los dos bordes caen en el valle, 1px sobre 984) y los
+      picos ya vienen para arriba, así que al pie va sin dar vuelta.
+  * **YA ESTÁN LOS DOCE STICKERS**: llegó el de Balak, que era el único que
+    faltaba desde el 2026-09-01, así que **ninguna burga muestra ya el nombre
+    en texto**. Vino en 8825x3092; **normalizado a los mismos 900px de ancho
+    que los otros once** (ratio 2.87, 31KB) — a resolución completa pesaba
+    315KB, diez veces el más pesado del resto.
+  * Los dos originales fueron a `originales/` (`llamasnaranjagris.png` y
+    `stickers/balak-sticker.png`), así que la raíz volvió a quedar sin PNG
+    sueltos.
+
+* **LIMPIEZA DE LO QUE NO SE SERVÍA (2026-09-08, pedido del cliente: "eliminar
+  todos los archivos que no se están usando")**: se fueron **67 archivos, 3.5MB**
+  — `public/` bajó de 5.7MB a 2.2MB y ahora **cumple de verdad la regla "solo lo
+  que la web sirve"**: auditado, 0 de 53 archivos sin referencia. `src/` quedó sin
+  un solo módulo inalcanzable desde el App Router.
+  * **Cómo se auditó, porque el método ingenuo MIENTE**: buscar el nombre del
+    archivo en el texto de `src/` da falsos negativos de borrado — los nombres
+    aparecen en los COMENTARIOS. `fondo-fuegitos.webp` y los `-recorte.webp`
+    figuraban como "en uso" solo por eso. Hay que extraer los **literales de
+    string** del código salteando comentarios, y recién ahí resolver contra
+    `public/`. **Si se repite la auditoría, hacerlo así.**
+  * **EL MATERIAL DE VIDEO SE FUE ENTERO** (12 mp4 + 12 `-poster.webp` + 12 fotos
+    de producto + `BurgaVideo`, `BurgaCard`, `GrillaBurgas`, `etiquetasBurga`,
+    `useEsMovil`). Hasta ayer esta misma hoja decía "NO borrarlos"; el cliente
+    pidió lo contrario y **el motivo por el que se podía**: el único `<video>` del
+    proyecto vivía en `BurgaVideo`, que **no lo importaba nadie** desde que el
+    tocadiscos reemplazó a la grilla. O sea que los mp4 no los bajaba ningún
+    navegador: eran 1.6MB muertos en el repo y en la imagen de Docker.
+  * **REPONER LOS VIDEOS SIGUE SIENDO EL PLAN PENDIENTE y no se perdió nada**:
+    los 12 videos SIN COMPRIMIR (31MB) están en `originales/burgashells/` con la
+    receta exacta en `originales/procesar.sh`, y lo derivado se recupera con
+    `git checkout 7c33558 -- public/burgas src/components/ui/BurgaVideo.tsx …`.
+  * **`video` DESAPARECIÓ DE `content/home.ts`**: traía `src`, `poster`, `foto` y
+    `alt`, y de los cuatro **solo `alt` tenía consumidor** (la silueta del
+    tocadiscos). Quedó como campo suelto `alt` de la burga; el tipo `Burga` de
+    `CarruselBurgasV2` acompañó.
+  * **`fondo-fuegitos.webp` NO se borró: se MOVIÓ a `originales/`.** No se
+    renderiza, pero es la fuente de la que sale `fondo-sin-fuego.webp` y **el
+    JPEG original del cliente ya no existe** — borrarlo dejaba el fondo de
+    escritorio sin forma de re-derivarse. En `originales/` cumple las dos reglas
+    a la vez. Con él se fue `fondo-palabras.webp`, que sí es derivado y ya no se
+    usa desde que el hero móvil tiene su propio arte.
+  * **Lo demás eran versiones superadas** del tocadiscos: los 11 `-recorte.webp`
+    del carrusel viejo, los 11 `-fondo.webp` (los reemplazó `-fondo-rojo`),
+    `satanas-fondo-2.webp` y `sativa.webp`. Todo regenerable con
+    `originales/tocadiscos.py`.
+  * **`originales/` NO se tocó**, y no es un descuido: por definición no lo
+    referencia el código —es el archivo para re-derivar— y ya está excluido del
+    build por `.dockerignore`, así que no pesa en la imagen.
+
 * **SECCIÓN "ACOMPAÑAMIENTOS" (2026-09-07, pedido del cliente)**:
   `Acompanamientos.tsx`, ancla `#acompanamientos`, entre la carta y Reseñas.
   Papas Hells, Nuggets y Aros de cebolla, cada uno tirado hacia un costado
@@ -319,17 +453,14 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
     Verificado: la de arriba en `scale: 1 -1` (`transform` dice `none`, la
     trampa de Tailwind v4) y la de abajo derecha, 93px en móvil y 90 en
     escritorio, pegadas a los dos bordes de la sección.
-  * **ARRIBA NO HAY COSTURA, ABAJO SÍ HAY UN ESCALÓN**: la base del dibujo es
-    maciza y negra, así que dada vuelta empalma con el negro de la carta —
-    medido, #000 a los dos lados del borde. **Al pie, en cambio, esa base
-    negra queda contra el `#1a1a1a` de Reseñas** (medido: 0,0,0 contra
-    26,26,26, una línea recta y pareja a todo el ancho). Es el escalón de 26
-    niveles que en el hero pasa desapercibido porque ahí el relleno negro
-    está rodeado de #1a1a1a; acá es un borde horizontal limpio y se nota.
-    Antes no pasaba porque enfrente estaba la base negra de la banda de
-    Reseñas. ⚠ **Pendiente que el cliente decida**: o Reseñas vuelve a fondo
-    negro (era así hasta el commit `023000c` del socio, que la pasó al gris
-    del hero), o se saca la banda de abajo y las llamas quedan solo arriba.
+  * **ARRIBA NO HAY COSTURA, Y ABAJO TAMPOCO — YA RESUELTO (2026-09-08)**: la
+    base del dibujo de arriba es maciza y negra, así que dada vuelta empalma
+    con el negro de la carta (medido, #000 a los dos lados). Al pie **hubo un
+    día** un escalón de 26 niveles: esa misma base negra caía contra el
+    `#1a1a1a` de Reseñas y dibujaba una línea recta a todo el ancho. Se
+    arregló solo al cambiar la banda de abajo por la naranja/gris del cliente,
+    cuyo relleno es (25,25,25) — **el escalón bajó a 2 niveles, medido**. No
+    hizo falta ni volver Reseñas a negro ni sacar la banda.
   * Sin link en el nav: `useSeccionActiva` elige la sección más cercana a la
     línea de lectura, así que el óvalo la cuenta como "Burgers".
 
@@ -907,8 +1038,9 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
     * **`pointer-events-none` en TODA la ficha**: el margen negativo del sticker se
       propaga (margin collapse) y la ficha entera sube sobre el escenario — medido,
       el toque en la franja de abajo caía en la ficha y ahí no se podía arrastrar.
-    * **Falta el sticker de Balak**: esa burga muestra el nombre en texto hasta que
-      llegue. Al llegar: guardarlo en la raíz, agregarlo al mapa y reprocesar.
+    * **El sticker de Balak LLEGÓ el 2026-09-08** y con él están los doce: ya
+      ninguna burga muestra el nombre en texto. El original quedó en
+      `originales/stickers/balak-sticker.png`.
   * **LA FICHA MIDE SIEMPRE LO MISMO (2026-09-01, pedido del cliente)**: las doce
     fichas (sticker + ingredientes) van MONTADAS Y APILADAS en una grilla —todas en
     la celda 1/1— y solo la activa se ve. El contenedor toma la altura de la más
@@ -968,9 +1100,11 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
     Para reponerlo hay que volver a montar ese componente —está en el historial de
     `CarruselBurgas.tsx`— y en `BurgaCard` cambiar el `<Image>` por `<BurgaVideo>`,
     que sigue en el proyecto sin uso.
-  * **Los mp4 de `public/burgas/` quedaron sin referencia** mientras dure la prueba.
-    NO borrarlos: son la sección entera si el cliente los repone. `BurgaVideo.tsx`
-    queda igual, sin uso.
+  * **Los mp4 de `public/burgas/` quedaron sin referencia** mientras dure la
+    prueba. ⚠ **DESACTUALIZADO**: decía "NO borrarlos"; el 2026-09-08 el cliente
+    pidió borrar todo lo que no se usa y se fueron, junto con `BurgaVideo.tsx`.
+    Ver la entrada de la limpieza, arriba de todo — los originales siguen en
+    `originales/burgashells/`.
   * **La elección carrusel/grilla se hace en JS** (`lib/useEsMovil.ts`), no con
     `hidden`/`sm:block`. Con clases, las doce tarjetas de la grilla se renderizaban
     igual en móvil y sus doce `<video>` existían en el DOM descargando: **medido, 13
@@ -1507,16 +1641,15 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
 
 ## Estado actual del desarrollo
 
-**Última sesión**: 2026-09-07
-**Próximo paso**: decidir cómo se cierra «Acompañamientos» contra Reseñas —
-la base negra de la banda al pie queda contra el gris de Reseñas y deja una
-línea (ver la entrada de la sección). Después, el sticker de Balak, que no vino (su nombre va en texto
-mientras tanto). Desktop sigue con la grilla; el cliente pidió no trabajarlo
-todavía. **El nav ya no anticipa ninguna sección que no exista**: los cuatro
+**Última sesión**: 2026-09-08
+**Próximo paso**: sin nada urgente abierto. Se cerraron los dos pendientes que
+venían de arrastre: la costura de «Sides» contra Reseñas (la resolvió la banda
+naranja/gris nueva) y el sticker de Balak, que llegó — **ya están los doce**. **El nav ya no anticipa ninguna sección que no exista**: los cuatro
 links apuntan a su ancla. Pendiente de decisión: **reponer los videos** — el cliente los quiere
 usar y la idea sobre la mesa es que la burga se arme sola al llegar al centro del
-tocadiscos, con la foto como botón para repetirlo (los 12 mp4 siguen en
-`public/burgas/`, sin referencia desde el código).
+tocadiscos, con la foto como botón para repetirlo. **Los mp4 ya no están en
+`public/`** (limpieza del 2026-09-08): salen de `originales/burgashells/` con
+`originales/procesar.sh`, o de `git checkout 7c33558 -- public/burgas`.
 
 **Lo que está funcionando**:
 * Arquitectura completa del proyecto (App Router, `src/` por secciones, tokens de diseño)
@@ -1536,9 +1669,11 @@ tocadiscos, con la foto como botón para repetirlo (los 12 mp4 siguen en
   Splatink / Sveningsson)
 * Tira de fotos (`TiraFotos.tsx`): las 8 fotos del local pasando solas hacia la
   derecha, a todo el ancho. Reemplazó a «Nuestra historia»
-* Sección «Acompañamientos» (`Acompanamientos.tsx`): papas, nuggets y aros en
-  zigzag con la línea roja al nombre, fondo del hero y sus llamas al pie
-* Sección «Reseñas» (`Resenas.tsx`): 10 reseñas reales de Google en loop
+* Sección «Sides» (`Acompanamientos.tsx`): papas, nuggets y aros en zigzag con
+  la flecha curva al nombre, fondo del hero, llamas negras al techo y las
+  naranjas al pie
+* Sección «Reseñas» (`Resenas.tsx`): 10 reseñas reales de Google en loop,
+  sobre el gris de las llamas de «Sides»
 * Sección «Work» (`Work.tsx`): el aviso de búsqueda con el link al formulario
 * Footer (`Footer.tsx`): contacto, mapa real de Olascoaga 715, logo y crédito
 
@@ -1551,9 +1686,6 @@ tocadiscos, con la foto como botón para repetirlo (los 12 mp4 siguen en
 * **Confirmar las licencias comerciales** de Ardillah Kafi y Splatink (hoy "personal use")
 * **Las 8 fotos de las burgas** (`content/home.ts` → `burgasContent.items[].foto`, todas
   en `null`). Cuadradas, sobre fondo carbón para que peguen con la estética
-* **Los 8 nombres** (`items[].nombre`, todos vacíos): el cliente los va a pegar como
-  stickers sobre las etiquetas blancas. Si en algún momento se quieren como texto, se
-  escriben ahí y la etiqueta los dibuja sola
 * Resto de las secciones de la landing
 * Conexión con Supabase cuando exista el sistema de gestión
 
