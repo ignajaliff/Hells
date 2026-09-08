@@ -150,12 +150,33 @@ export function Acompanamientos() {
         className="pointer-events-none absolute inset-0 -z-10 select-none bg-[url('/fondo-movil.webp')] bg-[length:100%_auto] bg-top bg-repeat-y lg:bg-[url('/fondo-sin-fuego.webp')]"
       />
 
+      {/* El filo negro sobre el que se apoya la banda. Son 4px que quedan
+          TAPADOS por la base maciza del dibujo (que mide 10px en la banda mas
+          corta), asi que no se ven: estan para que cualquier pixel del borde
+          que no sea 100% opaco se mezcle con NEGRO —el color de la carta— y
+          no con el gris del fondo de esta seccion. Ver abajo. */}
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-1 select-none bg-black" />
+
       {/* Las llamas del hero DADAS VUELTA, colgando del techo: los picos
           apuntan hacia abajo y la base maciza queda arriba, fundiéndose con
-          el negro de la carta. Ver el comentario de arriba. */}
+          el negro de la carta.
+
+          SUBE 4px Y SE LOS COME EL `overflow-hidden` (2026-09-08, pedido del
+          cliente: "las llamas de arriba tienen como que unirse con el fondo de
+          la seccion de arriba, si no se ve una linea sutil; solo pasa en
+          movil"). La banda crece esos mismos 4px, asi que **lo que se ve sigue
+          midiendo `--llamas` exactos**: lo unico que cambia es que el borde del
+          dibujo queda fuera de cuadro.
+          **Por que habia linea**: la fila del borde de `zocalo-llamas.webp`
+          tiene alpha 227, no 255 (medido) — el dibujo termina con su propio
+          antialias. Esa fila se mezclaba con lo que hay detras, que es el fondo
+          de ESTA seccion (26,26,26), mientras que arriba la carta es #000: una
+          raya de ~3 niveles a todo el ancho. En un LCD no se ve; en el OLED de
+          un celular, donde el negro es el pixel apagado, si.
+          Recortando 4px la primera fila visible ya es 100% opaca. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-[var(--llamas)] -scale-y-100 select-none bg-[url('/zocalo-llamas.webp')] bg-[length:auto_100%] bg-repeat-x"
+        className="pointer-events-none absolute inset-x-0 top-[-4px] h-[calc(var(--llamas)_+_4px)] -scale-y-100 select-none bg-[url('/zocalo-llamas.webp')] bg-[length:auto_100%] bg-repeat-x"
       />
 
       {/* El título, con el MISMO tratamiento y el MISMO cuerpo que "Las
@@ -163,7 +184,17 @@ export function Acompanamientos() {
           solo porque "Acompañamientos" no entraba en una línea, y "Sides" sí.
           En BLANCO (`--foreground`, 15.96:1) y no en el rojo de marca. */}
       <header className="relative mb-16 sm:mb-24 lg:mb-28">
-        <h2 className="ml-0 font-display text-[clamp(56px,16vw,190px)] uppercase leading-[0.85] tracking-[-0.02em] text-foreground sm:-ml-[2%] sm:text-[12vw] lg:text-[9vw]">
+        {/* CENTRADO EN LAS DOS PANTALLAS (2026-09-08, pedido del cliente: "que
+            el texto SIDES este centrado en el medio"). Es el unico titulo de
+            seccion que va asi —"Las Burgas" y "Nosotros" van pegados a la
+            izquierda—, y aca funciona porque lo que sigue es un zigzag que
+            alterna de lado: un titulo al ras marcaria un lado antes de que
+            empiece la alternancia.
+            **Se fue el `-ml-[2%]`**: ese margen negativo corre la CAJA del h2
+            un 2% hacia afuera, asi que centrar el texto dentro de una caja
+            descentrada lo dejaria 1% corrido a la izquierda. Misma cuenta que
+            en el titulo de Resenas. */}
+        <h2 className="text-center font-display text-[clamp(56px,16vw,190px)] uppercase leading-[0.85] tracking-[-0.02em] text-foreground sm:text-[12vw] lg:text-[9vw]">
           {titulo}
         </h2>
       </header>
