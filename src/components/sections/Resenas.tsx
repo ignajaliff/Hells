@@ -54,11 +54,16 @@ import { LINK_RESENAS, SECCIONES } from '@/lib/constants'
  * sobre un fondo del mismo color se les perdía el cuerpo. Ahora la sección
  * es el fondo y las tarjetas la superficie elevada, igual que en Google.
  *
- * LAS LLAMAS DEL TECHO (2026-09-04, pedido del cliente): una banda dentada
- * colgando del borde superior con los picos hacia abajo, en el hueco negro
- * que quedaba entre la carta y esta sección. Es el TERCER lugar donde la web
- * hace este gesto —el hero al pie, el footer al techo— y el detalle de por
- * qué va como va está en el div, más abajo.
+ * LAS LLAMAS DEL TECHO SE FUERON (2026-09-07, pedido del cliente). Estaban
+ * desde el 2026-09-04 para llenar el hueco negro que quedaba entre la carta
+ * y esta sección; ese hueco lo ocupa ahora «Acompañamientos», que además
+ * cierra con la MISMA banda al pie, así que las dos quedaban pegadas
+ * formando una franja doble. La banda dada vuelta pasó al TECHO de
+ * «Acompañamientos» y acá la sección arranca limpia.
+ * **Con ella se fue el padding que reservaba su alto** (era el de la banda
+ * más 88px en móvil y 128 en escritorio): ahora arriba va el mismo aire que
+ * en la carta y en Acompañamientos (`pt-12 sm:pt-16`), que es lo que sube el
+ * título y todo el bloque de texto.
  */
 export function Resenas() {
   const { titulo, cliche, remate, esqueletoDurmiendo, parrafo1, parrafo2, verTodas } =
@@ -70,51 +75,8 @@ export function Resenas() {
   return (
     <section
       id={SECCIONES.resenas}
-      className="relative overflow-hidden bg-background pb-20 pt-[calc(var(--llamas)_+_88px)] [--llamas:min(max(52px,11svh),96px)] sm:pb-28 sm:pt-[calc(var(--llamas)_+_128px)] lg:[--llamas:min(10svh,110px)]"
+      className="relative overflow-hidden bg-background pb-20 pt-12 sm:pb-28 sm:pt-16"
     >
-      {/* LAS LLAMAS, colgando del techo y apuntando hacia abajo.
-
-          SON LAS DEL HERO (`zocalo-llamas.webp`), como pidió el cliente — no
-          las rojas del footer. Mismo mecanismo que las otras dos bandas:
-          mosaico (`repeat-x` + `background-size: auto 100%`) para que el
-          dibujo conserve su forma en cualquier ancho, y altura fija porque
-          con ratio 6:1 a ancho completo quedaría en un hilito.
-
-          SE VE EL CONTORNO ROJO, NO EL RELLENO: el dibujo es 81% negro y 19%
-          filo rojo (medido), y acá el fondo es #000 puro, así que el relleno
-          se funde del todo y lo que dibuja la silueta es el filo. Es el mismo
-          efecto que en el hero, donde el fondo es #1a1a1a y ya casi se fundía
-          —ahí está documentado como deliberado—. Por eso el footer, que tiene
-          este mismo fondo, usa OTRO dibujo (picos macizos rojos): ahí abajo la
-          banda tiene que empalmar con el rojo de Work, y un filo suelto no
-          alcanzaba. Acá arriba y abajo es todo negro, así que no hay nada con
-          qué empalmar y el filo solo funciona.
-
-          NO DEJA COSTURA con la carta: la base del dibujo es 100% opaca
-          (medido, 366 de 366 muestras), o sea negra maciza, y dada vuelta ese
-          borde es el que toca el negro de arriba — se funden.
-
-          `-scale-y-100` y no `rotate-180`: el giro de 180° espejaría también
-          en horizontal y acá solo hay que darlo vuelta de arriba a abajo. El
-          mosaico se arma ANTES de la transformación, así que sigue empalmando
-          consigo mismo igual que en el hero.
-
-          La ALTURA vive en `--llamas`, con los MISMOS valores que el footer:
-          las tres bandas de la web comparten un solo lenguaje de tamaño. El
-          padding de arriba la reutiliza (`calc(var(--llamas) + N)`) para que
-          el contenido arranque siempre por debajo de los picos; si se cambia
-          el alto de la banda, el aire acompaña solo.
-          MÁS AIRE (2026-09-06, pedido del cliente: "más margen entre el
-          título de Nosotros y las llamas, en PC y móvil"): ese N pasó de
-          44→88px en móvil y de 64→128px en escritorio. Los valores viejos
-          estaban calculados cuando la sección arrancaba con el cliché en
-          texto chico; ahora arranca con el título en display gigante y
-          quedaba comiéndose los picos. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-[var(--llamas)] -scale-y-100 select-none bg-[url('/zocalo-llamas.webp')] bg-[length:auto_100%] bg-repeat-x"
-      />
-
       <div className="relative px-4 sm:px-8 lg:px-14">
         {/* EL TÍTULO DE LA SECCIÓN (2026-09-06, pedido del cliente: "un título
             como el de Las Burgas pero que diga Nosotros").

@@ -250,8 +250,127 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
 
 ## Decisiones técnicas tomadas
 
-* **LLAMAS ENTRE LA CARTA Y RESEÑAS (2026-09-04, pedido del cliente)**: una
-  banda dentada colgando del techo de `Resenas`, con los picos hacia abajo, en
+* **SECCIÓN "ACOMPAÑAMIENTOS" (2026-09-07, pedido del cliente)**:
+  `Acompanamientos.tsx`, ancla `#acompanamientos`, entre la carta y Reseñas.
+  Papas Hells, Nuggets y Aros de cebolla, cada uno tirado hacia un costado
+  —derecha, izquierda, derecha— y del costado libre una LÍNEA ROJA que sale
+  del plato a media altura, dobla hacia arriba y termina en el nombre. El
+  contenido vive en `content/acompanamientos.ts` (`home.ts` ya pasa las 300
+  líneas).
+  * **EL DISEÑO ES EL DE MÓVIL y escritorio es el mismo zigzag a escala** —
+    el cliente lo pensó para el celular y pidió "hacé el de PC igual". No hay
+    fila de tres ni grilla. Verificado en 390 y 1440: el codo de la línea cae
+    a 0px de la mitad del plato en los seis casos.
+  * **LA FLECHA ES CURVA Y TERMINA EN PUNTA** (2026-09-07, 2º pedido del
+    cliente: "que sean curvas, como con movimiento, y donde apunta al
+    subtítulo que se ponga la flecha"). Nació como un codo rígido de dos
+    bordes de un div; ahora son DOS PIEZAS en la misma caja absoluta:
+    * **la curva**, un `<svg>` con `preserveAspectRatio="none"` que se estira
+      a la caja. Una Bézier sigue siendo una Bézier bajo una escala afín, así
+      que se adapta a cualquier proporción de plato; lo único que se
+      deformaría es el GROSOR, y eso lo arregla
+      `vector-effect="non-scaling-stroke"` (el trazo se mide en píxeles de
+      pantalla, no en unidades del viewBox).
+    * **la punta**, un `<svg>` aparte CUADRADO y de tamaño fijo — metida
+      dentro del primero saldría torcida al estirarse. Se ancla al mismo
+      punto donde muere la curva pero expresado en PORCENTAJE de la caja
+      (8%/8%), que es la unidad en la que el viewBox de la curva coloca su
+      último punto: así coinciden siempre, mida lo que mida la caja.
+    La caja sigue yendo de `top-0` a `bottom-1/2` de la fila del plato, así
+    que la cola sale siempre de media altura del plato sin medir nada.
+  * El nombre va EN FLUJO encima de la fila, en la columna libre más un 8% de
+    holgura — ese 8% es lo que hace que "AROS DE CEBOLLA" entre en dos líneas
+    en 390px en vez de tres. `--imagen` (58% móvil / 42% escritorio) es el
+    único número: mueve el plato, la columna del nombre y la flecha a la vez.
+  * Nombre con `font-grafiti-italica` (la del hero) y subtítulo con la
+    tipografía de los ingredientes del tocadiscos, como pidió el cliente.
+  * **LOS NOMBRES VAN EN ROJO** (2026-09-07, pedido del cliente): eran
+    blancos. `--primary` sobre este fondo da 3.79:1, que **solo alcanza para
+    texto grande** — y lo es, pero justo: el piso del `clamp` son 24px, que
+    es exactamente el umbral de "texto grande" de WCAG. **Si alguna vez se
+    achica este título, vuelve a blanco.** El subtítulo sigue claro: es texto
+    chico y en rojo no llegaría (misma regla que la bajada de la carta).
+  * **"PAPAS HELLS" LLEVA EL TÍTULO CENTRADO SOBRE SU SUBTÍTULO**
+    (`tituloCentrado` en el contenido, 2026-09-07, pedido del cliente): es el
+    único cuyo nombre parte en dos líneas cortas sobre un subtítulo más
+    ancho, y al ras quedaba desparejo. Se hace SIN mover el subtítulo: el
+    grupo pasa a `inline-block` (se encoge a su contenido) y el h3 va
+    `w-0 min-w-full`, así no aporta nada al ancho intrínseco del grupo —lo
+    fija el subtítulo— pero después lo ocupa entero y se centra encima.
+    **Centrar todo el grupo no servía**: correría también al subtítulo hacia
+    el medio de la columna y la flecha, que apunta al borde, dejaría de
+    señalarlo.
+  * **EL FONDO ES EL DEL HERO EN MOSAICO VERTICAL** (`fondo-movil.webp` en
+    móvil, `fondo-sin-fuego.webp` en escritorio, `bg-repeat-y` a ancho
+    completo). Con `object-cover` como en el hero, una sección de dos o tres
+    pantallas escalaría las palabras al doble; repetidas quedan al mismo
+    tamaño que en el hero. Ninguna empalma consigo misma (la de móvil arranca
+    a mitad de palabra, la de escritorio trae 17% de aire arriba) pero el
+    dibujo está a 4–6 niveles del gris (medido) y la costura no se ve.
+  * **LAS TRES IMÁGENES** son los PNG del cliente (1024², 566–878KB)
+    recortados a su contorno y pasados a WebP CON alpha —se apoyan sobre el
+    fondo de palabras, que no es plano, así que no se pueden aplanar—: 67 a
+    90KB. Originales en `originales/acompanamientos/`.
+  * **VA ENMARCADA POR LAS LLAMAS DEL HERO, ARRIBA Y ABAJO** (2026-09-07,
+    2º pedido del cliente el mismo día). Las de abajo son las del hero tal
+    cual; las de arriba son la MISMA banda con `-scale-y-100` y son **las que
+    estaban en Reseñas** — se movieron, no se duplicaron (ver la entrada del
+    2026-09-04). Con ellas juntas quedaban pegadas formando una franja doble.
+    Verificado: la de arriba en `scale: 1 -1` (`transform` dice `none`, la
+    trampa de Tailwind v4) y la de abajo derecha, 93px en móvil y 90 en
+    escritorio, pegadas a los dos bordes de la sección.
+  * **ARRIBA NO HAY COSTURA, ABAJO SÍ HAY UN ESCALÓN**: la base del dibujo es
+    maciza y negra, así que dada vuelta empalma con el negro de la carta —
+    medido, #000 a los dos lados del borde. **Al pie, en cambio, esa base
+    negra queda contra el `#1a1a1a` de Reseñas** (medido: 0,0,0 contra
+    26,26,26, una línea recta y pareja a todo el ancho). Es el escalón de 26
+    niveles que en el hero pasa desapercibido porque ahí el relleno negro
+    está rodeado de #1a1a1a; acá es un borde horizontal limpio y se nota.
+    Antes no pasaba porque enfrente estaba la base negra de la banda de
+    Reseñas. ⚠ **Pendiente que el cliente decida**: o Reseñas vuelve a fondo
+    negro (era así hasta el commit `023000c` del socio, que la pasó al gris
+    del hero), o se saca la banda de abajo y las llamas quedan solo arriba.
+  * Sin link en el nav: `useSeccionActiva` elige la sección más cercana a la
+    línea de lectura, así que el óvalo la cuenta como "Burgers".
+
+* **HERO MÓVIL REARMADO (2026-09-07, cuatro pedidos del cliente en el día)**:
+  * **EL LOGO DEL NAV, ARRIBA Y CENTRADO** (`lg:hidden`), "BEST BAD" en
+    blanco debajo y "FOOD" en rojo ocupando EXACTAMENTE el ancho de "BEST
+    BAD" (medido ±2px). Un lockup vertical que estuvo unas horas al lado del
+    título se borró a pedido del cliente, también de `originales/`.
+  * **EL NAV SE ESCONDE HASTA PASAR LA MITAD DEL HERO**, solo en móvil: es
+    `fixed` (no ocupa lugar) y un listener de scroll lo compara contra
+    `offsetHeight / 2`. Por eso el hero móvil ya no resta `--nav` y toma los
+    `100svh` enteros. En `lg` sigue sticky y siempre visible.
+  * **TIPOGRAFÍA SPLATINK ITÁLICA** para el h1: `Splatink_PERSONAL_USE_ONLY.otf`
+    del cliente → `splatink-italica.woff2` (token `--font-grafiti-italica`).
+    **ES OTRO CORTE** que la Splatink que ya estaba (`font-grafiti`, 104
+    glifos, sin acentos): esta es inclinada, más pesada y TRAE acentos y
+    eñes. Conviven las dos. "BEST BAD" mide **4.719em** en esta contra
+    3.759em en Ardillah (26% más ancha): el factor de "FOOD" es **1.8667** y
+    el de la fila de CTAs de escritorio **3.2358** — si cambia el copy o la
+    fuente, volver a medir.
+  * **FONDO MÓVIL PROPIO** (`fondo-movil.webp`, arte del cliente a proporción
+    de celular) reemplaza al mosaico de `fondo-palabras.webp`. Va APLANADO
+    contra `--background` y sin alpha: **1.77MB → 19KB**. ⚠
+    `public/fondo-palabras.webp` **quedó sin uso** — pendiente borrarlo o
+    reusarlo.
+  * Reparto vertical: logo→texto `clamp(20px,4.5vh,52px)`, CTAs al 74% del
+    ancho (tope 300) empujados con `mt-auto` hacia la burger. **El techo del
+    título lo pone el logo**: comparten los 350px del contenido.
+  * De paso: el título de la carta y "Nosotros" dejaron de pegarse al borde
+    izquierdo en móvil (`ml-0`, el `-ml-[2%]` vuelve en `sm`), y "Nosotros"
+    va centrado en móvil.
+
+* **LLAMAS ENTRE LA CARTA Y RESEÑAS (2026-09-04, pedido del cliente)** —
+  ⚠ **YA NO ESTÁN EN `Resenas`: el 2026-09-07 se movieron al techo de
+  «Acompañamientos»**, que se metió entre las dos secciones y cerraba con esta
+  misma banda al pie. Todo lo de abajo sigue valiendo, pero leerlo como la
+  historia de la banda, no como dónde vive hoy. Con ella se fue el padding que
+  reservaba su alto, y por eso el título y el texto de Reseñas subieron 133px
+  en móvil y 154 en escritorio (medido: el h2 pasó de 181 a 48 del tope, y de
+  218 a 64 en escritorio). La banda dentada colgaba del techo de `Resenas`,
+  con los picos hacia abajo, en
   el hueco negro que quedaba entre las dos secciones. Es el **tercer** lugar
   donde la web hace este gesto (el hero al pie, el footer al techo).
   * **SON LAS DEL HERO** (`zocalo-llamas.webp`), que es lo que pidió el
@@ -1388,8 +1507,10 @@ salen `fondo-sin-fuego.webp` y `fondo-palabras.webp`. Solo aparece en comentario
 
 ## Estado actual del desarrollo
 
-**Última sesión**: 2026-09-04
-**Próximo paso**: el sticker de Balak, que no vino (su nombre va en texto
+**Última sesión**: 2026-09-07
+**Próximo paso**: decidir cómo se cierra «Acompañamientos» contra Reseñas —
+la base negra de la banda al pie queda contra el gris de Reseñas y deja una
+línea (ver la entrada de la sección). Después, el sticker de Balak, que no vino (su nombre va en texto
 mientras tanto). Desktop sigue con la grilla; el cliente pidió no trabajarlo
 todavía. **El nav ya no anticipa ninguna sección que no exista**: los cuatro
 links apuntan a su ancla. Pendiente de decisión: **reponer los videos** — el cliente los quiere
@@ -1415,6 +1536,8 @@ tocadiscos, con la foto como botón para repetirlo (los 12 mp4 siguen en
   Splatink / Sveningsson)
 * Tira de fotos (`TiraFotos.tsx`): las 8 fotos del local pasando solas hacia la
   derecha, a todo el ancho. Reemplazó a «Nuestra historia»
+* Sección «Acompañamientos» (`Acompanamientos.tsx`): papas, nuggets y aros en
+  zigzag con la línea roja al nombre, fondo del hero y sus llamas al pie
 * Sección «Reseñas» (`Resenas.tsx`): 10 reseñas reales de Google en loop
 * Sección «Work» (`Work.tsx`): el aviso de búsqueda con el link al formulario
 * Footer (`Footer.tsx`): contacto, mapa real de Olascoaga 715, logo y crédito

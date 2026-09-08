@@ -56,6 +56,9 @@ export const LINK_TRABAJO =
 export const SECCIONES = {
   hero: 'inicio',
   carta: 'carta',
+  /** Papas, nuggets y aros (2026-09-07): entre la carta y Reseñas. Sin link
+   *  en el nav — el óvalo la cuenta como parte de "Burgers". */
+  acompanamientos: 'acompanamientos',
   nosotros: 'nosotros',
   work: 'work',
   resenas: 'resenas',

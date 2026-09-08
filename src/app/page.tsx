@@ -1,6 +1,7 @@
 import { NavHero } from '@/components/ui/NavHero'
 import { Hero } from '@/components/sections/Hero'
 import { LasBurgasV2 } from '@/components/sections/LasBurgasV2'
+import { Acompanamientos } from '@/components/sections/Acompanamientos'
 import { Resenas } from '@/components/sections/Resenas'
 import { TiraFotos } from '@/components/sections/TiraFotos'
 import { Work } from '@/components/sections/Work'
@@ -22,6 +23,9 @@ export default function HomePage() {
       {/* La carta. El nombre del archivo conserva el "V2" de cuando convivían
           las dos versiones en prueba (2026-09-01, el cliente eligió ésta). */}
       <LasBurgasV2 />
+      {/* Papas, nuggets y aros de cebolla (2026-09-07), con el fondo del hero
+          y sus llamas al pie. */}
+      <Acompanamientos />
       {/* Las resenas de Google, debajo de la carta (2026-09-02). */}
       <Resenas />
       {/* La tira de fotos que pasa sola (2026-09-03). Reemplazó a la sección
