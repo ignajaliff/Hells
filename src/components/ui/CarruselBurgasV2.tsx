@@ -465,8 +465,11 @@ export function CarruselBurgasV2({
               sizes="(min-width: 640px) 45vw, 85vw"
               priority
               /* `opacity-70` (2026-09-10, pedido del cliente: "opacalo un poco"):
-                 el blanco puro del dibujo competía con la burga. */
-              className="object-contain opacity-70"
+                 el blanco puro del dibujo competía con la burga.
+                 EN MÓVIL BAJA A 0.3 (mismo día, 2º y 3er pedido: "hacerlo más opaco
+                 en formato móvil"): ahí el aro mide el 80% del alto y ocupa
+                 casi toda la pantalla, así que pesa más que en escritorio. */
+              className="object-contain opacity-30 sm:opacity-70"
             />
           </div>
         </div>
