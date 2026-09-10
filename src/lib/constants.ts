@@ -24,6 +24,14 @@ export const NEGOCIO = {
  * (2026-08-21): antes abría WhatsApp, pero el pedido se toma acá.
  * Externo: los links a este dominio van con `rel="noopener noreferrer"`.
  */
+/**
+ * Google Tag Manager (2026-09-09, dato del cliente). Es el contenedor desde el
+ * que se administran los píxeles de medición —Analytics, Meta, conversiones—
+ * SIN tocar el código: se agregan desde el panel de GTM.
+ * Se carga en `app/layout.tsx`, así que vale para toda la web.
+ */
+export const GTM_ID = 'GTM-WTL23CKL'
+
 export const LINK_PEDIDOS = 'https://menu.fu.do/hellsburger'
 
 /**

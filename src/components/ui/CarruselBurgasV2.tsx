@@ -14,6 +14,15 @@ import { useReducedMotion } from 'motion/react'
  * queda a tamaño real, sobre su propia foto. Sin cortes, sin fondo rojo
  * apareciendo, sin que se note ningún cambio de imagen.
  *
+ * ── EL ANILLO REEMPLAZÓ AL DEGRADÉ ROJO (2026-09-10, pedido del cliente) ──
+ * Detrás de la burga ya no va su foto: va `anillo-burgas.webp` —el aro de
+ * texto de la marca— girando despacio y quieto en el centro, y cada
+ * hamburguesa entra ahí adentro. El escenario quedó NEGRO.
+ * **Lo de abajo sigue explicando el mecanismo del giro de las siluetas, que
+ * no cambió**; lo que ya no existe es la capa de fondos. Con ella se fueron
+ * su fundido cruzado, la máscara radial de escritorio y el velo negro de los
+ * bordes: los tres estaban para disimular el rojo.
+ *
  * ── POR QUÉ NO SE NOTA EL CAMBIO ──
  * Cada foto está partida en DOS CAPAS (`escena` en content/home.ts):
  *   * `fondo`: la foto sin la hamburguesa (el hueco relleno con su degradé).
@@ -147,7 +156,6 @@ export function CarruselBurgasV2({
 }) {
   const carril = useRef<HTMLDivElement>(null)
   const siluetas = useRef<(HTMLDivElement | null)[]>([])
-  const fondos = useRef<(HTMLDivElement | null)[]>([])
   const activaRef = useRef(0)
   const [activa, setActiva] = useState(0)
   const sinMovimiento = useReducedMotion()
@@ -172,14 +180,6 @@ export function CarruselBurgasV2({
       items.forEach((b, i) => {
         const d = i - posicion
         const dist = Math.abs(d)
-
-        // El fondo: solo el de la activa y el de la que viene, fundidos.
-        const fondo = fondos.current[i]
-        if (fondo) {
-          const op = clamp(1 - dist, 0, 1)
-          fondo.style.opacity = String(op)
-          fondo.style.visibility = op > 0 ? 'visible' : 'hidden'
-        }
 
         const el = siluetas.current[i]
         if (!el) return
@@ -333,41 +333,112 @@ export function CarruselBurgasV2({
             lleva el `overflow-hidden` del padre.
             El `-translate-y` compensa que al escalar el conjunto baja. */}
         <div className="absolute inset-0 sm:-translate-y-[3%] sm:scale-[1.35]">
-        {/* LOS FONDOS: uno por burga, apilados. Solo se ven el de la activa y
-            el de la que viene, fundiéndose según el scroll. */}
-        {items.map((b, i) => (
-          <div
-            key={b.id}
-            ref={(el) => {
-              fondos.current[i] = el
-            }}
-            aria-hidden
-            className="absolute inset-0"
-            style={{ opacity: i === 0 ? 1 : 0, visibility: i === 0 ? 'visible' : 'hidden' }}
-          >
-            {/* LA SOMBRA/LUZ MÁS CHICA EN ESCRITORIO (2026-09-05, pedido del
-                cliente). El degradé rojo está HORNEADO en la imagen, que es la
-                misma en las dos pantallas, así que no se puede achicar en el
-                archivo sin afectar al celular — y ahí el cliente lo quiere como
-                está.
-                Se recorta con una máscara radial: el centro queda intacto y el
-                halo se desvanece antes de llegar a los bordes, o sea que la luz
-                ocupa menos sin cambiar de color ni de intensidad.
-                Hace falta JUSTO en escritorio porque ahí el contenido va con
-                `scale-[1.35]` —para que la burger llene la caja apaisada— y esa
-                escala agranda el degradé junto con todo (medido: la imagen se
-                dibuja a 1793px sobre una caja de 1328). En móvil la escala es 1
-                y la máscara no se aplica. */}
+        {/* EL ANILLO DE TEXTO, GIRANDO (2026-09-10, pedido del cliente:
+            "saquemos el degrade rojo de atras de las hamburguesas y pongamos
+            esto, que este girando, y que cada burga entre en el centro de este
+            circulo").
+
+            REEMPLAZA A LOS DOCE FONDOS. Hasta ahora acá iban las doce fotos
+            sin hamburguesa —el degradé rojo horneado— apiladas y fundiéndose
+            entre sí según el scroll. Ahora el escenario es NEGRO y lo único que
+            hay detrás de la burga es este anillo. Con eso se fueron tres cosas
+            que existían solo por el rojo: el fundido cruzado de fondos en
+            `pintar`, la máscara radial que achicaba el halo en escritorio, y el
+            velo negro que tapaba el canto duro de la foto contra la sección.
+            ⚠ **Los doce `-fondo-rojo.webp` quedan sin uso** mientras dure esta
+            prueba. NO se borraron: el campo `escena.fondo` sigue en el
+            contenido, así que volver atrás es reponer este bloque.
+
+            **NO HACE FALTA MOVERLO CUANDO CAMBIA LA BURGA**, que era el
+            pedido: las doce siluetas descansan prácticamente en el mismo
+            punto —medido sobre las doce `caja`: el centro cae en x 0.495-0.512
+            e y 0.568-0.638—, así que un anillo fijo en ese punto recibe a cada
+            una en su centro. Va antes que las siluetas en el DOM, o sea por
+            DEBAJO de ellas: la hamburguesa se apoya sobre el anillo.
+
+            El tamaño va por ALTURA y no por ancho, y esa es la parte que no es
+            obvia: en móvil la caja es cuadrada pero en escritorio es 5:3, así
+            que un porcentaje de ancho daría dos círculos de tamaños muy
+            distintos. La burga, en cambio, mide casi lo mismo en las dos
+            (`object-contain` la ajusta por el alto de su caja), así que
+            atarlo al alto es lo que mantiene la proporción anillo/burga.
+            El `sm:` compensa el `scale-[1.35]` del bloque: 62 × 1.35 ≈ 84, o
+            sea el mismo círculo que en el celular.
+
+            **DICE SOLO "HELL'S BURGER"** (2026-09-10, último pedido del
+            cliente: "sacá el texto «doce maneras de pecar»"). El dibujo venía
+            con las dos frases dando la vuelta entera; se borró el sector de
+            30° a 268° del original —los dos guiones separadores incluidos— y
+            **no se volvió a recortar la imagen**, a propósito: el archivo sigue
+            siendo el mismo cuadrado con el mismo centro, así que el arco que
+            queda conserva su posición y acá no hubo que tocar ni una medida.
+            Por eso ahora el texto ocupa el cuarto de arriba a la derecha y el
+            resto del aro va vacío.
+            **El archivo se llama `-2`**: pisó al anterior con OTRO contenido y
+            el navegador del cliente lo tenía cacheado — es la misma trampa que
+            con el recorte de Satanás. URL nueva, caché imposible.
+
+            La animación va como CLASE y no como `style` inline: con
+            `prefers-reduced-motion` la regla global de `globals.css` frena
+            toda animación con `!important`, y a un estilo inline no le
+            ganaría. Un anillo dando vueltas en loop es justo lo que molesta a
+            quien pidió no ver movimiento. */}
+        {/* LA LUZ ROJA DETRÁS DE LA BURGA SELECCIONADA (2026-09-10, 3er
+            pedido del cliente). Es lo único que quedaba del ambiente cálido que
+            aportaban las fotos con su degradé horneado: al sacarlas, la burga
+            quedó recortada contra negro plano.
+
+            **NO HACE FALTA QUE SIGA A NADIE**: la seleccionada es siempre la
+            que descansa en el centro del escenario, así que una luz fija en
+            ese punto ilumina siempre a la que está al frente y deja a las
+            vecinas —que están a los costados y ya van oscurecidas por
+            `brightness`— fuera del halo. Un elemento quieto, sin JS.
+
+            Va PRIMERO en el DOM y sin `z-index`, o sea por debajo del aro y de
+            las doce siluetas: es luz de fondo, no una capa de color encima.
+            Es una ELIPSE y no un círculo porque la hamburguesa es más ancha
+            que alta (medido sobre las doce `caja`: ~0.51 × 0.42 del
+            escenario), y va centrada en el 60% del alto, que es donde caen los
+            centros de las doce.
+            El color sale del token `--primary` y **el degradé termina en ese
+            mismo rojo con alfa 0, nunca en `transparent`**: en CSS
+            `transparent` es NEGRO transparente y al mezclarse ensucia el rojo
+            con gris — la regla está documentada en la hoja de ruta desde el
+            banding de `brasa-glow`. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 select-none bg-[radial-gradient(ellipse_46%_34%_at_50%_60%,hsl(var(--primary)/0.42)_0%,hsl(var(--primary)/0.20)_45%,hsl(var(--primary)/0.06)_72%,hsl(var(--primary)/0)_100%)]"
+        />
+
+        {/* POR DELANTE DE LAS VECINAS (2026-09-10, 2º pedido del cliente:
+            "que esté por delante de las hamburguesas que están opacadas, o sea
+            las que no se seleccionan").
+            **El tamaño VOLVIÓ al original** (3er pedido del mismo día): se
+            probó más chico —66%/52%— y el cliente lo quiso como estaba.
+            **Queda EN SANDWICH**: `z-[95]` cae justo entre el 99 de la burga
+            activa y el 89 de la de un paso —los que reparte `pintar` con
+            `99 - dist * 10`—, así que el aro pasa por ENCIMA de las vecinas
+            oscurecidas y por DEBAJO de la que está al frente. Es lo que hace
+            que la activa se lea adentro del círculo y las otras detrás, en vez
+            de todas en el mismo plano.
+            ⚠ **Ese 95 está atado a la fórmula de `pintar`**: si cambian los
+            z-index de las siluetas, este número tiene que seguir cayendo entre
+            el de la activa y el de la vecina. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-1/2 top-[60%] z-[95] aspect-square h-[80%] -translate-x-1/2 -translate-y-1/2 select-none sm:h-[62%]"
+        >
+          <div className="relative h-full w-full [animation:girar_34s_linear_infinite]">
             <Image
-              src={b.escena.fondo}
+              src="/anillo-burgas-2.webp"
               alt=""
               fill
-              sizes="100vw"
-              priority={i < 2}
-              className="object-cover sm:[mask-image:radial-gradient(58%_62%_at_50%_52%,#000_38%,transparent_100%)]"
+              sizes="(min-width: 640px) 45vw, 85vw"
+              priority
+              className="object-contain"
             />
           </div>
-        ))}
+        </div>
 
         {/* LAS SILUETAS: cada hamburguesa sola, posicionada por su `caja`.
             En reposo la activa cae exactamente donde está en su foto; el
@@ -401,37 +472,6 @@ export function CarruselBurgasV2({
         ))}
         </div>
 
-        {/* EL FUNDIDO CON EL FONDO (2026-09-04, pedido del cliente: "se nota
-            mucho el cambio de rojo a negro, que quede armonizado").
-            La foto tiene un degradé rojo horneado que arranca de golpe contra
-            el negro de la sección, y ese canto duro se veía como una línea de
-            corte en los cuatro bordes.
-            Esto lo disimula con negro que se desvanece hacia adentro: arriba
-            —donde el rojo es más fuerte y el salto más visible— entra bastante
-            más que abajo, y a los costados una franja corta alcanza.
-            Va DEBAJO del carril (que vive en 200) y con `pointer-events-none`:
-            si no, se comería el gesto. Es puro CSS sobre la caja, así que no
-            depende de la burga activa ni hay que regenerar ninguna imagen.
-
-            TAMBIÉN EN MÓVIL (2026-09-04, pedido del cliente): al principio iba
-            solo en escritorio, pero en el celular el corte contra el título de
-            la sección se ve igual de duro.
-            La diferencia es que en móvil la foto ocupa TODO el ancho de la
-            pantalla, así que ahí no hay canto lateral que disimular: va solo
-            el fundido de arriba y abajo. Meter también el horizontal
-            oscurecería los bordes de la foto sin motivo.
-
-            EL NEGRO BAJA MÁS EN MÓVIL —hasta el 52% contra el 28% de
-            escritorio— (2026-09-04, pedido del cliente: "la franja roja está
-            muy arriba, parece de fondo"). La caja del celular es CUADRADA y
-            la de escritorio apaisada, así que el mismo porcentaje no tapa lo
-            mismo: al 28% el rojo asomaba a 109px del borde, muy por encima de
-            la hamburguesa, y se leía como un fondo aparte en vez de como el
-            ambiente de la foto. Al 52% el color arranca recién cerca del pan. */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 z-[100] bg-[linear-gradient(to_bottom,#000_0%,#000_18%,transparent_52%,transparent_88%,#000_100%)] sm:bg-[linear-gradient(to_bottom,#000_0%,transparent_28%,transparent_88%,#000_100%),linear-gradient(to_right,#000_0%,transparent_9%,transparent_91%,#000_100%)]"
-        />
 
         {/* EL CARRIL INVISIBLE que capta el dedo, por encima de todo. Va
             FUERA del bloque que se sube en escritorio: tiene que cubrir la
@@ -508,7 +548,13 @@ export function CarruselBurgasV2({
           los sellos tienen proporciones muy distintas entre sí (de 1.7:1 a
           3.8:1) y con el ancho fijo Lucifer saldría el doble de alto que
           Asmodeo. Con el alto fijo todos pesan igual a la vista.
-          `-mt-[7.5vw]` es la mitad de ese alto: lo que se monta sobre la foto.
+          EL SELLO YA NO SE MONTA SOBRE LA FOTO (2026-09-10, 2º pedido del
+          cliente: "que el sticker y los ingredientes estén más abajo, así no
+          pasan por encima del círculo"). Llevaba `-mt-[7.5cqw]` —la mitad de su
+          alto— justamente para montarse mitad sobre la imagen; con el aro de
+          texto detrás, esa mitad le caía encima al círculo y se pisaban dos
+          cosas que quieren leerse solas. Ahora es un margen POSITIVO y la
+          ficha entera arranca por debajo del escenario.
           `pointer-events-none` en TODA la ficha, no solo en el sticker: el
           margen negativo se propaga (margin collapse) y la caja de la ficha
           entera sube sobre el escenario — medido, el toque en la franja de
@@ -545,7 +591,7 @@ export function CarruselBurgasV2({
                  hasta entrar; los cuadrados no lo tocan y conservan su alto.
                  En MÓVIL no se toca: ahí la caja es más angosta en proporción
                  y el problema no aparece. */
-              <div className="pointer-events-none relative mx-auto h-[15cqw] w-[64cqw] -mt-[7.5cqw] sm:-mt-[1cqw] sm:h-[8cqw] sm:w-auto sm:max-w-[24cqw]">
+              <div className="pointer-events-none relative mx-auto h-[15cqw] w-[64cqw] mt-[3cqw] sm:mt-[2cqw] sm:h-[8cqw] sm:w-auto sm:max-w-[24cqw]">
                 <Image
                   src={b.escena.sticker}
                   alt={b.nombre}

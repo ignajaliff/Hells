@@ -95,10 +95,11 @@ Los dos colores fueron **muestreados del archivo del logo**, no estimados. Contr
 ## Comandos
 
 ```
-npm run dev          → servidor de desarrollo
-npm run build        → build de producción (debe pasar sin errores antes de entregar)
-npm run typecheck    → verificación de tipos (correr antes de entregar cualquier cambio)
-npm run lint         → linter
+npm run dev            → servidor de desarrollo
+npm run build          → build de producción standalone (Docker / CapRover)
+npm run build:hostinger → export ESTÁTICO a out/, para el hosting compartido
+npm run typecheck      → verificación de tipos (correr antes de entregar cualquier cambio)
+npm run lint           → linter
 ```
 
 ---
@@ -165,6 +166,11 @@ originales/   Los archivos del cliente de los que se derivaron esos assets
               Excluidos del build de Docker.
 ai-pmp/       Las reglas que el proyecto respeta.
 src/          El código.
+scripts/      Herramientas de deploy. Hoy solo `hostinger.mjs`, que prepara y
+              audita `out/`.
+out/          La web COMPILADA y estática (`npm run build:hostinger`). Es lo
+              que se sube a `public_html` de Hostinger. Generado: va en
+              `.gitignore` y se rehace de cero en cada build.
 ```
 
 **LIMPIEZA DEL 2026-08-27**: la raíz tenía 11MB de originales sueltos y `public/`
@@ -258,6 +264,134 @@ derivado y quedó sin uso cuando el hero móvil pasó a su arte propio.
 ---
 
 ## Decisiones técnicas tomadas
+
+* **EL ANILLO DE TEXTO REEMPLAZÓ AL DEGRADÉ ROJO DEL TOCADISCOS (2026-09-10,
+  cuatro pedidos del cliente en el día)**: detrás de la burga activa ya no va
+  su foto sino `anillo-burgas-2.webp` —el aro de texto de la marca— girando
+  despacio, con una luz roja detrás. El escenario quedó NEGRO.
+  * **CON LOS FONDOS SE FUERON TRES COSAS que existían SOLO por el rojo**: el
+    fundido cruzado de fondos en `pintar`, la máscara radial que achicaba el
+    halo en escritorio, y el velo negro de los bordes (el que tapaba el canto
+    duro de la foto contra la sección). **Ese velo había que sacarlo sí o sí**:
+    en móvil era negro macizo hasta el 18% y difuminado hasta el 52%, o sea que
+    habría borrado la mitad de arriba del aro.
+  * ⚠ **LOS DOCE `-fondo-rojo.webp` QUEDARON SIN USO** (~48KB en total). NO se
+    borraron y `escena.fondo` sigue en el contenido: así volver atrás es
+    reponer un bloque de JSX. Si el anillo queda, se borran junto con el campo.
+  * **EL ANÍLLO NO SE MUEVE NI SIGUE A NADIE.** El cliente pidió que "cada
+    burga entre en el centro del círculo" y eso sale gratis: las doce siluetas
+    descansan prácticamente en el mismo punto —medido sobre las doce `caja`, el
+    centro cae en x 0.495-0.512 e y 0.568-0.638—, así que un aro fijo en (50%,
+    60%) recibe a todas en su centro. Lo mismo vale para la luz roja.
+  * **VA EN SANDWICH, `z-[95]`** (2º pedido: "que esté por delante de las que
+    están opacadas"): justo entre el 99 de la activa y el 89 de la vecina, que
+    los reparte `pintar` con `99 - dist * 10`. Así la activa se lee ADENTRO del
+    círculo y las vecinas detrás. **Ese 95 está atado a esa fórmula**: si
+    cambian los z-index de las siluetas, hay que revisarlo.
+  * **EL TAMAÑO SE MIDE POR ALTURA** (`h-[80%] sm:h-[62%]`), no por ancho: la
+    caja es cuadrada en móvil y 5:3 en escritorio, así que un porcentaje de
+    ancho daría dos círculos muy distintos. La burga, en cambio, mide casi lo
+    mismo en las dos (su `object-contain` la ajusta por el alto), y el `sm:`
+    compensa el `scale-[1.35]` del bloque: 62 × 1.35 ≈ 84. Se probó más chico
+    (66/52) y el cliente lo quiso de vuelta como estaba.
+  * **LA FICHA BAJÓ Y YA NO SE MONTA SOBRE LA FOTO**: el sticker llevaba
+    `-mt-[7.5cqw]` —la mitad de su alto— para quedar mitad sobre la imagen; con
+    el aro detrás se pisaban. Ahora es margen POSITIVO (`mt-[3cqw]
+    sm:mt-[2cqw]`) y toda la ficha arranca por debajo del escenario.
+  * **LA LUZ ROJA** es una elipse `radial-gradient` con `--primary`, quieta en
+    el mismo (50%, 60%), por DEBAJO del aro y de las siluetas. Es lo único que
+    quedó del ambiente cálido que daban las fotos. **Termina en ese rojo con
+    alfa 0 y nunca en `transparent`** — la regla del banding de `brasa-glow`.
+  * **EL DIBUJO DICE SOLO "HELL'S BURGER"** (último pedido): venía con "HELL'S
+    BURGER - DOCE MANERAS DE PECAR -" dando la vuelta entera. Se borró el
+    sector de **30° a 268°** del original (los dos guiones incluidos; el
+    segundo guion estaba en 33-39° y sobrevivió al primer corte en 42°) y
+    **NO se volvió a recortar la imagen a propósito**: el archivo sigue siendo
+    el mismo cuadrado con el mismo centro, así que el arco conserva su
+    posición y no hubo que tocar ninguna medida del componente. Hoy el texto
+    ocupa el cuarto de arriba a la derecha y el resto del aro va vacío; si
+    alguna vez se quiere el círculo cerrado, la forma barata es repetir el arco
+    girado 180°.
+  * **EL `-2` DEL NOMBRE ES POR CACHÉ**: la primera versión del WebP ya se había
+    servido con las dos frases y el navegador del cliente la tenía guardada.
+    Misma trampa que con el recorte de Satanás: **si se regenera un asset con
+    otro contenido, cambiarle el nombre.**
+  * El PNG del cliente (6917x11135, con el dibujo en un cuadrado de 4231) quedó
+    en `originales/anillo-burgas.png`; el WebP servido son 1100px y **22KB**.
+  * La animación vive en `@keyframes girar` (globals.css) y se aplica como
+    CLASE, no como `style` inline: con `prefers-reduced-motion` la regla global
+    frena toda animación con `!important` y a un inline no le ganaría.
+
+* **LA WEB TAMBIÉN SE EXPORTA ESTÁTICA, PARA HOSTINGER (2026-09-09, pedido del
+  cliente: "tengo que cargar el proyecto en Hostinger, que no quede nada de
+  ai-pmp ni de KNOW - HOW WEB ni CLAUDE.md")**. El plan es el hosting
+  COMPARTIDO (hPanel + `public_html`), que sirve archivos y **no corre Node**,
+  así que el standalone de Docker no aplica ahí.
+  * **SE PUEDE PORQUE LA WEB NO TIENE UNA SOLA API DE SERVIDOR** — auditado:
+    `src/app` son páginas más `robots.ts` y `sitemap.ts`, sin route handlers,
+    sin server actions y sin `cookies()`/`headers()`. Si algún día se conecta
+    Supabase con lectura en servidor o se agrega el formulario de contacto,
+    **este camino deja de servir** y hay que volver a un host con Node.
+  * **CONVIVEN LAS DOS SALIDAS** (`next.config.ts`): `npm run build` sigue
+    dando el standalone de CapRover y `npm run build:hostinger` da el export.
+    Se distinguen por `npm_lifecycle_event` —el nombre del script que npm está
+    corriendo— y **no por una variable de entorno**: `VAR=1 next build` no
+    funciona en PowerShell ni en cmd, y hacerlo andar pediría `cross-env`, o
+    sea una dependencia nueva.
+  * **`images.unoptimized` es OBLIGATORIO en el export**, si no el build falla.
+    Se resigna el AVIF (~15% más de ahorro); no duele porque las imágenes de
+    `public/` ya están convertidas a WebP y recortadas a medida.
+  * **`robots.ts` y `sitemap.ts` necesitaron `export const dynamic =
+    'force-static'`**: sin eso Next no puede descartar que dependan del request
+    y **corta el build del export**. En el deploy de Docker no cambia nada.
+  * **EL REQUISITO DE "QUE NO VIAJE NADA INTERNO" LO RESUELVE EL FORMATO**: a
+    `public_html` se sube `out/`, que es HTML, CSS, JS e imágenes compiladas.
+    Ni `ai-pmp`, ni `KNOW - HOW WEB`, ni `CLAUDE.md`, ni los comentarios del
+    código —el build los borra—. Igual **`scripts/hostinger.mjs` lo AUDITA y
+    corta con error** si aparece cualquiera de esos nombres o la palabra
+    "Claude" en un nombre de archivo o dentro de un archivo de texto.
+    ⚠ **Esto vale para la subida por FTP/Administrador de archivos.** Si
+    algún día se conecta el repo de GitHub a un hosting, esas carpetas SÍ
+    viajan: están commiteadas.
+  * `scripts/hostinger.mjs` escribe además **dos `.htaccess`** (Apache/LiteSpeed):
+    en la raíz, la 404 propia y el HTML SIN caché —es el que apunta a los
+    nombres con hash, y cacheado deja al visitante en la versión vieja—, y
+    dentro de `_next/`, caché de un año inmutable, que ahí es gratis porque
+    todos los nombres llevan hash. Las imágenes de `public/` NO llevan hash,
+    así que van a una semana y no a un año: si se reemplaza un archivo con el
+    mismo nombre, se ve en días. **Van generados y no en `public/`**: Next no
+    copia los archivos que empiezan con punto.
+  * ⚠ **`SITE_URL` sigue siendo `https://www.hellsburger.com.ar`** y de ahí
+    salen el `sitemap.xml`, el `robots.txt` y las URLs de Open Graph. Si el
+    dominio final es otro, cambiarlo en `constants.ts` y **volver a compilar**:
+    quedan horneados en los archivos.
+
+* **LA COSTURA DE LAS LLAMAS DE ARRIBA Y "SIDES" AL CENTRO (2026-09-08, 3ª
+  tanda de pedidos del cliente)**:
+  * **LA BANDA DE ARRIBA SUBE 4px Y EL `overflow-hidden` SE LOS COME.** El
+    cliente veía "una línea sutil" entre el negro de la carta y las llamas,
+    **solo en móvil**. La causa, medida en el archivo: la fila del borde de
+    `zocalo-llamas.webp` tiene **alpha 227, no 255** —el dibujo termina con su
+    propio antialias—, así que esa fila se mezclaba con lo que hay detrás,
+    que es el fondo de esta sección (26,26,26), mientras que arriba la carta
+    es #000: una raya de ~3 niveles a todo el ancho. **Por eso solo se ve en
+    el celular**: en un OLED el negro es el píxel apagado y esos 3 niveles se
+    notan; en un LCD, no.
+    * La banda crece esos mismos 4px (`top-[-4px]` + `h-[calc(var(--llamas) +
+      4px)]`), así que **lo que se ve sigue midiendo `--llamas` exactos** —
+      verificado: 92.83px visibles en móvil y 90 en escritorio, los mismos de
+      antes.
+    * Debajo va un **filo negro de 4px** que tapa la base maciza del dibujo
+      (que mide 10px en la banda más corta): está para que cualquier píxel que
+      no sea 100% opaco se mezcle con NEGRO —el color de la carta— y no con el
+      gris del fondo. **Si se agranda ese filo, se ve**: no puede pasar los
+      10px o asoma como un rectángulo sobre el fondo.
+  * **"SIDES" VA CENTRADO** en las dos pantallas (verificado: 129.5/129.5 en
+    390px y 584/584 en 1440). Es el único título de sección así —"Las Burgas"
+    y "Nosotros" van pegados a la izquierda— y funciona porque lo que sigue es
+    un zigzag que alterna de lado. **Se fue el `-ml-[2%]`**: corre la CAJA del
+    h2, así que centrar el texto adentro de una caja descentrada lo dejaba 1%
+    corrido — la misma cuenta que en el título de Reseñas.
 
 * **AJUSTES FINOS (2026-09-08, 2ª tanda de pedidos del cliente)**:
   * **RESEÑAS PASÓ AL GRIS DE LAS LLAMAS** (`--carbon-hondo`, token nuevo).
@@ -1641,7 +1775,7 @@ derivado y quedó sin uso cuando el hero móvil pasó a su arte propio.
 
 ## Estado actual del desarrollo
 
-**Última sesión**: 2026-09-08
+**Última sesión**: 2026-09-10
 **Próximo paso**: sin nada urgente abierto. Se cerraron los dos pendientes que
 venían de arrastre: la costura de «Sides» contra Reseñas (la resolvió la banda
 naranja/gris nueva) y el sticker de Balak, que llegó — **ya están los doce**. **El nav ya no anticipa ninguna sección que no exista**: los cuatro

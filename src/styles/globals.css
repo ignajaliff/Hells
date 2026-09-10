@@ -262,6 +262,20 @@ body {
   }
 }
 
+/* El aro de texto que gira detrás de la burga activa del tocadiscos
+   (2026-09-10). Una vuelta entera y `linear`: con cualquier easing se notaría
+   dónde empieza y termina el ciclo, y tiene que leerse como que gira siempre.
+   Va sobre `transform` y no sobre la propiedad `rotate` porque el div que
+   anima no tiene ninguna otra transformación propia — la de centrarlo vive en
+   su padre, justamente para que no se pisen.
+   No necesita regla de `prefers-reduced-motion`: la de más arriba ya frena
+   toda animación del documento con `!important`, y esta va como clase. */
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Con `prefers-reduced-motion` la pista se queda quieta: un loop continuo es
    justo lo que molesta a quien pidió no ver movimiento.
    VA CON `!important` A PROPÓSITO: los carruseles que calculan su duración

@@ -4,7 +4,8 @@
  *
  * Regla: el default es contenido REAL y válido — el último valor conocido y
  * estable. Si la base no responde, la web se ve exactamente igual de bien.
- * Cada clave de acá tiene su fila en la tabla "Contenido dinámico" de CLAUDE.md.
+ * Cada clave de acá tiene su fila en la tabla "Contenido dinámico" de la hoja
+ * de ruta del proyecto.
  */
 
 import { NEGOCIO } from './constants'
