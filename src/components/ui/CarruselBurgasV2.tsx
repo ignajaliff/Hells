@@ -130,6 +130,62 @@ const ESCALA_ESCRITORIO = 1.35
 const RADIO_ESCRITORIO = RADIO_MOVIL / ESCALA_ESCRITORIO
 /** Cuánto sube la silueta al alejarse un paso, en fracción del alto. */
 const SUBIDA = 0.07
+/**
+ * EL CENTRO COMÚN AL QUE SE ALINEAN LAS DOCE BURGAS (2026-09-10, pedido del
+ * cliente: "la hamburguesa se ve chueca y no está en el medio del círculo").
+ *
+ * **Cada burga se posicionaba por el centro de SU PROPIA `caja`, y esos doce
+ * centros no coinciden entre sí**: `cx` va de 0.4953 (leviatán) a 0.5124
+ * (lucifer) y `cy` de 0.5675 (belfegor) a 0.6384 (baal). El aro, en cambio,
+ * está clavado en el promedio (`sm:left-[50.19%]`, que es exactamente este
+ * `cx`). O sea que cada burga se apartaba del aro justo lo que su caja se
+ * aparta del promedio — y por eso el desvío era DISTINTO en cada una.
+ *
+ * Medido en 1440: dx de -11.8 a +18.9px y dy de -20.9 a +30.1px, con promedio
+ * -0.1 y +1.7. **Ese promedio casi nulo con extremos de ±20px es la firma del
+ * problema**: ninguna constante global lo puede arreglar, porque corregir el
+ * promedio no mueve la dispersión. Un intento anterior (`SUBIDA_ESCRITORIO =
+ * 0.0766`) hacía justo eso y por eso "centraba" sin centrar.
+ *
+ * Las cajas encierran la hamburguesa MÁS el aire que le sobra a cada PNG, que
+ * es distinto en cada archivo — son las que dedujo `originales/tocadiscos.py`
+ * al alinear cada silueta contra su foto. **No se editan a mano** (regla ya
+ * anotada), así que la corrección va acá: cada burga se ancla a este centro
+ * común en vez de al suyo. Por construcción el residuo queda en cero para las
+ * doce, en los dos ejes.
+ *
+ * **Vale para móvil y escritorio.** Ahí el mismo defecto existía dividido por
+ * ~4 (dx de -1.8 a +4.8) porque no lleva el `scale-[1.35]` que lo amplifica:
+ * es el MISMO arreglo, y deja el celular mejor centrado, no distinto. Móvil
+ * conserva intactos su aro, su escala y su radio, que es lo que el cliente
+ * pidió no tocar.
+ *
+ * Se aplica en `pintar` y no en el `left`/`top` del JSX porque `pintar` los
+ * reescribe en cada frame: puesto en el JSX se pisaría al primer scroll.
+ *
+ * **EL `y` ES DISTINTO EN CADA PANTALLA, porque el aro tampoco cae en el mismo
+ * lugar**: medido dentro del escenario, el aro está en el 60.00% de su alto en
+ * móvil pero en el 49.70% en escritorio, donde lo suben el `sm:top-[52%]` y el
+ * `sm:-translate-y-[3%]` del bloque. Con un solo valor, escritorio quedaba
+ * 10.66 puntos porcentuales por debajo del aro — o sea 46px en 1280, 57 en
+ * 1440 y 76 en 1920: **crece con la pantalla porque es una fracción y no un
+ * offset fijo**, que es justo la firma de haber comparado contra el aro
+ * equivocado.
+ *
+ * ⚠ **`Y_ESCRITORIO` NO SE DERIVA RESTANDO EL DESVÍO MEDIDO**, y el primer
+ * intento se equivocó justo ahí: al mover `cy` se mueve también la burga
+ * contra la que se comparó, así que restar los 10.66 puntos medidos ANTES del
+ * cambio se pasaba de largo (la dejó en el 45.97% contra el 49.70% del aro:
+ * ahora alta, en vez de baja). El valor bueno sale de igualar la fracción de
+ * la burga a la del aro MIDIENDO LAS DOS DESPUÉS de cada ajuste.
+ *
+ * Los porcentajes salen IDÉNTICOS en 1280, 1440 y 1920: son geometría del
+ * bloque, no del viewport — por eso alcanza una fracción. **Si cambia
+ * `sm:top-[52%]` o el `sm:-translate-y-[3%]`, volver a medirlos.**
+ */
+const CENTRO_COMUN = { x: 0.5019, y: 0.599 }
+/** El mismo centro, corrido a donde el aro cae de `sm` para arriba. */
+const Y_ESCRITORIO = 0.5166
 /** Escala de la vecina inmediata (la activa va en 1). */
 const ESCALA_VECINA = 0.5
 /** Escala mínima, para las que están dos pasos atrás. */
@@ -175,7 +231,8 @@ export function CarruselBurgasV2({
          y no con `matchMedia` en un estado aparte porque `pintar` ya corre en
          cada scroll y resize, así que sigue al viewport sin listeners nuevos.
          640px es el breakpoint `sm` de Tailwind: si allá cambia, acá también. */
-      const radio = window.innerWidth >= 640 ? RADIO_ESCRITORIO : RADIO_MOVIL
+      const esEscritorio = window.innerWidth >= 640
+      const radio = esEscritorio ? RADIO_ESCRITORIO : RADIO_MOVIL
 
       items.forEach((b, i) => {
         const d = i - posicion
@@ -189,9 +246,13 @@ export function CarruselBurgasV2({
         }
         el.style.visibility = 'visible'
 
-        const { x, y, w, h } = b.escena.caja
-        const cx = x + w / 2
-        const cy = y + h / 2
+        const { w, h } = b.escena.caja
+        /* Ver `CENTRO_COMUN`: las doce se anclan al MISMO centro y no al de su
+           propia caja, que es lo que las dejaba corridas del aro cada una para
+           su lado. La caja sigue dando el TAMAÑO (`w`/`h`), que sí es propio de
+           cada silueta; lo único que se descarta es su posición. */
+        const cx = CENTRO_COMUN.x
+        const cy = esEscritorio ? Y_ESCRITORIO : CENTRO_COMUN.y
         const ang = clamp(d, -2, 2) * ANGULO_PASO
         // Escala: 1 en el centro, ESCALA_VECINA a un paso, ESCALA_MINIMA a dos.
         const esc =
@@ -452,10 +513,47 @@ export function CarruselBurgasV2({
             de todas en el mismo plano.
             ⚠ **Ese 95 está atado a la fórmula de `pintar`**: si cambian los
             z-index de las siluetas, este número tiene que seguir cayendo entre
-            el de la activa y el de la vecina. */}
+            el de la activa y el de la vecina.
+
+            ── EL CÍRCULO ENTERO EN ESCRITORIO (2026-09-10, pedido del cliente:
+            "en PC se ve mal, quedan partes recortadas; ponelo como en celu,
+            que móvil está espectacular y no se toca") ──
+            **El arte no tenía nada malo** (medido: 1100x1100, cuadrado exacto,
+            su centro en 49.95%) y **el aro tampoco se recortaba contra el
+            `overflow-hidden`**: se verificó punto por punto sobre su
+            circunferencia y los cuatro extremos caían DENTRO del escenario.
+            Las letras que faltaban —"DOCE" a la izquierda, "LL'S BURGER" a la
+            derecha— **las tapaba la hamburguesa**, que se dibujaba MÁS GRANDE
+            que el círculo.
+
+            El número que lo explica es la proporción aro/burga:
+            en móvil el aro mide **1.54x** la burga (la rodea con aire), y en
+            escritorio medía **0.41x** — o sea que la burga era más del doble
+            del círculo y le comía el texto de los costados. La causa es el
+            `sm:scale-[1.35]` del bloque: agranda la burga hasta 974px en 1440
+            mientras el escenario apaisado (5:3) solo deja 532px de alto.
+
+            * `sm:h-[72%]` — el aro al máximo que permite el alto del
+              escenario. Se llegó por prueba y medición, no de una: con 52% y
+              58% el círculo entraba pero seguía tapado (ratio 0.41-0.46);
+              recién a 72% (ratio 0.60-0.67) el texto se lee entero en 1920,
+              1440 y 1280, verificado en captura del escenario.
+              ⚠ **No se puede igualar el 1.54 de móvil**: haría falta un aro de
+              ~1500px en un escenario de 532 de alto. La proporción de móvil
+              solo es posible con escenario cuadrado.
+            * `sm:top-[52%]` — centra el aro en el alto VISIBLE. Con el
+              `top-[60%]` de móvil, tras el `scale` y su `-translate-y-[3%]`,
+              el centro caía en 59.3% y dejaba solo 81.4% de alto aprovechable;
+              con 52% sube a 97.3% y el círculo entra mucho más grande.
+            * `sm:left-[50.19%]` — el centro X REAL de las doce siluetas
+              (promedio 0.5019, van de 0.4953 a 0.5124), en vez del 50% exacto.
+
+            MÓVIL NO SE TOCA: sigue con `top-[60%]` y `h-[80%]` sin `sm:`. Ahí
+            no hay escala, el escenario es cuadrado y la proporción ya es la
+            buena. */}
         <div
           aria-hidden
-          className="pointer-events-none absolute left-1/2 top-[60%] z-[95] aspect-square h-[80%] -translate-x-1/2 -translate-y-1/2 select-none sm:h-[62%]"
+          className="pointer-events-none absolute left-1/2 top-[60%] z-[95] aspect-square h-[80%] -translate-x-1/2 -translate-y-1/2 select-none sm:left-[50.19%] sm:top-[52%] sm:h-[72%]"
         >
           <div className="relative h-full w-full [animation:girar_34s_linear_infinite]">
             <Image

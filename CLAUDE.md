@@ -282,6 +282,55 @@ derivado y quedó sin uso cuando el hero móvil pasó a su arte propio.
     pegada al rojo de Work. Las esquinas se fueron con el hueco: pegadas
     dejaban muescas. De `sm` para arriba no cambió nada.
 
+* **LAS DOCE BURGAS SE CENTRAN EN EL ARO POR UN CENTRO COMÚN (2026-09-10, dos
+  pedidos del cliente: "en PC quedan partes recortadas" y después "la
+  hamburguesa se ve chueca y no está en el medio del círculo")**:
+  * **EL CÍRCULO ENTERO EN ESCRITORIO**: el arte no tenía nada malo (1100x1100
+    exacto) y el aro TAMPOCO se recortaba contra el `overflow-hidden` —
+    verificado punto por punto sobre su circunferencia, los cuatro extremos
+    caían adentro. **Las letras que faltaban las tapaba la hamburguesa**, que
+    se dibujaba más grande que el círculo. El número que lo explica es la
+    proporción aro/burga: **1.54x en móvil contra 0.41x en escritorio**, por el
+    `sm:scale-[1.35]` del bloque (agranda la burga a 974px en 1440 mientras el
+    escenario 5:3 solo deja 532 de alto). Se subió el aro a `sm:h-[72%]` (ratio
+    0.60-0.67). ⚠ **El 1.54 de móvil es INALCANZABLE en escritorio**: pediría
+    un aro de ~1500px en un escenario de 532 — esa proporción solo existe con
+    escenario cuadrado.
+  * **EL CENTRADO NO ERA UN NÚMERO, ERA DISTINTO EN CADA BURGA.** Medido en las
+    doce (antes se había mirado solo la primera): dx de **-11.8 a +18.9px** y dy
+    de **-20.9 a +30.1px**, con promedio -0.1 y +1.7. **Ese promedio casi nulo
+    con extremos de ±20px es la firma del problema** — corregir el promedio no
+    mueve la dispersión, y un intento previo (`SUBIDA_ESCRITORIO = 0.0766`)
+    hacía justo eso: "centraba" sin centrar.
+    * **Causa**: cada burga se posicionaba por el centro de SU `caja`, y los
+      doce centros no coinciden (`cx` de 0.4953 a 0.5124, `cy` de 0.5675 a
+      0.6384) porque las cajas encierran la burga MÁS el aire que le sobra a
+      cada PNG. El aro está clavado en el promedio (`sm:left-[50.19%]`). Cada
+      una se apartaba justo lo que su caja se aparta del promedio — verificado
+      por cálculo antes de tocar nada: **doce de doce coinciden** con lo medido
+      en el navegador.
+    * **Arreglo**: las doce se anclan a un `CENTRO_COMUN`; la `caja` sigue
+      dando el TAMAÑO, que sí es propio de cada silueta, y se descarta solo su
+      posición. **Las `caja` no se editan** (regla ya anotada: las deduce
+      `originales/tocadiscos.py`).
+    * **El `y` es DISTINTO en cada pantalla** porque el aro tampoco cae en el
+      mismo lugar: está en el 60.00% del alto del escenario en móvil y en el
+      **49.70%** en escritorio, donde lo suben `sm:top-[52%]` y el
+      `sm:-translate-y-[3%]`. Los porcentajes salen idénticos en 1280/1440/1920
+      —son geometría del bloque, no del viewport—, por eso alcanza una fracción.
+    * ⚠ **`Y_ESCRITORIO` NO SE DERIVA RESTANDO EL DESVÍO MEDIDO**, y el primer
+      intento se equivocó ahí: al mover `cy` se mueve también la burga contra
+      la que se comparó, así que restar el desvío tomado ANTES del cambio se
+      pasa de largo. **Se mide la fracción de los dos DESPUÉS de cada ajuste**;
+      así convergió 76 → 26.5 → 9.3 → 3.3px.
+  * **Resultado en las doce**: horizontal **0.0px** en 1280/1440/1920 y vertical
+    2.0-3.3px; móvil 0.7/0.4. **Móvil MEJORÓ, no cambió de aspecto**: tenía el
+    mismo defecto dividido por ~4 (no lleva el `scale-[1.35]` que lo amplifica),
+    y por eso ahí se veía bien y en PC saltaba. Su aro, su escala y su radio
+    quedaron intactos, que es lo que el cliente pidió no tocar.
+  * **La corrección va en `pintar` y no en el `left`/`top` del JSX**: `pintar`
+    los reescribe en cada frame, así que en el JSX se pisaría al primer scroll.
+
 * **EL ANILLO DE TEXTO REEMPLAZÓ AL DEGRADÉ ROJO DEL TOCADISCOS (2026-09-10,
   cuatro pedidos del cliente en el día)**: detrás de la burga activa ya no va
   su foto sino `anillo-burgas-2.webp` —el aro de texto de la marca— girando
@@ -1810,9 +1859,13 @@ derivado y quedó sin uso cuando el hero móvil pasó a su arte propio.
 ## Estado actual del desarrollo
 
 **Última sesión**: 2026-09-10
-**Próximo paso**: sin nada urgente abierto. Se cerraron los dos pendientes que
-venían de arrastre: la costura de «Sides» contra Reseñas (la resolvió la banda
-naranja/gris nueva) y el sticker de Balak, que llegó — **ya están los doce**. **El nav ya no anticipa ninguna sección que no exista**: los cuatro
+**Próximo paso**: sin nada urgente abierto. Lo último que se cerró fue el
+**centrado de las doce burgas dentro del aro** (ver la entrada de esa fecha):
+el desvío no era un número sino uno distinto por burga, y quedó en **0.0px
+horizontal y 2-3px vertical** en escritorio, con móvil intacto. Antes se habían
+cerrado los dos pendientes de arrastre: la costura de «Sides» contra Reseñas (la
+resolvió la banda naranja/gris nueva) y el sticker de Balak, que llegó — **ya
+están los doce**. **El nav ya no anticipa ninguna sección que no exista**: los cuatro
 links apuntan a su ancla. Pendiente de decisión: **reponer los videos** — el cliente los quiere
 usar y la idea sobre la mesa es que la burga se arme sola al llegar al centro del
 tocadiscos, con la foto como botón para repetirlo. **Los mp4 ya no están en
