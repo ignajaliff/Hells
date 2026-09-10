@@ -48,7 +48,12 @@ export function LasBurgasV2() {
       id={SECCIONES.carta}
       className="relative scroll-mt-[var(--nav)] overflow-hidden bg-black px-5 pb-20 pt-12 sm:px-8 sm:pb-28 sm:pt-16 lg:px-14"
     >
-      {/* Encabezado. El título se sale un poco por la izquierda (`-ml-[2%]`)
+      {/* CENTRADO EN MÓVIL (2026-09-10, pedido del cliente), a la izquierda de
+          `sm` para arriba — el mismo reparto que el título de Reseñas. El
+          `-ml-[2%]` ya solo entraba en `sm`, así que centrar en móvil no
+          corre la caja: queda centrado de verdad.
+
+          Encabezado. El título se sale un poco por la izquierda (`-ml-[2%]`)
           para que la sección no se lea como una caja centrada y prolija.
 
           EN MÓVIL ESE `-ml-[2%]` SE ANULA (2026-09-07, pedido del cliente:
@@ -79,7 +84,7 @@ export function LasBurgasV2() {
           cortado por la mitad. El `scroll-mt` corre el punto de aterrizaje
           justo lo que mide el nav, sin devolver el aire que se sacó. */}
       <header className="relative z-[1] mb-6 sm:mb-8">
-        <h2 className="ml-0 font-display text-[clamp(56px,16vw,190px)] sm:-ml-[2%] uppercase leading-[0.85] tracking-[-0.02em] text-primary sm:text-[12vw] lg:text-[9vw]">
+        <h2 className="ml-0 text-center font-display text-[clamp(56px,16vw,190px)] sm:-ml-[2%] sm:text-left uppercase leading-[0.85] tracking-[-0.02em] text-primary sm:text-[12vw] lg:text-[9vw]">
           {titulo}
         </h2>
       </header>

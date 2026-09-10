@@ -298,6 +298,19 @@ derivado y quedó sin uso cuando el hero móvil pasó a su arte propio.
     `-mt-[7.5cqw]` —la mitad de su alto— para quedar mitad sobre la imagen; con
     el aro detrás se pisaban. Ahora es margen POSITIVO (`mt-[3cqw]
     sm:mt-[2cqw]`) y toda la ficha arranca por debajo del escenario.
+    **Y EN MÓVIL BAJA 32px MÁS, SIN AGRANDAR LA SECCIÓN**: el cliente lo
+    pidió dos veces el mismo día (sticker + ingredientes, y después también
+    la píldora de las papas). Es un `max-sm:translate-y-8` sobre el
+    contenedor de la ficha —una transformación no ocupa lugar, un margen sí—
+    y se paga con el aire al pie, que baja de 80 a 48px.
+  * **SOMBRA NEGRA DETRÁS DEL CÍRCULO** (pedido del cliente: "que las no
+    seleccionadas que asomen dentro del círculo se opaquen un poco"): un
+    disco `radial-gradient` negro a 0.62, del mismo tamaño y posición que el
+    aro, en `z-[94]` — sobre las vecinas (89), bajo el aro (95) y la activa
+    (99). **La luz roja pasó al mismo `z-[94]` justo después en el DOM**, si
+    no la sombra la apagaba.
+  * **"LAS BURGAS" VA CENTRADO EN MÓVIL** (`text-center sm:text-left`), como el
+    título de Reseñas.
   * **LA LUZ ROJA** es una elipse `radial-gradient` con `--primary`, quieta en
     el mismo (50%, 60%), por DEBAJO del aro y de las siluetas. Nació en 0.42 de
     alfa en el centro y el cliente la pidió **más intensa el mismo día**: hoy

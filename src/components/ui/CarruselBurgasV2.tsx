@@ -376,6 +376,25 @@ export function CarruselBurgasV2({
             toda animación con `!important`, y a un estilo inline no le
             ganaría. Un anillo dando vueltas en loop es justo lo que molesta a
             quien pidió no ver movimiento. */}
+        {/* LA SOMBRA DEL CÍRCULO (2026-09-10, pedido del cliente: "probar
+            detrás del círculo opacar con negro tipo sombra, así las no
+            seleccionadas que se vean dentro del círculo se opaquen un poco").
+            Un disco negro semitransparente del MISMO tamaño y posición que el
+            aro, en `z-[94]`: por encima de las vecinas (89 y menos) y por
+            debajo del aro (95) y de la activa (99). Lo que asome de una vecina
+            dentro del círculo se oscurece; la activa, encima, queda intacta.
+            `circle_closest-side` para que el 100% del degradé sea el BORDE del
+            disco y no la esquina de la caja: así se desvanece justo donde
+            está el texto del aro. Termina en negro con alfa 0, no en
+            `transparent` — es la misma regla de siempre (y acá da igual
+            porque es negro, pero la regla es una sola).
+            La luz roja va DESPUÉS y en el mismo `z-[94]`: por orden de DOM
+            queda sobre la sombra, así que la sombra no la apaga. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-1/2 top-[60%] z-[94] aspect-square h-[80%] -translate-x-1/2 -translate-y-1/2 select-none rounded-full bg-[radial-gradient(circle_closest-side,rgba(0,0,0,0.62)_0%,rgba(0,0,0,0.62)_62%,rgba(0,0,0,0)_100%)] sm:h-[62%]"
+        />
+
         {/* LA LUZ ROJA DETRÁS DE LA BURGA SELECCIONADA (2026-09-10, 3er
             pedido del cliente). Es lo único que quedaba del ambiente cálido que
             aportaban las fotos con su degradé horneado: al sacarlas, la burga
@@ -387,8 +406,11 @@ export function CarruselBurgasV2({
             vecinas —que están a los costados y ya van oscurecidas por
             `brightness`— fuera del halo. Un elemento quieto, sin JS.
 
-            Va PRIMERO en el DOM y sin `z-index`, o sea por debajo del aro y de
-            las doce siluetas: es luz de fondo, no una capa de color encima.
+            Va en `z-[94]` justo DESPUÉS de la sombra del círculo (mismo número,
+            gana por orden de DOM): por encima de la sombra —que si no la
+            apagaría— y de las vecinas, y por debajo del aro y de la activa. A
+            las vecinas les llega apenas: están en los bordes, donde la elipse
+            ya va en 0.1 de alfa.
             Es una ELIPSE y no un círculo porque la hamburguesa es más ancha
             que alta (medido sobre las doce `caja`: ~0.51 × 0.42 del
             escenario), y va centrada en el 60% del alto, que es donde caen los
@@ -403,7 +425,7 @@ export function CarruselBurgasV2({
             banding de `brasa-glow`. */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 select-none bg-[radial-gradient(ellipse_50%_37%_at_50%_60%,hsl(var(--primary)/0.62)_0%,hsl(var(--primary)/0.34)_45%,hsl(var(--primary)/0.11)_72%,hsl(var(--primary)/0)_100%)]"
+          className="pointer-events-none absolute inset-0 z-[94] select-none bg-[radial-gradient(ellipse_50%_37%_at_50%_60%,hsl(var(--primary)/0.62)_0%,hsl(var(--primary)/0.34)_45%,hsl(var(--primary)/0.11)_72%,hsl(var(--primary)/0)_100%)]"
         />
 
         {/* POR DELANTE DE LAS VECINAS (2026-09-10, 2º pedido del cliente:
@@ -563,7 +585,18 @@ export function CarruselBurgasV2({
       {/* EN ESCRITORIO ES LA COLUMNA DERECHA (2026-09-04): `flex-1` para que
           se coma el ancho que deja la foto, alineada a la izquierda y sin el
           `px` del móvil. En móvil no cambia nada: sigue debajo y centrada. */}
-      <div className="pointer-events-none relative z-[300] grid px-6 text-center">
+      {/* TODA LA FICHA 32px MÁS ABAJO EN MÓVIL, SIN AGRANDAR LA SECCIÓN
+          (2026-09-10, dos pedidos del cliente el mismo día: primero "bajar el
+          sticker y los ingredientes", después "un poco más, y también el texto
+          de las papas"). Va como TRANSFORMACIÓN (`translate-y`) y no como
+          margen, a propósito: un margen estira la sección, el desplazamiento
+          mueve el bloque sin ocupar lugar y la sección mide exactamente lo
+          mismo. Lo que se paga es que el aire al pie baja de 80 a 48px — hay
+          margen, pero **si se vuelve a bajar, revisar que la píldora no toque
+          el borde**. El primer intento movía solo las fichas (16px) y dejaba
+          la píldora quieta; ahora se mueve el contenedor entero y el hueco
+          entre ingredientes y píldora vuelve a ser el de siempre (40px). */}
+      <div className="pointer-events-none relative z-[300] grid px-6 text-center max-sm:translate-y-8">
         {items.map((b, i) => (
           <div
             key={b.id}
