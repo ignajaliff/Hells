@@ -1,35 +1,47 @@
 import { type Metadata, type Viewport } from 'next'
 import { body, display, grafiti, grafitiItalica } from './fonts'
-import { GTM_ID, SITE_URL } from '@/lib/constants'
+import { GA_ID, SITE_URL } from '@/lib/constants'
 import { getRestaurantSchema } from '@/lib/schema'
 import { PantallaCarga } from '@/components/ui/PantallaCarga'
 import '@/styles/globals.css'
 
 /**
- * Metadata reducida a la marca sola (2026-08-21, pedido del cliente): el copy
- * anterior ("Hamburguesas a la brasa en Rosario…") era placeholder sin aprobar
- * y decía cualquier cosa. Hasta que haya copy real, pestaña y previews dicen
- * solo HELLS BURGUERS.
- * OJO SEO: una description igual al nombre no cumple seo-rules.txt §1
- * (140-160 caracteres para el resultado de Google) — reponer cuando el
- * cliente apruebe el texto definitivo.
+ * NOMBRE Y DESCRIPCIÓN REALES (2026-09-10, pedido del cliente: "poné bien el
+ * nombre en el head, que sea hells burgers, y la descripción").
+ *
+ * **Se fue la U de "BURGUERS"**, que estaba mal escrito en los siete lugares
+ * donde aparecía (pestaña, plantilla, OG, alt). Va **HELL'S BURGERS**: el
+ * cliente lo pidió plural y sin la U, y el apóstrofo es el de la marca —el
+ * logo y `NEGOCIO.nombre` dicen "Hell's Burger".
+ *
+ * **La descripción ya no es el nombre repetido.** Desde el 2026-08-21 decía
+ * "HELLS BURGUERS" a secas, con una nota de deuda: una description igual al
+ * nombre **no cumple `seo-rules.txt` §1**, que pide 140-160 caracteres escritos
+ * para humanos porque ése es el texto del resultado de Google. Ahora los tiene
+ * y menciona lo que el negocio hace y dónde (Mendoza), que es lo que la regla
+ * pide para un comercio local. El dato de la dirección es real (ficha de Maps,
+ * 2026-09-02), así que no se está publicando nada inventado.
+ *
+ * El `title` entra en los 50-60 caracteres de la regla.
  */
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: 'HELLS BURGUERS',
-    template: '%s · HELLS BURGUERS',
+    default: "HELL'S BURGERS — Hamburguesas en Mendoza",
+    template: "%s · HELL'S BURGERS",
   },
-  description: 'HELLS BURGUERS',
+  description:
+    "Hamburguesas artesanales en Mendoza. Doce burgers para pecar, con papas sazonadas. Pedí por WhatsApp o pasá por Olascoaga 715. Hell's Burgers.",
   openGraph: {
     type: 'website',
     locale: 'es_AR',
-    siteName: 'HELLS BURGUERS',
+    siteName: "HELL'S BURGERS",
     url: SITE_URL,
-    title: 'HELLS BURGUERS',
-    description: 'HELLS BURGUERS',
+    title: "HELL'S BURGERS — Hamburguesas en Mendoza",
+    description:
+      "Hamburguesas artesanales en Mendoza. Doce burgers para pecar, con papas sazonadas. Pedí por WhatsApp o pasá por Olascoaga 715. Hell's Burgers.",
     // TODO(diseño): crear public/og.jpg de 1200x630 y verificar la preview por WhatsApp.
-    images: [{ url: '/og.jpg', width: 1200, height: 630, alt: 'HELLS BURGUERS' }],
+    images: [{ url: '/og.jpg', width: 1200, height: 630, alt: "HELL'S BURGERS" }],
   },
   robots: { index: true, follow: true },
 }
@@ -45,44 +57,40 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${display.variable} ${body.variable} ${grafiti.variable} ${grafitiItalica.variable}`}
     >
       <head>
-        {/* GOOGLE TAG MANAGER (2026-09-09, pedido del cliente).
-            Va INLINE y en el `<head>`, tal cual lo entrega Google, y no con
-            `next/script`: así el contenedor arranca lo antes posible y el
-            snippet queda igual al que GTM verifica cuando prueba la
-            instalación. **No bloquea el renderizado**: lo único que corre acá
-            es crear un `<script async>` e insertarlo; la descarga de GTM va
-            por su cuenta.
+        {/* GOOGLE ANALYTICS 4 — gtag.js (2026-09-10, pedido del cliente).
+            **REEMPLAZÓ AL GOOGLE TAG MANAGER** (`GTM-WTL23CKL`) que estaba acá
+            desde el 2026-09-09. Eran las DOS piezas del mismo GTM —el script
+            de este `<head>` y el `<noscript>` con el iframe al tope del
+            `<body>`—, no dos etiquetas distintas; se fueron las dos.
+            ⚠ **Ese contenedor de GTM queda desconectado**: si tenía etiquetas
+            configuradas adentro, dejan de dispararse. Se avisó al cliente.
+
+            gtag NO necesita contraparte en el `<body>`: sin JS no mide, y
+            listo. Por eso el `<noscript>` no se reemplazó por otro.
+
+            Va INLINE y tal cual lo entrega Google, no con `next/script`: así
+            la etiqueta arranca lo antes posible y el snippet queda idéntico al
+            que Google verifica al probar la instalación. **No bloquea el
+            renderizado** — el `src` es `async`.
             El ID vive en `constants.ts` — acá no se escribe a mano.
-            Ojo: esto sale en el HTML de la web compilada, así que **también
-            viaja en el export estático** que se sube a Hostinger. */}
-        {/* eslint-disable-next-line @next/next/next-script-for-ga --
-            La regla sugiere `next/script`, que con `afterInteractive` cargaría
-            GTM después de la hidratación. Acá conviene lo contrario: que el
-            contenedor arranque cuanto antes —ya hay una pantalla de carga de
-            3s por delante— y que el snippet sea idéntico al que Google
-            entrega y verifica. */}
+            Ojo: esto sale en el HTML compilado, así que **también viaja en el
+            export estático** que se sube a Hostinger. */}
+        {/* Sin `eslint-disable`: el GTM inline disparaba
+            `@next/next/next-script-for-ga` y necesitaba uno, pero este `<script
+            async src=...>` no la dispara — dejarlo puesto daba un warning de
+            directiva sin usar. */}
+        <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} />
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','${GTM_ID}');`,
+            __html: `window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+
+gtag('config', '${GA_ID}');`,
           }}
         />
       </head>
       <body className="min-h-screen antialiased">
-        {/* La contraparte del GTM para quien tenga el JS apagado. Google pide
-            que sea lo PRIMERO del `<body>`. Es un iframe de 0x0 y oculto. */}
-        <noscript>
-          <iframe
-            src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
-            height="0"
-            width="0"
-            title="Google Tag Manager"
-            style={{ display: 'none', visibility: 'hidden' }}
-          />
-        </noscript>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(getRestaurantSchema()) }}

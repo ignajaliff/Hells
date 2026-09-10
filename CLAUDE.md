@@ -282,6 +282,66 @@ derivado y quedó sin uso cuando el hero móvil pasó a su arte propio.
     pegada al rojo de Work. Las esquinas se fueron con el hueco: pegadas
     dejaban muescas. De `sm` para arriba no cambió nada.
 
+* **GOOGLE ANALYTICS 4 REEMPLAZÓ AL TAG MANAGER, Y EL NOMBRE DEL HEAD SE
+  ESCRIBIÓ BIEN (2026-09-10, pedido del cliente)**:
+  * **NO ERAN "DOS PÍXELES": ERA UN SOLO GTM EN DOS PIEZAS.** El cliente pidió
+    "eliminar los 2 google pixel del head". `GTM-WTL23CKL` se instala con un
+    `<script>` en el `<head>` **más** un `<noscript>` con un iframe al tope del
+    `<body>` (el respaldo para JS apagado): son partes de la MISMA etiqueta.
+    Se fueron las dos, verificado sobre el HTML servido y sobre `out/`: cero
+    apariciones de `GTM-WTL23CKL`, `gtm.js` y `ns.html`.
+  * **gtag NO lleva contraparte en el `<body>`**: sin JS no mide y listo. Por
+    eso el `<noscript>` no se reemplazó por otro.
+  * ⚠ **EL CONTENEDOR DE GTM QUEDA DESCONECTADO.** Lo había puesto el socio el
+    2026-09-09; si tenía etiquetas configuradas adentro (Analytics, Meta,
+    conversiones), dejan de dispararse. Se le avisó al cliente.
+  * **`GTM_ID` pasó a `GA_ID = 'G-92PYHY1M6R'`** en `constants.ts` — el ID no
+    se escribe a mano en el layout.
+  * **Se fue el `eslint-disable` de `next-script-for-ga`**: existía porque el
+    GTM inline disparaba esa regla; el `<script async src=…>` de gtag no la
+    dispara y la directiva quedaba marcada como no usada.
+  * **EL NOMBRE ESTABA MAL ESCRITO EN SIETE LUGARES**, no solo en la pestaña:
+    title, template, `og:title`, `og:site_name`, `og:description`, el `alt` del
+    OG y la description decían "HELLS BURGUERS". Ahora **HELL'S BURGERS** —
+    plural y sin la U como pidió el cliente, con el apóstrofo de la marca
+    (`NEGOCIO.nombre` dice "Hell's Burger").
+  * **SE SALDÓ LA DEUDA DE SEO DE LA DESCRIPTION.** Desde el 2026-08-21 decía
+    "HELLS BURGUERS" a secas, con una nota que advertía que una description
+    igual al nombre **no cumple `seo-rules.txt` §1** (140-160 caracteres
+    escritos para humanos, porque es el texto del resultado de Google). Ahora
+    son 141 caracteres, mencionan qué hace el negocio y dónde, y **usan solo
+    datos reales** (Olascoaga 715, de la ficha de Maps). El `title` entra en
+    los 50-60 de la regla.
+
+* **EL CÍRCULO SE VE ENTERO EN PC: LO QUE LO TAPABA ERA LA BURGA (2026-09-10,
+  tres pedidos del cliente y DOS INTENTOS FALLIDOS antes de dar con la causa)**:
+  el cliente reportó que "se recortan las puntas de arriba y abajo" del aro.
+  Se arregló bajando `sm:scale-[1.35]` → **`sm:scale-[1.15]`** y subiendo el aro
+  `sm:h-[76%]` → **`sm:h-[86%]`**. **Solo `sm:`, móvil no se toca** (pedido
+  explícito: "esto solo en formato pc").
+  * **LA CAUSA REAL**: la burga la infla el `scale` del bloque, y a 1.35 medía
+    ~974px en 1440 contra 743 del aro — le comía "DOCE" a la izquierda y
+    "BURGER" a la derecha. A 1.15 queda en 830 y el aro entra a 693px.
+  * ⚠ **LOS DOS VALORES SON UN SOLO AJUSTE.** Bajar el `scale` solo NO agranda
+    el círculo en términos relativos: encoge a los dos por igual y el ratio
+    aro/burga queda clavado — **medido: 0.74-0.75 en 1.35, 1.20, 1.10 y 1.00**.
+    Hay que mover los dos a la vez. Con el ajuste el ratio subió a 0.82-0.91.
+  * **COSTO ASUMIDO**: la hamburguesa se ve ~15% más chica (830px contra 974 en
+    1440). Es inevitable — el círculo solo gana lugar si el contenido lo cede.
+  * ⚠⚠ **LO QUE NO FUNCIONA, PROBADO Y REVERTIDO** (dos intentos el mismo día):
+    **(a)** achicar el aro (a 55-57%) lo mete DEBAJO de la burga y queda PEOR;
+    **(b)** agrandar el escenario (tope de `23rem` a `14rem`) lo hace crecer a
+    él también —el aro se mide en % de esa caja— y **el corte empeora**: medido,
+    de 135px a 164px en 1920.
+  * ⚠⚠⚠ **LA CAJA NO ES EVIDENCIA ACÁ; LA CAPTURA SÍ.** Tres tandas de
+    mediciones dijeron "DENTRO, con aire por los cuatro lados" mientras la
+    captura mostraba el aro tapado: comparaban el rectángulo del `<img>` contra
+    el del escenario, que responde *"¿entra la caja?"* y no *"¿se ve el
+    texto?"* — y el texto compite contra **la burga**, que ningún script
+    miraba. Dos intentos de medir el aire del PNG por umbral de píxeles también
+    fallaron ("0% por los cuatro lados": el umbral caza el fondo y el aro claro,
+    no las letras). **Se decide mirando el escenario recortado.**
+
 * **LAS DOCE BURGAS SE CENTRAN EN EL ARO POR UN CENTRO COMÚN (2026-09-10, dos
   pedidos del cliente: "en PC quedan partes recortadas" y después "la
   hamburguesa se ve chueca y no está en el medio del círculo")**:
@@ -1859,10 +1919,15 @@ derivado y quedó sin uso cuando el hero móvil pasó a su arte propio.
 ## Estado actual del desarrollo
 
 **Última sesión**: 2026-09-10
-**Próximo paso**: sin nada urgente abierto. Lo último que se cerró fue el
-**centrado de las doce burgas dentro del aro** (ver la entrada de esa fecha):
-el desvío no era un número sino uno distinto por burga, y quedó en **0.0px
-horizontal y 2-3px vertical** en escritorio, con móvil intacto. Antes se habían
+**Próximo paso**: sin nada urgente abierto. Lo último de la sesión fueron tres
+cosas, todas verificadas sobre el HTML servido y sobre `out/`: el **centrado de
+las doce burgas dentro del aro** (el desvío no era un número sino uno distinto
+por burga; quedó en **0.0px horizontal y 2-3px vertical** en escritorio), el
+**círculo entero en PC** (bajando el `scale` del contenido a 1.15 y subiendo el
+aro a 86% — lo que lo tapaba era la burga, no el escenario) y el **cambio de
+GTM a Google Analytics 4** junto con el nombre y la descripción del head, que
+saldó de paso la deuda de SEO de la `description`. ⚠ **El contenedor de GTM del
+socio quedó desconectado** — ver esa entrada. Antes se habían
 cerrado los dos pendientes de arrastre: la costura de «Sides» contra Reseñas (la
 resolvió la banda naranja/gris nueva) y el sticker de Balak, que llegó — **ya
 están los doce**. **El nav ya no anticipa ninguna sección que no exista**: los cuatro

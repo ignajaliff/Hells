@@ -394,7 +394,26 @@ export function CarruselBurgasV2({
           `z-[210]`, o sea encima del carril (200). */}
       <div className="relative">
       <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-black sm:aspect-[5/3] sm:max-h-[calc(100svh-23rem)]">
-        {/* `sm:scale-[1.35]` AGRANDA el contenido dentro de la caja recortada.
+        {/* EL `scale` BAJÓ DE 1.35 A 1.15 (2026-09-10, pedido del cliente: "se
+            siguen tapando las esquinas del círculo, no quiero que se recorten
+            las puntas" — **solo en formato PC**, que es donde vive este `sm:`).
+            **Era esta escala la que tapaba el aro.** Infla la burga junto con
+            el resto del bloque, y a 1.35 medía ~974px en 1440 contra los 743
+            del círculo: le comía "DOCE" a la izquierda y "BURGER" a la derecha.
+            A 1.15 la burga queda en 830 y el aro sube a `sm:h-[86%]` (693px),
+            así que el texto se lee entero por los cuatro lados.
+            ⚠ **ESTE VALOR Y EL `sm:h-[86%]` DEL ARO SON UN SOLO AJUSTE.**
+            Bajar el `scale` sin subir el aro no agranda el círculo en términos
+            relativos: encoge a los dos por igual y el ratio aro/burga queda
+            clavado (medido: 0.74-0.75 en 1.35, 1.20, 1.10 y 1.00). Hay que
+            mover los dos a la vez.
+            El costo asumido: la hamburguesa se ve ~15% más chica que antes. Es
+            inevitable —el círculo solo gana lugar si el contenido lo cede— y el
+            cliente eligió el círculo completo.
+            MÓVIL NO SE TOCA: no lleva `scale`, su escenario es cuadrado y ahí
+            el aro ya se veía entero.
+
+            `sm:scale-[1.15]` AGRANDA el contenido dentro de la caja recortada.
             Al limitar el alto (ver `sm:max-h-…` arriba) la caja queda bien
             apaisada, y como la foto entra con `object-cover` el dibujo se
             aleja: la hamburguesa quedaba chica con mucho negro alrededor.
@@ -402,7 +421,7 @@ export function CarruselBurgasV2({
             un tamaño que llena la caja sin deformar nada; lo que sobra se lo
             lleva el `overflow-hidden` del padre.
             El `-translate-y` compensa que al escalar el conjunto baja. */}
-        <div className="absolute inset-0 sm:-translate-y-[3%] sm:scale-[1.35]">
+        <div className="absolute inset-0 sm:-translate-y-[3%] sm:scale-[1.15]">
         {/* EL ANILLO DE TEXTO, GIRANDO (2026-09-10, pedido del cliente:
             "saquemos el degrade rojo de atras de las hamburguesas y pongamos
             esto, que este girando, y que cada burga entre en el centro de este
@@ -533,11 +552,35 @@ export function CarruselBurgasV2({
             `sm:scale-[1.35]` del bloque: agranda la burga hasta 974px en 1440
             mientras el escenario apaisado (5:3) solo deja 532px de alto.
 
-            * `sm:h-[72%]` — el aro al máximo que permite el alto del
-              escenario. Se llegó por prueba y medición, no de una: con 52% y
-              58% el círculo entraba pero seguía tapado (ratio 0.41-0.46);
-              recién a 72% (ratio 0.60-0.67) el texto se lee entero en 1920,
-              1440 y 1280, verificado en captura del escenario.
+            * `sm:h-[86%]` — el círculo ENTERO, sin puntas recortadas
+              (2026-09-10, pedido del cliente: "se siguen tapando las esquinas
+              del círculo, no quiero que se recorten las puntas").
+              ⚠ **VA ATADO AL `sm:scale-[1.15]` DEL BLOQUE**: son un solo
+              ajuste y no se toca uno sin el otro. Ver el comentario de ese
+              `scale` para la explicación completa.
+              ⚠ **LO QUE TAPABA EL ARO ERA LA BURGA, NO EL ESCENARIO.** Ese fue
+              el diagnóstico que costó tres intentos fallidos: la burga escalada
+              por el viejo `sm:scale-[1.35]` medía ~974px en 1440 contra los 743
+              del aro, o sea que le comía las letras de los costados. Bajando el
+              `scale` a 1.15 la burga queda en 830 y el aro puede subir a 86%
+              (693px) sin que nada lo tape.
+              ⚠ **NO SE ARREGLA achicando el aro ni agrandando el escenario**
+              (dos intentos revertidos el mismo día): achicar el aro lo mete
+              DEBAJO de la burga y queda peor; agrandar el escenario lo hace
+              crecer a él también —el aro se mide en % de esa caja— y el corte
+              empeora (medido: de 135px a 164px en 1920).
+              ⚠ **LA CAJA NO ES EVIDENCIA, LA CAPTURA SÍ.** Tres tandas de
+              mediciones dijeron "DENTRO, con aire por los cuatro lados"
+              mientras la captura mostraba el aro tapado: comparaban el
+              rectángulo del `<img>` contra el del escenario, que responde
+              "¿entra la caja?" y no "¿se ve el texto?" — y el texto compite
+              contra LA BURGA, que ningún script miraba. Dos intentos de medir
+              el aire del PNG por umbral de píxeles también fallaron ("0% por
+              los cuatro lados": el umbral caza el fondo y el aro claro, no las
+              letras). **Acá se decide mirando el escenario recortado.**
+              Historia del tamaño: 52-58% (entraba pero lo tapaba la burga),
+              72%, 76% (el cliente lo pidió más grande) y 86% con el contenido
+              a 1.15, que es cuando el círculo se ve por fin completo.
               ⚠ **No se puede igualar el 1.54 de móvil**: haría falta un aro de
               ~1500px en un escenario de 532 de alto. La proporción de móvil
               solo es posible con escenario cuadrado.
@@ -553,7 +596,7 @@ export function CarruselBurgasV2({
             buena. */}
         <div
           aria-hidden
-          className="pointer-events-none absolute left-1/2 top-[60%] z-[95] aspect-square h-[80%] -translate-x-1/2 -translate-y-1/2 select-none sm:left-[50.19%] sm:top-[52%] sm:h-[72%]"
+          className="pointer-events-none absolute left-1/2 top-[60%] z-[95] aspect-square h-[80%] -translate-x-1/2 -translate-y-1/2 select-none sm:left-[50.19%] sm:top-[52%] sm:h-[86%]"
         >
           <div className="relative h-full w-full [animation:girar_34s_linear_infinite]">
             <Image
