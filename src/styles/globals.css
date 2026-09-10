@@ -114,7 +114,7 @@
    Es un valor FIJO, no automático: `calc()` no puede leer el alto real de un
    elemento. Si cambia el contenido del nav, medir y actualizar acá. */
 :root {
-  --nav: 66px;
+  --nav: 76px; /* 66 hasta el 2026-09-10: el cliente lo quiso más alto para que el logo respire */
 }
 
 @media (min-width: 1024px) {

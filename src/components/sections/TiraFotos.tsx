@@ -54,10 +54,10 @@ export function TiraFotos() {
   return (
     <section
       id={SECCIONES.nosotros}
-      className="relative overflow-hidden bg-background pb-5 motion-reduce:overflow-x-auto sm:pb-7"
+      className="relative overflow-hidden bg-background pb-0 motion-reduce:overflow-x-auto sm:pb-7"
     >
       <div
-        className="marquee-pista flex w-max gap-2 sm:gap-3"
+        className="marquee-pista flex w-max gap-0 sm:gap-3"
         style={{ animation: `marquee ${duracion} linear infinite reverse` }}
       >
         {/* Dos copias idénticas: el `-50%` del keyframe deja la segunda
@@ -88,7 +88,7 @@ function Tira({
 
   return (
     <ul
-      className={`flex gap-2 sm:gap-3 ${duplicada ? 'motion-reduce:hidden' : ''}`}
+      className={`flex gap-0 sm:gap-3 ${duplicada ? 'motion-reduce:hidden' : ''}`}
       aria-hidden={duplicada || undefined}
     >
       {fotos.map((foto, i) => {
@@ -101,7 +101,12 @@ function Tira({
               width={foto.ancho}
               height={foto.alto}
               sizes="(min-width: 1024px) 40vw, 80vw"
-              className="h-[180px] w-auto rounded-lg object-cover sm:h-[240px] lg:h-[300px]"
+              /* EN MÓVIL: MÁS GRANDES (250px), SIN ESQUINAS Y SIN HUECO ENTRE SÍ, y la
+                 sección sin padding al pie (2026-09-10, pedido del cliente: "pegadas
+                 entre sí, más grandes y pegadas al suelo"). Las esquinas redondeadas
+                 se van con el hueco: pegadas, dejaban muescas entre foto y foto.
+                 De `sm` para arriba no cambia nada. */
+              className="h-[250px] w-auto rounded-none object-cover sm:h-[240px] sm:rounded-lg lg:h-[300px]"
             />
           </li>
         )

@@ -265,6 +265,23 @@ derivado y quedó sin uso cuando el hero móvil pasó a su arte propio.
 
 ## Decisiones técnicas tomadas
 
+* **TANDA RÁPIDA DE MÓVIL (2026-09-10, tarde, pedidos del cliente)**:
+  * **El nav móvil mide 76px (era 66) y el logo 62 (era 55)**: misma
+    proporción, 7px de aire por lado en vez de 5. Como en móvil el nav es
+    `fixed` y el hero ya no le resta `--nav`, el cambio no mueve el hero; sí
+    corre 10px el `scroll-mt` de las secciones, que es lo que corresponde.
+  * **"Pedí ya" también en móvil**, compacto (13px), a la izquierda de la
+    hamburguesa; la grilla del nav pasó a `1fr auto auto`. Antes solo existía
+    en `lg` y en el celular había que abrir el menú para pedir.
+  * **"LAS BURGERS"** (era "Las Burgas"); el aro al **70% de opacidad**; la luz
+    roja **volvió a bajar** a 0.46/0.24 (había subido a 0.62/0.34 esa misma
+    mañana); **las flechas del tocadiscos van BLANCAS con el ícono negro** en
+    vez de negro translúcido — el cliente no las distinguía sobre el fondo.
+  * **La tira de fotos, en móvil: 250px de alto (era 180), sin hueco entre
+    fotos ni esquinas redondeadas, y la sección sin padding al pie** — queda
+    pegada al rojo de Work. Las esquinas se fueron con el hueco: pegadas
+    dejaban muescas. De `sm` para arriba no cambió nada.
+
 * **EL ANILLO DE TEXTO REEMPLAZÓ AL DEGRADÉ ROJO DEL TOCADISCOS (2026-09-10,
   cuatro pedidos del cliente en el día)**: detrás de la burga activa ya no va
   su foto sino `anillo-burgas-2.webp` —el aro de texto de la marca— girando

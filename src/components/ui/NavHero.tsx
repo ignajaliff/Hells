@@ -98,7 +98,7 @@ export function NavHero() {
           : 'translate-y-0'
       }`}
     >
-      <div className="grid h-full grid-cols-[1fr_auto] items-center gap-x-6 lg:grid-cols-[1fr_auto_1fr] lg:gap-x-[clamp(24px,3vw,48px)]">
+      <div className="grid h-full grid-cols-[1fr_auto_auto] items-center gap-x-3 lg:grid-cols-[1fr_auto_1fr] lg:gap-x-[clamp(24px,3vw,48px)]">
         {/* EL LOGO DE MARCA (2026-09-02, pedido del cliente): reemplaza al
             sticker "Demons Crew", que se borró. Es el mismo lockup que estaba
             en el hero — de ahí se sacó, justamente, porque tenerlo en los dos
@@ -120,7 +120,11 @@ export function NavHero() {
                altura a su `100svh`— sigue dando igual.
                MÓVIL QUEDA EN 34px: el cliente pidió no tocarlo, y ahí el nav
                mide 66px, así que subirlo dejaría el logo pegado a los bordes. */
-            className="h-[55px] w-auto sm:h-[55px] lg:h-[76px]"
+            /* MÓVIL SUBIÓ A 62px CON EL NAV EN 76 (2026-09-10, pedido del cliente:
+               "más alto, así el logo queda mejor y no tan apretado"): 55 sobre
+               66 era el 83% del alto; 62 sobre 76 es el 82%, o sea el mismo
+               logo con 7px de aire a cada lado en vez de 5. */
+            className="h-[62px] w-auto sm:h-[55px] lg:h-[76px]"
           />
         </a>
 
@@ -136,11 +140,22 @@ export function NavHero() {
           ))}
         </div>
 
+        {/* "PEDÍ YA" TAMBIÉN EN MÓVIL, A LA IZQUIERDA DE LA HAMBURGUESA
+            (2026-09-10, pedido del cliente). Antes solo existía de `lg` para
+            arriba y en el celular había que abrir el menú para pedir. Versión
+            compacta —13px, padding corto— para que quepa con el logo de 62px
+            en 390 de ancho; de `lg` vuelve a las medidas del diseño. La grilla
+            de móvil pasó a tres columnas (`1fr auto auto`) por esto.
+            **DEL MISMO ALTO QUE LA HAMBURGUESA Y EN ROJO MACIZO CON LETRAS
+            BLANCAS** (2º pedido del mismo día): los dos miden 38px —el de la
+            hamburguesa sale de 14 de ícono + 10 de padding por lado + 2 de
+            borde por lado, y acá se fija a mano— y comparten `rounded-lg`.
+            En `lg` vuelve al botón de contorno del diseño. */}
         <a
           href={LINK_PEDIDOS}
           target="_blank"
           rel="noopener noreferrer"
-          className="hidden justify-self-end whitespace-nowrap rounded-xl border-2 border-primary px-[26px] py-3 font-display text-[15px] uppercase tracking-[0.06em] text-foreground transition-colors hover:bg-primary active:scale-[.97] lg:inline-flex lg:items-center lg:gap-3.5"
+          className="inline-flex h-[38px] items-center gap-2 justify-self-end whitespace-nowrap rounded-lg border-2 border-primary bg-primary px-3.5 font-display text-[13px] uppercase tracking-[0.06em] text-primary-foreground transition-colors active:scale-[.97] lg:h-auto lg:gap-3.5 lg:rounded-xl lg:bg-transparent lg:px-[26px] lg:py-3 lg:text-[15px] lg:text-foreground lg:hover:bg-primary"
         >
           {heroContent.cta.primario}{' '}
           <span className="font-body text-lg font-extrabold">→</span>
@@ -152,7 +167,7 @@ export function NavHero() {
           onClick={() => setAbierto((v) => !v)}
           aria-expanded={abierto}
           aria-label={abierto ? 'Cerrar menú' : 'Abrir menú'}
-          className="justify-self-end rounded-lg border-2 border-primary p-2.5 lg:hidden"
+          className="inline-flex h-[38px] items-center justify-center justify-self-end rounded-lg border-2 border-primary px-2.5 lg:hidden"
         >
           <span className="sr-only">Menú</span>
           <svg width="20" height="14" viewBox="0 0 20 14" aria-hidden>

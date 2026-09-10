@@ -323,6 +323,15 @@ export function CarruselBurgasV2({
           el bloque ENTERO —fondos y siluetas juntos— para que no se
           desalineen entre sí, y el `overflow-hidden` del padre se lleva lo
           que sobra. */}
+      {/* ENVOLTORIO SIN `overflow-hidden` PARA LAS FLECHAS (2026-09-10, pedido
+          del cliente: "un poco más abajo" de lo que el escenario permitía).
+          El escenario recorta lo que se sale —lo necesita para las siluetas—,
+          así que con las flechas adentro el piso era `bottom-0`. Colgadas de
+          este envoltorio, que mide lo mismo que el escenario pero no recorta,
+          pueden ir con `bottom` NEGATIVO y asomar por debajo de la foto, en
+          la franja del sticker. Van después del escenario en el DOM y en
+          `z-[210]`, o sea encima del carril (200). */}
+      <div className="relative">
       <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-black sm:aspect-[5/3] sm:max-h-[calc(100svh-23rem)]">
         {/* `sm:scale-[1.35]` AGRANDA el contenido dentro de la caja recortada.
             Al limitar el alto (ver `sm:max-h-…` arriba) la caja queda bien
@@ -418,6 +427,8 @@ export function CarruselBurgasV2({
             **SUBIÓ DE INTENSIDAD** (2026-09-10, pedido del cliente: "un poco
             más intensa"): el centro pasó de 0.42 a 0.62 de alfa y el medio de
             0.20 a 0.34, y la elipse se abrió un poco (46×34 → 50×37).
+            **Y VOLVIÓ A BAJAR** el mismo día ("bajar la luz roja"): 0.46 en el
+            centro y 0.24 al medio — entre la primera y la segunda versión.
             El color sale del token `--primary` y **el degradé termina en ese
             mismo rojo con alfa 0, nunca en `transparent`**: en CSS
             `transparent` es NEGRO transparente y al mezclarse ensucia el rojo
@@ -425,7 +436,7 @@ export function CarruselBurgasV2({
             banding de `brasa-glow`. */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 z-[94] select-none bg-[radial-gradient(ellipse_50%_37%_at_50%_60%,hsl(var(--primary)/0.62)_0%,hsl(var(--primary)/0.34)_45%,hsl(var(--primary)/0.11)_72%,hsl(var(--primary)/0)_100%)]"
+          className="pointer-events-none absolute inset-0 z-[94] select-none bg-[radial-gradient(ellipse_50%_37%_at_50%_60%,hsl(var(--primary)/0.46)_0%,hsl(var(--primary)/0.24)_45%,hsl(var(--primary)/0.08)_72%,hsl(var(--primary)/0)_100%)]"
         />
 
         {/* POR DELANTE DE LAS VECINAS (2026-09-10, 2º pedido del cliente:
@@ -453,7 +464,9 @@ export function CarruselBurgasV2({
               fill
               sizes="(min-width: 640px) 45vw, 85vw"
               priority
-              className="object-contain"
+              /* `opacity-70` (2026-09-10, pedido del cliente: "opacalo un poco"):
+                 el blanco puro del dibujo competía con la burga. */
+              className="object-contain opacity-70"
             />
           </div>
         </div>
@@ -511,6 +524,8 @@ export function CarruselBurgasV2({
           ))}
         </div>
 
+      </div>
+
         {/* LAS FLECHAS — SOLO ESCRITORIO (2026-09-04, pedido del cliente).
             En el celular el carrusel se pasa con el dedo y no hacen falta;
             con mouse, en cambio, la única forma era hacer clic en la burga de
@@ -527,7 +542,7 @@ export function CarruselBurgasV2({
           onClick={() => irA(Math.max(0, activa - 1))}
           disabled={activa === 0}
           aria-label="Burga anterior"
-          className="absolute left-3 bottom-[8%] z-[210] sm:left-[12%] sm:bottom-[10%] lg:left-[26%] flex items-center justify-center rounded-full border border-primary/25 bg-black/30 p-2.5 text-primary/70 backdrop-blur-sm transition-[color,border-color,background-color] hover:border-primary/60 hover:bg-black/55 hover:text-primary disabled:pointer-events-none disabled:opacity-0 sm:p-3"
+          className="absolute left-[9%] bottom-[-7%] z-[210] sm:left-[18%] sm:bottom-[-4%] lg:left-[30%] flex items-center justify-center rounded-full border border-white bg-transparent p-2.5 text-white transition-[background-color,border-color,color] hover:border-primary hover:bg-primary disabled:pointer-events-none disabled:opacity-0 sm:p-3"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
             <path d="M15 5 8 12l7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
@@ -538,7 +553,7 @@ export function CarruselBurgasV2({
           onClick={() => irA(Math.min(items.length - 1, activa + 1))}
           disabled={activa === items.length - 1}
           aria-label="Burga siguiente"
-          className="absolute right-3 bottom-[8%] z-[210] sm:right-[12%] sm:bottom-[10%] lg:right-[26%] flex items-center justify-center rounded-full border border-primary/25 bg-black/30 p-2.5 text-primary/70 backdrop-blur-sm transition-[color,border-color,background-color] hover:border-primary/60 hover:bg-black/55 hover:text-primary disabled:pointer-events-none disabled:opacity-0 sm:p-3"
+          className="absolute right-[9%] bottom-[-7%] z-[210] sm:right-[18%] sm:bottom-[-4%] lg:right-[30%] flex items-center justify-center rounded-full border border-white bg-transparent p-2.5 text-white transition-[background-color,border-color,color] hover:border-primary hover:bg-primary disabled:pointer-events-none disabled:opacity-0 sm:p-3"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
             <path d="m9 5 7 7-7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />

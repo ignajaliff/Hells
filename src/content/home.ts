@@ -165,7 +165,7 @@ export const marqueeFrases = [
  * formato; **cuando llegue la suya, reemplazarla**.
  */
 export const burgasContent = {
-  titulo: 'Las Burgas',
+  titulo: 'Burgers', // 'Las Burgas' hasta el 2026-09-10, 'Las Burgers' unas horas
   /**
    * Aclaración al pie del tocadiscos (2026-09-06, pedido del cliente). Vale
    * para las doce por igual, así que NO va en cada item ni dentro del bucle
