@@ -24,6 +24,13 @@ import { CarruselBurgasV2 } from '@/components/ui/CarruselBurgasV2'
  * descargaban aunque estuvieran ocultos (medido: 13 videos en un celular en
  * vez de 1). Con una sola rama el problema desaparece solo.
  *
+ * SIN BAJADA (2026-09-10, pedido del cliente: "sacá el texto «Doce maneras
+ * de pecar»"). Era el renglón debajo del título y vivía en `burgasContent`;
+ * se fue también del contenido para no dejar dato muerto — queda en el
+ * historial de git. Ahora la sección arranca con el título y va directo al
+ * tocadiscos, y el conjunto sube unos 30px: el escenario cuelga del header
+ * con un margen NEGATIVO, así que al acortarse el header lo sigue solo.
+ *
  * FONDO NEGRO PURO (2026-09-03, pedido del cliente). Durante unas horas del
  * mismo día se probó una variante ROJA con un bloque negro tapando de la
  * mitad de la foto hacia abajo; se descartó y quedó en el historial de git.
@@ -34,7 +41,7 @@ import { CarruselBurgasV2 } from '@/components/ui/CarruselBurgasV2'
  * sobre negro no se leerían.
  */
 export function LasBurgasV2() {
-  const { titulo, bajada, guarnicion, items } = burgasContent
+  const { titulo, guarnicion, items } = burgasContent
 
   return (
     <section
@@ -75,9 +82,6 @@ export function LasBurgasV2() {
         <h2 className="ml-0 font-display text-[clamp(56px,16vw,190px)] sm:-ml-[2%] uppercase leading-[0.85] tracking-[-0.02em] text-primary sm:text-[12vw] lg:text-[9vw]">
           {titulo}
         </h2>
-        <p className="mt-3 max-w-[36ch] font-body text-[clamp(15px,4vw,19px)] font-medium text-foreground">
-          {bajada}
-        </p>
       </header>
 
       {/* EL MISMO TOCADISCOS EN LAS DOS PANTALLAS (2026-09-04, pedido del

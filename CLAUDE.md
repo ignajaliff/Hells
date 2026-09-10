@@ -299,23 +299,27 @@ derivado y quedó sin uso cuando el hero móvil pasó a su arte propio.
     el aro detrás se pisaban. Ahora es margen POSITIVO (`mt-[3cqw]
     sm:mt-[2cqw]`) y toda la ficha arranca por debajo del escenario.
   * **LA LUZ ROJA** es una elipse `radial-gradient` con `--primary`, quieta en
-    el mismo (50%, 60%), por DEBAJO del aro y de las siluetas. Es lo único que
+    el mismo (50%, 60%), por DEBAJO del aro y de las siluetas. Nació en 0.42 de
+    alfa en el centro y el cliente la pidió **más intensa el mismo día**: hoy
+    va 0.62 en el centro, 0.34 al medio, y la elipse mide 50×37. Es lo único que
     quedó del ambiente cálido que daban las fotos. **Termina en ese rojo con
     alfa 0 y nunca en `transparent`** — la regla del banding de `brasa-glow`.
-  * **EL DIBUJO DICE SOLO "HELL'S BURGER"** (último pedido): venía con "HELL'S
-    BURGER - DOCE MANERAS DE PECAR -" dando la vuelta entera. Se borró el
-    sector de **30° a 268°** del original (los dos guiones incluidos; el
-    segundo guion estaba en 33-39° y sobrevivió al primer corte en 42°) y
-    **NO se volvió a recortar la imagen a propósito**: el archivo sigue siendo
-    el mismo cuadrado con el mismo centro, así que el arco conserva su
-    posición y no hubo que tocar ninguna medida del componente. Hoy el texto
-    ocupa el cuarto de arriba a la derecha y el resto del aro va vacío; si
-    alguna vez se quiere el círculo cerrado, la forma barata es repetir el arco
-    girado 180°.
-  * **EL `-2` DEL NOMBRE ES POR CACHÉ**: la primera versión del WebP ya se había
-    servido con las dos frases y el navegador del cliente la tenía guardada.
-    Misma trampa que con el recorte de Satanás: **si se regenera un asset con
-    otro contenido, cambiarle el nombre.**
+  * **EL ARO VA ENTERO, con sus dos frases** ("HELL'S BURGER - DOCE MANERAS DE
+    PECAR -"), y el archivo se llama `anillo-burgas.webp` a secas.
+    ⚠ **ERROR MÍO, ANOTADO PARA NO REPETIRLO**: el cliente pidió "sacar el
+    texto «Doce maneras de pecar»" y yo lo borré DEL DIBUJO —recortando el
+    sector de 30° a 268° y publicando el archivo como `-2`—, cuando hablaba de
+    **la BAJADA de la sección**, el renglón debajo del título "Las Burgas".
+    Las dos cosas decían la misma frase. Todo revertido: el `-2` se borró y el
+    componente volvió al nombre original.
+    **Volver al nombre viejo era, además, lo correcto para la caché**: esa URL
+    ya se había servido con el dibujo entero, o sea con exactamente el
+    contenido que hoy queremos, así que el que la tenga guardada ve lo que
+    corresponde. La regla de "asset nuevo, nombre nuevo" apunta a lo contrario:
+    a no pisar una URL con OTRO contenido.
+  * **LA SECCIÓN SE QUEDÓ SIN BAJADA**: `burgasContent.bajada` se fue del
+    contenido y su `<p>` del componente. El conjunto sube unos 30px, y eso se
+    acomoda solo porque el escenario cuelga del header con un margen negativo.
   * El PNG del cliente (6917x11135, con el dibujo en un cuadrado de 4231) quedó
     en `originales/anillo-burgas.png`; el WebP servido son 1100px y **22KB**.
   * La animación vive en `@keyframes girar` (globals.css) y se aplica como

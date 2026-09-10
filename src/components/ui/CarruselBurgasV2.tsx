@@ -365,18 +365,11 @@ export function CarruselBurgasV2({
             El `sm:` compensa el `scale-[1.35]` del bloque: 62 × 1.35 ≈ 84, o
             sea el mismo círculo que en el celular.
 
-            **DICE SOLO "HELL'S BURGER"** (2026-09-10, último pedido del
-            cliente: "sacá el texto «doce maneras de pecar»"). El dibujo venía
-            con las dos frases dando la vuelta entera; se borró el sector de
-            30° a 268° del original —los dos guiones separadores incluidos— y
-            **no se volvió a recortar la imagen**, a propósito: el archivo sigue
-            siendo el mismo cuadrado con el mismo centro, así que el arco que
-            queda conserva su posición y acá no hubo que tocar ni una medida.
-            Por eso ahora el texto ocupa el cuarto de arriba a la derecha y el
-            resto del aro va vacío.
-            **El archivo se llama `-2`**: pisó al anterior con OTRO contenido y
-            el navegador del cliente lo tenía cacheado — es la misma trampa que
-            con el recorte de Satanás. URL nueva, caché imposible.
+            **EL ARO VA ENTERO, con sus dos frases** ("HELL'S BURGER - DOCE
+            MANERAS DE PECAR -"). Hubo un rato en que estuvo cortado a solo
+            "HELL'S BURGER": fue un malentendido mío — el cliente había pedido
+            sacar "Doce maneras de pecar" de la BAJADA de la sección, el
+            renglón debajo del título "Las Burgas", no del dibujo. Revertido.
 
             La animación va como CLASE y no como `style` inline: con
             `prefers-reduced-motion` la regla global de `globals.css` frena
@@ -400,6 +393,9 @@ export function CarruselBurgasV2({
             que alta (medido sobre las doce `caja`: ~0.51 × 0.42 del
             escenario), y va centrada en el 60% del alto, que es donde caen los
             centros de las doce.
+            **SUBIÓ DE INTENSIDAD** (2026-09-10, pedido del cliente: "un poco
+            más intensa"): el centro pasó de 0.42 a 0.62 de alfa y el medio de
+            0.20 a 0.34, y la elipse se abrió un poco (46×34 → 50×37).
             El color sale del token `--primary` y **el degradé termina en ese
             mismo rojo con alfa 0, nunca en `transparent`**: en CSS
             `transparent` es NEGRO transparente y al mezclarse ensucia el rojo
@@ -407,7 +403,7 @@ export function CarruselBurgasV2({
             banding de `brasa-glow`. */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 select-none bg-[radial-gradient(ellipse_46%_34%_at_50%_60%,hsl(var(--primary)/0.42)_0%,hsl(var(--primary)/0.20)_45%,hsl(var(--primary)/0.06)_72%,hsl(var(--primary)/0)_100%)]"
+          className="pointer-events-none absolute inset-0 select-none bg-[radial-gradient(ellipse_50%_37%_at_50%_60%,hsl(var(--primary)/0.62)_0%,hsl(var(--primary)/0.34)_45%,hsl(var(--primary)/0.11)_72%,hsl(var(--primary)/0)_100%)]"
         />
 
         {/* POR DELANTE DE LAS VECINAS (2026-09-10, 2º pedido del cliente:
@@ -430,7 +426,7 @@ export function CarruselBurgasV2({
         >
           <div className="relative h-full w-full [animation:girar_34s_linear_infinite]">
             <Image
-              src="/anillo-burgas-2.webp"
+              src="/anillo-burgas.webp"
               alt=""
               fill
               sizes="(min-width: 640px) 45vw, 85vw"
