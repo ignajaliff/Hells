@@ -265,6 +265,48 @@ derivado y quedó sin uso cuando el hero móvil pasó a su arte propio.
 
 ## Decisiones técnicas tomadas
 
+* **EL FAVICON PERDIÓ EL FONDO, EL TÍTULO SE ACORTÓ Y LA ETIQUETA DE GOOGLE
+  QUEDÓ VERBATIM (2026-09-10, noche, tres pedidos del cliente)**:
+  * **`src/app/icon.png` es AHORA TRANSPARENTE**: era el isotipo rojo sobre un
+    cuadrado `#1a1a1a` MACIZO (medido: 262.144 píxeles, todos con alpha 255),
+    así que en cualquier pestaña clara se veía como un recuadro oscuro. Se
+    regeneró desde **`originales/isotipo.png`**, que ya venía recortado a su
+    contorno y con alpha — no hizo falta recortar ningún fondo a mano.
+    * **Se escala por ALTURA** (438x674, o sea apaisado al revés): a ancho
+      completo en un lienzo cuadrado se saldría por arriba y por abajo. Queda
+      en 500px de alto con 6 de aire, centrado en los 512 del favicon.
+    * **EL LIENZO VA DEL MISMO ROJO CON ALPHA 0, no de negro transparente.**
+      Así los tres canales de color son CONSTANTES en toda la imagen y lo
+      único que lleva información es el alpha: el PNG pasa de 61KB a **44.8KB**
+      sin tocar un píxel visible. Es además como viene el original.
+    * **Se descartó la paleta de 64 colores** (9.5KB, tentador): el degradé de
+      alpha del antialias necesita más entradas de las que entran, y la
+      diferencia medida llegaba a **31 niveles por canal**. El borde se veía
+      escalonado.
+    * **NO hace falta renombrarlo pese a la regla de "asset nuevo, nombre
+      nuevo"**: `icon.png` es un archivo de convención del App Router y Next le
+      cuelga un hash en la URL (`/icon.png?f13677c1…`), que cambió solo al
+      cambiar el contenido. La caché se rompe sola.
+  * **EL TÍTULO ES LA MARCA SOLA**: estuvo unas horas como "HELL'S BURGERS —
+    Hamburguesas en Mendoza" y el cliente lo quiso a secas. **Queda por debajo
+    de los 50-60 caracteres de `seo-rules.txt` §1 y se asume.** La description
+    NO se tocó: sigue con sus 148 caracteres, y es de ahí que Google saca el
+    texto del resultado.
+  * ⚠ **"GOOGLE NO DETECTA LA ETIQUETA" NO ERA UN PROBLEMA DEL CÓDIGO.** El
+    cliente lo reportó y pidió reemplazar el snippet por el que le da Google;
+    resultó ser **el mismo que ya estaba**. Verificado sobre el HTML compilado:
+    las dos piezas (el `<script async src>` y el `gtag('config')` inline) salen
+    DENTRO del `<head>` y con el ID correcto. Lo que Google leía era la web
+    PUBLICADA, que todavía servía el **Tag Manager viejo**: el zip subido a
+    Hostinger se había compilado a las 13:18, antes de que la etiqueta
+    existiera. **Si vuelve a pasar, mirar el "ver código fuente" del sitio en
+    vivo ANTES que este repo.**
+    * Lo único que cambió es la sangría de dos espacios del bloque inline, para
+      que el fragmento salga carácter por carácter como el que entrega Google.
+    * Las otras dos apariciones del ID en el HTML están en el payload de React
+      del `<body>` — es el árbol serializado para hidratar, no son etiquetas
+      que se ejecuten. Al contarlas parece que hubiera cuatro.
+
 * **TANDA RÁPIDA DE MÓVIL (2026-09-10, tarde, pedidos del cliente)**:
   * **El nav móvil mide 76px (era 66) y el logo 62 (era 55)**: misma
     proporción, 7px de aire por lado en vez de 5. Como en móvil el nav es

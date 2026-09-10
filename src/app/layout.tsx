@@ -22,12 +22,18 @@ import '@/styles/globals.css'
  * pide para un comercio local. El dato de la dirección es real (ficha de Maps,
  * 2026-09-02), así que no se está publicando nada inventado.
  *
- * El `title` entra en los 50-60 caracteres de la regla.
+ * **EL TÍTULO ES LA MARCA SOLA** (2026-09-10, 2º pedido del cliente el mismo
+ * día): estuvo unas horas como "HELL'S BURGERS — Hamburguesas en Mendoza" y el
+ * cliente lo quiso a secas. Queda por debajo de los 50-60 caracteres que pide
+ * `seo-rules.txt` §1, y se asume: el nombre es lo que tiene que leerse en la
+ * pestaña y en el resultado de Google. **La description NO se tocó** — sigue
+ * teniendo los 148 caracteres con el qué y el dónde, que es de donde Google
+ * saca el texto del resultado.
  */
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "HELL'S BURGERS — Hamburguesas en Mendoza",
+    default: "HELL'S BURGERS",
     template: "%s · HELL'S BURGERS",
   },
   description:
@@ -37,7 +43,7 @@ export const metadata: Metadata = {
     locale: 'es_AR',
     siteName: "HELL'S BURGERS",
     url: SITE_URL,
-    title: "HELL'S BURGERS — Hamburguesas en Mendoza",
+    title: "HELL'S BURGERS",
     description:
       "Hamburguesas artesanales en Mendoza. Doce burgers para pecar, con papas sazonadas. Pedí por WhatsApp o pasá por Olascoaga 715. Hell's Burgers.",
     // TODO(diseño): crear public/og.jpg de 1200x630 y verificar la preview por WhatsApp.
@@ -74,7 +80,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             renderizado** — el `src` es `async`.
             El ID vive en `constants.ts` — acá no se escribe a mano.
             Ojo: esto sale en el HTML compilado, así que **también viaja en el
-            export estático** que se sube a Hostinger. */}
+            export estático** que se sube a Hostinger.
+
+            ⚠ **"GOOGLE NO DETECTA LA ETIQUETA" NO ES UN PROBLEMA DE ESTE
+            CÓDIGO** (2026-09-10, reporte del cliente). Se verificó sobre el
+            HTML ya compilado: las dos piezas salen DENTRO del `<head>` y con
+            el ID correcto. Lo que Google estaba leyendo era la web PUBLICADA,
+            que en ese momento todavía servía el Tag Manager viejo — el zip
+            subido a Hostinger se había compilado ANTES de que existiera esta
+            etiqueta. **Si vuelve a pasar, lo primero es mirar el "ver código
+            fuente" del sitio en vivo, no este archivo.** */}
         {/* Sin `eslint-disable`: el GTM inline disparaba
             `@next/next/next-script-for-ga` y necesitaba uno, pero este `<script
             async src=...>` no la dispara — dejarlo puesto daba un warning de
@@ -82,11 +97,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} />
         <script
           dangerouslySetInnerHTML={{
-            __html: `window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-gtag('js', new Date());
+            __html: `  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
 
-gtag('config', '${GA_ID}');`,
+  gtag('config', '${GA_ID}');`,
           }}
         />
       </head>
