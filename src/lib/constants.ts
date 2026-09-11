@@ -4,7 +4,16 @@
  * antes de publicar. Hasta entonces la web no se puede dar por entregada.
  */
 
-export const SITE_URL = 'https://www.hellsburger.com.ar' // ⚠ dominio final
+/**
+ * EL DOMINIO REAL (2026-09-11). Era `https://www.hellsburger.com.ar`, un
+ * placeholder que NI SIQUIERA EXISTE (los DNS no lo resuelven) y que estaba
+ * horneado en el sitemap, el robots.txt, el og:url, la og:image y el JSON-LD:
+ * le decía a Google que la página vivía en un dominio muerto.
+ * **SIN `www`**: es la versión que se publica y a la que redirige la otra
+ * (ver `scripts/hostinger.mjs`). Si cambia, volver a compilar — queda escrito
+ * dentro de los archivos.
+ */
+export const SITE_URL = 'https://hellsburgerarg.com'
 
 export const NEGOCIO = {
   nombre: "Hell's Burger", // según el logo de marca
@@ -15,7 +24,7 @@ export const NEGOCIO = {
   direccion: 'Olascoaga 715', // dato real del cliente (2026-09-02)
   codigoPostal: '5502', // de la ficha de Google Maps del local (M5502), 2026-09-02
   telefono: '+542615990627', // de la ficha de Google Maps (0261 599-0627). Es el WhatsApp del local (confirmado 2026-09-05)
-  email: 'hola@hellsburger.com.ar', // ⚠
+  email: 'hola@hellsburger.com.ar', // ⚠ placeholder en un dominio que no existe: NO se publica (ver schema.ts)
   instagram: 'https://www.instagram.com/hellsburgerok/', // dato real del cliente (2026-09-05)
 } as const
 

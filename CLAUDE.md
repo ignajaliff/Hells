@@ -265,6 +265,54 @@ derivado y quedó sin uso cuando el hero móvil pasó a su arte propio.
 
 ## Decisiones técnicas tomadas
 
+* **EL DOMINIO REAL, UNA SOLA VERSIÓN DEL SITIO Y EL HEAD SIN DESCRIPCIÓN
+  (2026-09-11, a raíz de un reporte del cliente)**: en Google la web salía
+  con el título viejo, sin ícono y con el párrafo de Work como resumen,
+  aunque el sitio ya servía todo lo nuevo. **Eso es la caché de Google** —
+  guardó la página antes del 2026-09-10 —, pero había errores NUESTROS que
+  le impedían actualizarse rápido:
+  * **`SITE_URL` era `https://www.hellsburger.com.ar`, un dominio que NO
+    EXISTE** (los DNS no lo resuelven). Estaba horneado en el `sitemap.xml`,
+    el `Sitemap:` del `robots.txt`, `og:url`, `og:image` y el JSON-LD: el
+    sitemap le decía a Google que la página vivía en un dominio muerto, así
+    que lo descartaba — y es justo lo que sirve para que vuelva a pasar
+    antes. **Ahora es `https://hellsburgerarg.com`, sin `www`.**
+  * **CANÓNICA** (`alternates.canonical: '/'` + `metadataBase`): no había
+    ninguna.
+  * **`www` REDIRIGE CON 301 a la versión sin `www`**, en el `.htaccess` que
+    genera `scripts/hostinger.mjs`. Antes las dos respondían 200 y Google
+    veía la página duplicada. La regla toma el dominio de la propia
+    petición, así que no hay que escribirlo ahí. **No fuerza `https`**: detrás
+    de la CDN de Hostinger, que termina el certificado, eso puede entrar en
+    bucle.
+    * ⚠ **TRAMPA DE ESCAPES**: el `.htaccess` vive dentro de un template
+      literal de JS, así que el punto escapado del regex va con **DOS**
+      barras en el `.mjs` para que salga UNA en el archivo. Con una sola, JS
+      la descarta y el regex queda con un punto suelto. Las reglas de
+      `FilesMatch` de al lado ya lo hacían así.
+  * **SIN `description` NI `og:description`** (pedido explícito del cliente:
+    "que el head tenga solo el title"). ⚠ **Asumido a sabiendas**:
+    `seo-rules.txt` §1 pide una description, y sin ella Google arma el
+    resumen con texto de la página — que es exactamente lo que ya pasó con
+    el párrafo de Work. Si vuelve a elegir un texto que no conviene, la
+    solución es reponerla.
+  * **El `email` salió del JSON-LD**: el de `NEGOCIO` es un placeholder en
+    ese mismo dominio inexistente. Vuelve cuando el cliente dé el real.
+  * **`favicon.ico` en `src/app/`** (16/32/48, 5.7KB), generado del
+    `icon.png` transparente: `/favicon.ico` daba 404, y es lo que piden los
+    lectores que no leen el `<link>`.
+  * **`public/og.jpg` YA EXISTE** (1200x630): daba 404 y la vista previa de
+    WhatsApp salía sin imagen. **Es EL LOGO DEL NAV** (`public/logo.png`)
+    centrado sobre el mismo `--background` del nav, sin nada más — pedido del
+    cliente, que descartó una primera versión con las llamas del hero al pie.
+    Se reemplaza con el mismo nombre SOLO mientras el link no se haya
+    compartido: WhatsApp cachea la vista previa, y después conviene nombre
+    nuevo.
+  * **LO QUE NO SE PUEDE HACER DESDE EL CÓDIGO**: que Google actualice ya.
+    Eso se acelera en **Google Search Console** — alta de la propiedad,
+    envío del sitemap e "Inspección de URLs" → "Solicitar indexación".
+    El ícono es lo último en actualizarse: lo busca un robot aparte.
+
 * **EL FAVICON PERDIÓ EL FONDO, EL TÍTULO SE ACORTÓ Y LA ETIQUETA DE GOOGLE
   QUEDÓ VERBATIM (2026-09-10, noche, tres pedidos del cliente)**:
   * **`src/app/icon.png` es AHORA TRANSPARENTE**: era el isotipo rojo sobre un
@@ -546,10 +594,10 @@ derivado y quedó sin uso cuando el hero móvil pasó a su arte propio.
     así que van a una semana y no a un año: si se reemplaza un archivo con el
     mismo nombre, se ve en días. **Van generados y no en `public/`**: Next no
     copia los archivos que empiezan con punto.
-  * ⚠ **`SITE_URL` sigue siendo `https://www.hellsburger.com.ar`** y de ahí
-    salen el `sitemap.xml`, el `robots.txt` y las URLs de Open Graph. Si el
-    dominio final es otro, cambiarlo en `constants.ts` y **volver a compilar**:
-    quedan horneados en los archivos.
+  * **`SITE_URL` es `https://hellsburgerarg.com`** desde el 2026-09-11 (era un
+    placeholder inexistente, ver arriba). De ahí salen el `sitemap.xml`, el
+    `robots.txt`, la canónica y las URLs de Open Graph. Si cambia el dominio,
+    cambiarlo en `constants.ts` y **volver a compilar**: quedan horneados.
 
 * **LA COSTURA DE LAS LLAMAS DE ARRIBA Y "SIDES" AL CENTRO (2026-09-08, 3ª
   tanda de pedidos del cliente)**:
@@ -1960,7 +2008,7 @@ derivado y quedó sin uso cuando el hero móvil pasó a su arte propio.
 
 ## Estado actual del desarrollo
 
-**Última sesión**: 2026-09-10
+**Última sesión**: 2026-09-11
 **Próximo paso**: sin nada urgente abierto. Lo último de la sesión fueron tres
 cosas, todas verificadas sobre el HTML servido y sobre `out/`: el **centrado de
 las doce burgas dentro del aro** (el desvío no era un número sino uno distinto
@@ -2008,7 +2056,7 @@ tocadiscos, con la foto como botón para repetirlo. **Los mp4 ya no están en
 **Lo que está pendiente**:
 * Datos reales del negocio (WhatsApp, Instagram, horarios, dominio) — marcados con
   ⚠. **Dirección, CP y teléfono ya son reales** (2026-09-02, de la ficha de Maps)
-* `public/og.jpg` (1200x630)
+* `public/og.jpg` definitiva: la actual (2026-09-11) es provisoria, armada con el logo
 * Logo **vectorial** (.svg): los PNG actuales se derivaron del JPG, sirven bien pero
   un SVG escalaría mejor y pesaría menos
 * **Confirmar las licencias comerciales** de Ardillah Kafi y Splatink (hoy "personal use")

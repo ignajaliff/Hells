@@ -6,29 +6,19 @@ import { PantallaCarga } from '@/components/ui/PantallaCarga'
 import '@/styles/globals.css'
 
 /**
- * NOMBRE Y DESCRIPCIÓN REALES (2026-09-10, pedido del cliente: "poné bien el
- * nombre en el head, que sea hells burgers, y la descripción").
- *
- * **Se fue la U de "BURGUERS"**, que estaba mal escrito en los siete lugares
- * donde aparecía (pestaña, plantilla, OG, alt). Va **HELL'S BURGERS**: el
- * cliente lo pidió plural y sin la U, y el apóstrofo es el de la marca —el
- * logo y `NEGOCIO.nombre` dicen "Hell's Burger".
- *
- * **La descripción ya no es el nombre repetido.** Desde el 2026-08-21 decía
- * "HELLS BURGUERS" a secas, con una nota de deuda: una description igual al
- * nombre **no cumple `seo-rules.txt` §1**, que pide 140-160 caracteres escritos
- * para humanos porque ése es el texto del resultado de Google. Ahora los tiene
- * y menciona lo que el negocio hace y dónde (Mendoza), que es lo que la regla
- * pide para un comercio local. El dato de la dirección es real (ficha de Maps,
- * 2026-09-02), así que no se está publicando nada inventado.
- *
- * **EL TÍTULO ES LA MARCA SOLA** (2026-09-10, 2º pedido del cliente el mismo
- * día): estuvo unas horas como "HELL'S BURGERS — Hamburguesas en Mendoza" y el
- * cliente lo quiso a secas. Queda por debajo de los 50-60 caracteres que pide
- * `seo-rules.txt` §1, y se asume: el nombre es lo que tiene que leerse en la
- * pestaña y en el resultado de Google. **La description NO se tocó** — sigue
- * teniendo los 148 caracteres con el qué y el dónde, que es de donde Google
- * saca el texto del resultado.
+ * EL HEAD LLEVA SOLO EL TÍTULO (2026-09-11, pedido del cliente: "que no tenga
+ * descripción el head, solo el title").
+ * * **Se fueron la `description` y la `og:description`.** Asumido por el
+ *   cliente: `seo-rules.txt` §1 pide una description de 140-160 caracteres, y
+ *   sin ella **Google arma el resumen del resultado con texto de la página** —
+ *   exactamente lo que pasó antes, cuando la description era el nombre
+ *   repetido y Google eligió el párrafo de Work ("dejá tu CV y sumate").
+ *   Si vuelve a elegir un texto que no conviene, la solución es reponerla.
+ * * **El título es la marca sola**, HELL'S BURGERS (2026-09-10).
+ * * **La canónica apunta al dominio real SIN `www`** (`alternates.canonical`):
+ *   el sitio respondía igual con y sin `www`, y Google veía dos copias de la
+ *   misma página. La redirección de `www` vive en `scripts/hostinger.mjs`.
+ * * El dominio sale de `SITE_URL` vía `metadataBase` — acá no se escribe.
  */
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -36,17 +26,15 @@ export const metadata: Metadata = {
     default: "HELL'S BURGERS",
     template: "%s · HELL'S BURGERS",
   },
-  description:
-    "Hamburguesas artesanales en Mendoza. Doce burgers para pecar, con papas sazonadas. Pedí por WhatsApp o pasá por Olascoaga 715. Hell's Burgers.",
+  alternates: { canonical: '/' },
   openGraph: {
     type: 'website',
     locale: 'es_AR',
     siteName: "HELL'S BURGERS",
     url: SITE_URL,
     title: "HELL'S BURGERS",
-    description:
-      "Hamburguesas artesanales en Mendoza. Doce burgers para pecar, con papas sazonadas. Pedí por WhatsApp o pasá por Olascoaga 715. Hell's Burgers.",
-    // TODO(diseño): crear public/og.jpg de 1200x630 y verificar la preview por WhatsApp.
+    // `public/og.jpg` (2026-09-11, pedido del cliente): EL MISMO LOGO DEL NAV
+    // (`public/logo.png`) centrado sobre el mismo fondo del nav, sin nada más.
     images: [{ url: '/og.jpg', width: 1200, height: 630, alt: "HELL'S BURGERS" }],
   },
   robots: { index: true, follow: true },

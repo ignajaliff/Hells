@@ -14,7 +14,9 @@ export function getRestaurantSchema() {
     description: NEGOCIO.claim,
     url: SITE_URL,
     telephone: NEGOCIO.telefono,
-    email: NEGOCIO.email,
+    // SIN `email` (2026-09-11): el que hay es un placeholder en un dominio que
+    // no existe, y publicarlo en los datos estructurados es darle a Google un
+    // contacto muerto. Vuelve cuando el cliente dé el real.
     servesCuisine: 'Hamburguesas',
     priceRange: '$$',
     image: `${SITE_URL}/og.jpg`,

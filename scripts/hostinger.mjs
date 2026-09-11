@@ -3,8 +3,8 @@
  * Corre solo, después de `next build`, vía `npm run build:hostinger`.
  *
  * Hace tres cosas:
- * 1. Escribe los dos `.htaccess` que Apache/LiteSpeed necesita (404 propio y
- *    caché). Van generados acá y NO en `public/`: Next no copia los archivos
+ * 1. Escribe los dos `.htaccess` que Apache/LiteSpeed necesita (404 propio,
+ *    caché y la redirección de www). Van generados acá y NO en `public/`: Next no copia los archivos
  *    que empiezan con punto, así que puestos ahí nunca llegarían a `out/`.
  * 2. AUDITA que no se haya colado nada interno — es el requisito del pedido:
  *    ni `ai-pmp`, ni `KNOW - HOW WEB`, ni `CLAUDE.md`, ni una mención a
@@ -32,6 +32,19 @@ fs.writeFileSync(
 
 # La página 404 de la web, en vez de la de Hostinger.
 ErrorDocument 404 /404.html
+
+# UNA SOLA VERSIÓN DEL SITIO: www redirige a la dirección sin www, con un 301
+# (permanente), que es el que le dice a Google que las dos son la misma página.
+# Sin esto las dos respondían 200 y Google veía el sitio duplicado.
+# La condición toma el dominio de la propia petición, así que no hay que
+# escribirlo acá: si cambia el dominio, la regla sigue sirviendo.
+# Solo se toca el www — forzar https acá podría entrar en bucle detrás de la
+# CDN de Hostinger, que es la que termina el certificado.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTP_HOST} ^www\\.(.+)$ [NC]
+  RewriteRule ^ https://%1%{REQUEST_URI} [R=301,L]
+</IfModule>
 
 <IfModule mod_headers.c>
   # El HTML nunca se cachea: es el que apunta a los archivos con hash.
