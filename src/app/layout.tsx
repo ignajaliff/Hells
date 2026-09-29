@@ -14,7 +14,18 @@ import '@/styles/globals.css'
  *   exactamente lo que pasó antes, cuando la description era el nombre
  *   repetido y Google eligió el párrafo de Work ("dejá tu CV y sumate").
  *   Si vuelve a elegir un texto que no conviene, la solución es reponerla.
- * * **El título es la marca sola**, HELL'S BURGERS (2026-09-10).
+ * * **El título es la marca sola**, Hells Burger (2026-09-28, pedido del
+ *   cliente). Venía `HELL'S BURGERS` (plural y con apóstrofo, 2026-09-10) y
+ *   antes `HELLS BURGUERS` con la U de más. El cliente lo pidió **singular y
+ *   sin apóstrofo**; el logo de marca y `NEGOCIO.nombre` escriben "Hell's
+ *   Burger", así que acá la única diferencia con la marca es ese apóstrofo,
+ *   que se saca a pedido. **Va tal cual se escribe acá, en caja mixta**:
+ *   el cliente lo pidió "respetando las mayúsculas y las minúsculas", así que
+ *   NO se pasa a caja alta aunque el resto de los títulos de la web sí vayan
+ *   en mayúsculas (eso lo hace el CSS de cada sección, no el head).
+ *   Se cambia en los CINCO lugares a la vez (`title.default`, el `template`,
+ *   `og:siteName`, `og:title` y el `alt` de la og:image): si se toca uno solo,
+ *   la pestaña y la preview de WhatsApp terminan diciendo cosas distintas.
  * * **La canónica apunta al dominio real SIN `www`** (`alternates.canonical`):
  *   el sitio respondía igual con y sin `www`, y Google veía dos copias de la
  *   misma página. La redirección de `www` vive en `scripts/hostinger.mjs`.
@@ -23,19 +34,19 @@ import '@/styles/globals.css'
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "HELL'S BURGERS",
-    template: "%s · HELL'S BURGERS",
+    default: "Hells Burger",
+    template: "%s · Hells Burger",
   },
   alternates: { canonical: '/' },
   openGraph: {
     type: 'website',
     locale: 'es_AR',
-    siteName: "HELL'S BURGERS",
+    siteName: "Hells Burger",
     url: SITE_URL,
-    title: "HELL'S BURGERS",
+    title: "Hells Burger",
     // `public/og.jpg` (2026-09-11, pedido del cliente): EL MISMO LOGO DEL NAV
     // (`public/logo.png`) centrado sobre el mismo fondo del nav, sin nada más.
-    images: [{ url: '/og.jpg', width: 1200, height: 630, alt: "HELL'S BURGERS" }],
+    images: [{ url: '/og.jpg', width: 1200, height: 630, alt: "Hells Burger" }],
   },
   robots: { index: true, follow: true },
 }
